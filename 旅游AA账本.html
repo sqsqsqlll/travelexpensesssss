@@ -169,13 +169,48 @@ main{max-width:780px;margin:0 auto;padding:16px 14px 60px;}
 .filter-bar::-webkit-scrollbar{display:none;}
 .fp{flex:none;border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:7px 14px;font-size:13px;color:var(--ink-soft);font-weight:500;}
 .fp.on{background:var(--coral);border-color:var(--coral);color:#fff;}
+
+/* ---------- 行程条 ---------- */
+.trip-bar{display:flex;gap:8px;overflow-x:auto;padding:2px 2px 12px;scrollbar-width:none;}
+.trip-bar::-webkit-scrollbar{display:none;}
+.trip-chip{
+  flex:none;display:inline-flex;align-items:center;gap:6px;background:var(--card);
+  border:1.5px solid var(--line);border-radius:999px;padding:7px 14px;font-size:13px;
+  font-weight:600;color:var(--ink-soft);white-space:nowrap;max-width:240px;transition:.13s;
+}
+.trip-chip:active{transform:scale(.97);}
+.trip-chip .tn{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+.trip-chip .cnt{font-size:11px;opacity:.72;flex:none;}
+.trip-chip.on{background:var(--ink-deep);border-color:var(--ink-deep);color:#F6EFDD;box-shadow:0 2px 8px rgba(36,70,59,.28);}
+.trip-chip.new{border-style:dashed;color:var(--coral-deep);border-color:#E4A98A;background:var(--coral-soft);}
+.trip-chip.manage{border-style:dotted;color:var(--muted);}
+.form-trip{
+  display:inline-flex;align-items:center;gap:6px;background:var(--paper);border:1px solid var(--line-soft);
+  border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--ink-soft);margin-bottom:12px;
+  max-width:100%;flex-wrap:wrap;
+}
+.form-trip b{color:var(--ink-deep);word-break:break-all;}
+.form-trip.warn{background:var(--coral-soft);border-color:#F2CBB5;color:#8A4A2E;}
+.t-trip{
+  display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:700;
+  background:var(--paper-deep);color:var(--ink-soft);border-radius:6px;padding:2px 7px;
+}
+.trip-line{display:flex;flex-direction:column;gap:10px;}
+.trip-row{
+  display:flex;align-items:center;gap:8px;background:var(--paper);border:1px solid var(--line-soft);
+  border-radius:10px;padding:9px 12px;flex-wrap:wrap;
+}
+.trip-row .tr-n{flex:1 1 100px;font-weight:700;font-size:14px;color:var(--ink-deep);word-break:break-all;min-width:0;}
+.trip-row .tr-d{font-size:11.5px;color:var(--muted);flex:none;font-variant-numeric:tabular-nums;}
+.trip-row .tr-cur{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--green-soft);color:var(--green);flex:none;}
 .summary-card{
   background:linear-gradient(135deg,var(--ink-deep),#2E5847);color:#F0EAD8;border-radius:var(--radius);
   padding:14px 16px;margin-bottom:14px;box-shadow:var(--shadow);
   display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
 }
-.summary-card .big{font-family:var(--serif);font-size:26px;font-weight:700;}
-.summary-card .sub{font-size:12px;color:#BFCFC0;margin-top:2px;}
+.summary-card>div{min-width:0;}
+.summary-card .big{font-family:var(--serif);font-size:clamp(20px,6vw,26px);font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.summary-card .sub{font-size:12px;color:#BFCFC0;margin-top:2px;line-height:1.5;}
 .toolbar{display:flex;gap:10px;margin-bottom:14px;}
 .toolbar .btn{flex:1;background:var(--card);border:1.5px solid var(--line);color:var(--ink);font-size:14px;box-shadow:none;border-radius:11px;padding:11px 8px;}
 .toolbar .btn:active{background:var(--paper-deep);}
@@ -185,9 +220,9 @@ main{max-width:780px;margin:0 auto;padding:16px 14px 60px;}
   border-radius:var(--radius);padding:13px 15px;margin-bottom:12px;box-shadow:var(--shadow);
   position:relative;
 }
-.txn-card .t-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
-.txn-card .t-item{font-family:var(--serif);font-size:16px;font-weight:700;color:var(--ink-deep);word-break:break-all;padding-right:4px;}
-.txn-card .t-amt{font-family:var(--serif);font-size:18px;font-weight:700;color:var(--coral-deep);white-space:nowrap;}
+.txn-card .t-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;min-width:0;flex-wrap:wrap;}
+.txn-card .t-item{font-family:var(--serif);font-size:16px;font-weight:700;color:var(--ink-deep);word-break:break-all;padding-right:4px;flex:1 1 120px;min-width:0;}
+.txn-card .t-amt{font-family:var(--serif);font-size:18px;font-weight:700;color:var(--coral-deep);white-space:nowrap;word-break:keep-all;}
 .txn-card .t-amt .code{font-size:11px;font-weight:600;color:var(--muted);margin-right:3px;}
 .txn-card .t-sub{font-size:12px;color:var(--muted);margin-top:3px;text-align:right;font-variant-numeric:tabular-nums;}
 .txn-card .t-meta{font-size:13px;color:var(--ink-soft);margin:9px 0 0;display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;}
@@ -198,7 +233,11 @@ main{max-width:780px;margin:0 auto;padding:16px 14px 60px;}
 }
 .txn-card .t-note{margin-top:7px;font-size:12.5px;color:#9A8F72;background:var(--paper);border-radius:8px;padding:6px 9px;}
 .txn-card .t-ops{position:absolute;top:10px;right:12px;display:flex;gap:2px;opacity:0;transition:.15s;}
-@media(hover:hover){.txn-card:hover .t-ops{opacity:1;}}
+@media(hover:hover){
+  .txn-card .t-top{padding-right:74px;}          /* 常驻预留按钮位，避免盖住金额 */
+  .txn-card .t-ops{opacity:.45;}
+  .txn-card:hover .t-ops{opacity:1;}
+}
 @media(hover:none){.txn-card .t-ops{opacity:1;position:static;justify-content:flex-end;margin-top:10px;}}
 .op{border:none;background:none;font-size:13px;color:var(--muted);padding:5px 8px;border-radius:7px;font-weight:600;}
 .op:hover{background:var(--paper-deep);color:var(--ink);}
@@ -230,15 +269,21 @@ main{max-width:780px;margin:0 auto;padding:16px 14px 60px;}
 .stats-band .sb-label{font-size:12px;color:#B9CBBB;margin-top:3px;letter-spacing:1px;}
 
 .member-grid{display:grid;grid-template-columns:1fr;gap:12px;}
+.member-grid>*{min-width:0;}
 @media(min-width:640px){.member-grid{grid-template-columns:1fr 1fr;}}
-.m-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 15px;box-shadow:var(--shadow);}
-.m-card .m-head{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
-.m-card .m-name{font-family:var(--serif);font-size:17px;font-weight:700;color:var(--ink-deep);}
-.m-card .m-note{font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.m-card .m-nums{display:flex;gap:8px;font-size:12px;color:var(--muted);margin-bottom:9px;font-variant-numeric:tabular-nums;}
-.m-card .m-nums b{color:var(--ink-soft);font-weight:600;}
-.m-bal{display:flex;align-items:baseline;gap:8px;margin-bottom:8px;}
-.m-bal .num{font-family:var(--serif);font-size:24px;font-weight:700;}
+.m-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px 15px;box-shadow:var(--shadow);overflow:hidden;}
+.m-card .m-head{display:flex;align-items:baseline;gap:8px;margin-bottom:10px;flex-wrap:wrap;min-width:0;}
+.m-card .m-name{font-family:var(--serif);font-size:17px;font-weight:700;color:var(--ink-deep);flex:none;}
+.m-card .m-note{font-size:12px;color:var(--muted);min-width:0;flex:1 1 80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.m-card .m-nums{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:6px 14px;
+  font-size:12px;color:var(--muted);margin-bottom:11px;font-variant-numeric:tabular-nums;
+}
+.m-card .m-nums .n{display:flex;flex-direction:column;gap:1px;min-width:0;}
+.m-card .m-nums .n .lb{font-size:11px;color:var(--muted);letter-spacing:.5px;line-height:1.5;white-space:nowrap;}
+.m-card .m-nums .n b{color:var(--ink-soft);font-weight:700;font-size:14px;line-height:1.4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.m-bal{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;min-width:0;}
+.m-bal .num{font-family:var(--serif);font-size:clamp(18px,5.2vw,22px);font-weight:700;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
 .m-bal.pos .num{color:var(--green);}
 .m-bal.neg .num{color:var(--coral-deep);}
 .m-bal.zero .num{color:var(--ink-soft);}
@@ -332,6 +377,11 @@ main{max-width:780px;margin:0 auto;padding:16px 14px 60px;}
 
 footer{max-width:780px;margin:26px auto 0;padding:0 16px;text-align:center;font-size:11.5px;color:#B0A98D;line-height:1.8;}
 footer .dot{margin:0 6px;}
+/* ==== 竖排断字硬修复：所有胶囊/统计类元素强制单行 ==== */
+[class*="trip"] *, [class*="chip"] *, [class*="pill"] *, [class*="sb-"] *, [class*="stat"] *{
+  white-space:nowrap;word-break:keep-all;overflow-wrap:normal;
+}
+[class*="trip"], [class*="chip"], [class*="pill"], [class*="sb-"]{min-width:0;}
 </style>
 </head>
 <body>
@@ -352,10 +402,13 @@ footer .dot{margin:0 6px;}
 </div>
 
 <main>
+  <div class="trip-bar" id="tripBar"></div>
+
   <!-- ============ 页签 1：记一笔 ============ -->
   <section class="view on" id="view-add">
     <div class="card">
       <div class="section-title" id="formTitle">记一笔</div>
+      <div class="form-trip" id="formTrip">📁 行程：<b>—</b></div>
 
       <div class="row2">
         <div class="fitem">
@@ -442,6 +495,7 @@ footer .dot{margin:0 6px;}
   <!-- ============ 页签 3：成员 ============ -->
   <section class="view" id="view-members">
     <div class="stats-band" id="mStats"></div>
+    <div class="form-trip" id="mScope">🧳 统计范围：<b>全部行程</b></div>
 
     <div class="card">
       <div class="section-title">成员管理</div>
@@ -464,7 +518,7 @@ footer .dot{margin:0 6px;}
 </main>
 
 <footer>
-  数据层：本地模拟「资料库数据表」· 逐条记录存储 · 多标签实时同步<span class="dot">·</span>深墨绿 × 米白 × 珊瑚橙
+  数据层：WorkBuddy 云数据库 · 逐条记录实时同步 · 多人共享同一份账本<span class="dot">·</span>深墨绿 × 米白 × 珊瑚橙
 </footer>
 
 <!-- ============ 初始化向导 / 设置 ============ -->
@@ -530,15 +584,35 @@ footer .dot{margin:0 6px;}
   </div>
 </div>
 
+<!-- ============ 行程管理 ============ -->
+<div class="mask" id="tripMask">
+  <div class="modal">
+    <h3>🧳 行程管理</h3>
+    <div class="m-desc">每个行程独立记账、独立结算，也可以单独导出/导入该行程的账目。</div>
+    <div class="m-fields">
+      <div><label>行程名称</label><input id="tpName" maxlength="24" placeholder="如：东京 5 日游"></div>
+      <div><label>开始日期（可选）</label><input type="date" id="tpStart"></div>
+      <div><label>结束日期（可选）</label><input type="date" id="tpEnd"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="tpCancel">关闭</button>
+      <button class="btn btn-primary" id="tpSave">＋ 创建行程</button>
+    </div>
+    <div class="section-title" style="margin:16px 2px 10px;font-size:14px">已有行程</div>
+    <div class="trip-line" id="tripList"></div>
+  </div>
+</div>
+
 <!-- ============ 导入 CSV ============ -->
 <div class="mask" id="imMask">
   <div class="modal">
     <h3>📥 导入 CSV</h3>
     <div class="m-desc">
-      列格式与导出一致：<br>项目, 日期, 类别, 付款人, 参与人（/ 分隔）, 金额, 分摊方式, 自定义分摊, 状态, 备注, 币种, 汇率
+      列格式与导出一致：<br>项目, 日期, 类别, 付款人, 参与人（/ 分隔）, 金额, 分摊方式, 自定义分摊, 状态, 备注, 币种, 汇率, 行程<br>
+      导入的账目会归入<b id="imTripHint">当前行程</b>；CSV 里的「行程」列仅作参考，不会自动新建行程。
     </div>
     <input type="file" id="imFile" accept=".csv,text/csv" style="width:100%;border:1.5px dashed var(--line);border-radius:10px;padding:10px;font-size:13px;background:#FFFDF8;margin-bottom:12px;">
-    <label class="check-line"><input type="checkbox" id="imClear">导入前先清空云端账目</label>
+    <label class="check-line"><input type="checkbox" id="imClear">导入前先清空本行程的账目</label>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="imCancel">取消</button>
       <button class="btn btn-primary" id="imGo">开始导入</button>
@@ -548,6 +622,7 @@ footer .dot{margin:0 6px;}
 
 <div id="toast"></div>
 
+<script src="https://cdn.jsdelivr.net/npm/@tencent-ai/workbuddy-cloud-sdk@dev/lib/index.global.js"></script>
 <script>
 "use strict";
 /* =========================================================
@@ -590,7 +665,7 @@ var LS = (function(){
 })();
 var CH = null;
 try{ CH = new BroadcastChannel("trip-aa-ledger"); }catch(e){}
-var KEY = { t:"aal$t$", m:"aal$m$", s:"aal$settings" }; /* 账目表 / 成员表 / 设置表 */
+var KEY = { t:"aal$t$", m:"aal$m$", s:"aal$settings", x:"aal$x$" }; /* 账目表 / 成员表 / 设置表 / 行程表 */
 
 var DB = {
   list:function(table){
@@ -599,20 +674,188 @@ var DB = {
     return out;
   },
   get:function(table,id){ try{ return JSON.parse(LS.getItem(KEY[table]+id)); }catch(e){ return null; } },
-  upsert:function(table,record){ LS.setItem(KEY[table]+record.id, JSON.stringify(record)); DB._ping(); },   /* 按记录逐条保存 */
-  remove:function(table,id){ LS.removeItem(KEY[table]+id); DB._ping(); },
+  upsert:function(table,record){ LS.setItem(KEY[table]+record.id, JSON.stringify(record)); DB._ping(); cloudWrite(table,record.id); },   /* 按记录逐条保存 + 云端写穿 */
+  remove:function(table,id){ LS.removeItem(KEY[table]+id); DB._ping(); cloudWrite(table,id); },
   _ping:function(){ if(CH){ try{ CH.postMessage({src:CLIENT_ID}); }catch(e){} } }
 };
 if(CH){ CH.onmessage=function(ev){ if(!ev.data || ev.data.src===CLIENT_ID) return; syncFromDB(true); }; }
 window.addEventListener("storage",function(ev){ if(ev.key && ev.key.indexOf("aal$")===0) syncFromDB(true); });
 
+/* ---------- 云端同步层（WorkBuddy 云数据库，多人共享同一份账本） ---------- */
+var PCFG = { endpoint:"https://travel-aa-ledger-72643.app.workbuddy.host", publishableKey:"wbpk_YJcVmZlUG3znJj9nOFk9S3_vHR7ltzABdag8QTpPL3v4VqNezynFa21" };
+var cloud=null, CLOUD_ON=false;
+try{
+  if(window.WorkBuddyCloud && window.WorkBuddyCloud.createWorkBuddyCloud){
+    cloud = window.WorkBuddyCloud.createWorkBuddyCloud({ endpoint: PCFG.endpoint, publishableKey: PCFG.publishableKey });
+    CLOUD_ON = true;
+  }
+}catch(e){ CLOUD_ON=false; }
+
+var CTAB = { t:"ledger_transactions", m:"ledger_members", s:"ledger_settings", x:"ledger_trips" };
+function txnToRow(t){ return { id:t.id, item:t.item||"", date:t.date||"", category:t.category||"", payer:t.payer||"", participants:t.participants||"", amount:(t.amount==null?0:+t.amount), split_mode:t.splitMode||"平均分摊", custom_split:t.customSplit||"", status:t.status||"已确认", note:t.note||"", currency:t.currency||"", rate:(t.rate==null?1:+t.rate), trip:(t.trip||""), ts:(t.ts||0) }; }
+function rowToTxn(r){ return { id:r.id, ts:(+r.ts||0), item:r.item, date:r.date, category:r.category, payer:r.payer, participants:r.participants, amount:(r.amount==null?0:+r.amount), splitMode:r.split_mode, customSplit:r.custom_split, status:r.status, note:r.note, currency:r.currency, rate:(r.rate==null?1:+r.rate), trip:(r.trip||"") }; }
+function memToRow(m){ return { id:m.id, name:m.name||"", note:m.note||"", ts:(m.ts||0) }; }
+function rowToMem(r){ return { id:r.id, name:r.name||"", note:r.note||"", ts:(+r.ts||0) }; }
+function tripToRow(p){ return { id:p.id, name:p.name||"", start_date:p.startDate||"", end_date:p.endDate||"", note:p.note||"", ts:(p.ts||0) }; }
+function rowToTrip(r){ return { id:r.id, name:r.name||"", startDate:r.start_date||"", endDate:r.end_date||"", note:r.note||"", ts:(+r.ts||0) }; }
+function cfgToRow(s){ return { id:"cfg", base_currency:s.baseCurrency||"CNY 人民币", common_currencies:s.commonCurrencies||[], initialized:!!s.initialized }; }
+function rowToCfg(r){ return { id:"cfg", baseCurrency:r.base_currency||"CNY 人民币", commonCurrencies:(r.common_currencies||[]), initialized:!!r.initialized }; }
+function lsPut(table,rec){ LS.setItem(KEY[table]+rec.id, JSON.stringify(rec)); DB._ping(); }
+function lsDel(table,id){ LS.removeItem(KEY[table]+id); DB._ping(); }
+
+/* 写穿队列：本地先落，云端异步补 */
+var dirty={}, flushing=false, cloudErrToasted=false;
+function cloudWrite(table,id){
+  if(!CLOUD_ON) return;
+  dirty[table+"$"+id]={ table:table, id:id };
+  setTimeout(flushDirty, 200);
+}
+function flushDirty(){
+  if(!CLOUD_ON || flushing) return;
+  var keys=Object.keys(dirty); if(!keys.length) return;
+  flushing=true;
+  var k=keys[0], job=dirty[k]; delete dirty[k];
+  var rec = DB.get(job.table, job.id), p;
+  if(!rec){ p = cloud.database.from(CTAB[job.table]).delete().eq("id", job.id); }
+  else{
+    var row = job.table==="t" ? txnToRow(rec) : job.table==="m" ? memToRow(rec) : job.table==="x" ? tripToRow(rec) : cfgToRow(rec);
+    p = cloud.database.from(CTAB[job.table]).upsert(row);
+  }
+  p.then(function(res){
+    if(res && res.error) throw res.error;
+    flushing=false; cloudErrToasted=false;
+    flushDirty(); /* 链式清空队列 */
+  }).catch(function(){
+    flushing=false;
+    dirty[k]=job; /* 放回队列，稍后重试 */
+    if(!cloudErrToasted){ cloudErrToasted=true; toast("云端保存失败，稍后自动重试 ⚠"); }
+    setTimeout(flushDirty, 5000);
+  });
+}
+
+/* 拉取：云端为唯一事实源，本地作缓存镜像 */
+var pulling=false;
+function cloudPullRaw(done){
+  if(!CLOUD_ON || pulling){ if(done) done(null); return; }
+  pulling=true;
+  Promise.all([
+    cloud.database.from(CTAB.t).select("*"),
+    cloud.database.from(CTAB.m).select("*"),
+    cloud.database.from(CTAB.s).select("*").limit(1),
+    cloud.database.from(CTAB.x).select("*")
+  ]).then(function(rs){
+    pulling=false;
+    for(var i=0;i<rs.length;i++){ if(rs[i] && rs[i].error){ if(done) done(null); return; } }
+    if(done) done({ tx:rs[0].data||[], mem:rs[1].data||[], cfg:(rs[2].data||[])[0]||null, trips:rs[3].data||[] });
+  }).catch(function(){ pulling=false; if(done) done(null); });
+}
+function applyCloudDiff(boxes){
+  if(!boxes) return;
+  var changed=false, i, r, loc;
+  var bxT=boxes.tx||[], bxM=boxes.mem||[], bxX=boxes.trips||[];
+  var cloudT={}, cloudM={}, cloudX={};
+  for(i=0;i<bxT.length;i++){ cloudT[bxT[i].id]=1; }
+  for(i=0;i<bxM.length;i++){ cloudM[bxM[i].id]=1; }
+  for(i=0;i<bxX.length;i++){ cloudX[bxX[i].id]=1; }
+  for(i=0;i<bxT.length;i++){
+    r=rowToTxn(bxT[i]);
+    if(dirty["t$"+r.id]) continue;
+    loc=DB.get("t",r.id);
+    if(!loc){ lsPut("t",r); changed=true; }
+    else if(JSON.stringify(loc)!==JSON.stringify(r) && (+r.ts||0) >= (+loc.ts||0)){ lsPut("t",r); changed=true; }
+  }
+  var localT=DB.list("t");
+  for(i=0;i<localT.length;i++){ if(!cloudT[localT[i].id] && !dirty["t$"+localT[i].id]){ lsDel("t",localT[i].id); changed=true; } }
+  for(i=0;i<bxM.length;i++){
+    r=rowToMem(bxM[i]);
+    if(dirty["m$"+r.id]) continue;
+    loc=DB.get("m",r.id);
+    if(!loc){ lsPut("m",r); changed=true; }
+    else if(JSON.stringify(loc)!==JSON.stringify(r) && (+r.ts||0) >= (+loc.ts||0)){ lsPut("m",r); changed=true; }
+  }
+  var localM=DB.list("m");
+  for(i=0;i<localM.length;i++){ if(!cloudM[localM[i].id] && !dirty["m$"+localM[i].id]){ lsDel("m",localM[i].id); changed=true; } }
+  for(i=0;i<bxX.length;i++){
+    r=rowToTrip(bxX[i]);
+    if(dirty["x$"+r.id]) continue;
+    loc=DB.get("x",r.id);
+    if(!loc){ lsPut("x",r); changed=true; }
+    else if(JSON.stringify(loc)!==JSON.stringify(r) && (+r.ts||0) >= (+loc.ts||0)){ lsPut("x",r); changed=true; }
+  }
+  var localX=DB.list("x");
+  for(i=0;i<localX.length;i++){ if(!cloudX[localX[i].id] && !dirty["x$"+localX[i].id]){ lsDel("x",localX[i].id); changed=true; } }
+  if(boxes.cfg && !dirty["s$cfg"]){
+    var c=rowToCfg(boxes.cfg);
+    loc=DB.get("s","cfg");
+    if(JSON.stringify(loc)!==JSON.stringify(c)){ lsPut("s",c); changed=true; }
+  }
+  if(changed){ syncFromDB(false); }
+  /* 当前选中的行程若已被删除，回到「全部」 */
+  loadAll();
+  if(state.curTrip!=="__all__" && !tripById(state.curTrip)){ state.curTrip="__all__"; saveTripSel(); changed=true; }
+  if(changed){
+    renderTripBar();
+    if(state.settings && state.settings.initialized && $("wizMask").classList.contains("on") && $("wizMask").dataset.lock){ $("wizMask").dataset.lock=""; closeWizard(); }
+  }
+  return changed;
+}
+function migrateLocalUp(){
+  var rows = DB.list("t").map(txnToRow);
+  var mrows = DB.list("m").map(memToRow);
+  var xrows = DB.list("x").map(tripToRow);
+  var cfg = DB.get("s","cfg");
+  var jobs=[];
+  if(rows.length) jobs.push(cloud.database.from(CTAB.t).upsert(rows));
+  if(mrows.length) jobs.push(cloud.database.from(CTAB.m).upsert(mrows));
+  if(xrows.length) jobs.push(cloud.database.from(CTAB.x).upsert(xrows));
+  if(cfg) jobs.push(cloud.database.from(CTAB.s).upsert(cfgToRow(cfg)));
+  if(!jobs.length) return;
+  Promise.all(jobs).then(function(rs){
+    for(var i=0;i<rs.length;i++){ if(rs[i] && rs[i].error) throw rs[i].error; }
+    toast("本地账本已上云，多人共享已开启 ☁");
+  }).catch(function(){
+    toast("云端初始化同步失败，稍后重试 ⚠");
+    setTimeout(function(){ cloudPullRaw(function(boxes){ if(!boxes) migrateLocalUp(); else applyCloudDiff(boxes); }); }, 6000);
+  });
+}
+function cloudBoot(){
+  if(!CLOUD_ON){ toast("云端未连接，当前仅本机记录 ⚠"); return; }
+  cloudPullRaw(function(boxes){
+    if(!boxes){ return; }
+    var hasCloud = boxes.tx.length || boxes.mem.length || boxes.cfg || (boxes.trips||[]).length;
+    var hasLocal = DB.list("t").length || DB.list("m").length || DB.get("s","cfg") || DB.list("x").length;
+    if(!hasCloud && hasLocal){ migrateLocalUp(); }
+    else{ applyCloudDiff(boxes); }
+  });
+  setInterval(function(){ cloudPullRaw(applyCloudDiff); }, 5000);
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden) cloudPullRaw(applyCloudDiff); });
+  window.addEventListener("focus", function(){ cloudPullRaw(applyCloudDiff); });
+}
+
 /* ---------- 全局状态 ---------- */
-var state = { members:[], settings:null, txns:[] };
+var state = { members:[], settings:null, txns:[], trips:[], curTrip:"__all__" };
 function loadAll(){
   state.members = DB.list("m");
   state.settings = DB.get("s","cfg");
   state.txns = DB.list("t");
+  state.trips = DB.list("x").sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
   state.txns.sort(function(a,b){ return (b.date||"").localeCompare(a.date||"") || (b.ts||0)-(a.ts||0); });
+}
+/* ---------- 行程工具 ---------- */
+function tripById(id){ for(var i=0;i<state.trips.length;i++){ if(state.trips[i].id===id) return state.trips[i]; } return null; }
+function tripName(id){ var t=tripById(id); return t? t.name : "未分配行程"; }
+function scopedTxns(){ /* 受行程筛选影响的账目集合 */
+  if(state.curTrip==="__all__") return state.txns;
+  return state.txns.filter(function(t){ return (t.trip||"")===state.curTrip; });
+}
+function targetTripId(){ /* 记账目标行程：必须落到某个具体行程 */
+  if(state.curTrip!=="__all__") return state.curTrip;
+  return state.trips.length ? state.trips[0].id : "";
+}
+function saveTripSel(){ try{ LS.setItem("aaluitrip", state.curTrip); }catch(e){} }
+function loadTripSel(){
+  var v=null; try{ v=LS.getItem("aaluitrip"); }catch(e){}
+  if(v){ state.curTrip=v; }
 }
 function baseLabel(){ return (state.settings && state.settings.baseCurrency) || "CNY 人民币"; }
 function baseCode(){ return curCode(baseLabel()); }
@@ -638,9 +881,10 @@ function shareMap(t){ /* 返回 {姓名: 原币金额}；支持 平均分摊 / �
   if(parts.length){ var each=(+t.amount||0)/parts.length; for(i=0;i<parts.length;i++) res[parts[i]]=each; }
   return res;
 }
-function memberStats(){
+function memberStats(list){
+  var src = list || scopedTxns();
   var s={}; state.members.forEach(function(m){ s[m.name]={paid:0,owed:0,note:m.note||""}; });
-  state.txns.forEach(function(t){
+  src.forEach(function(t){
     var base=txnBase(t);
     if(t.payer && s[t.payer]) s[t.payer].paid += base;
     var sm=shareMap(t);
@@ -694,7 +938,7 @@ function fillForm(t){
   var hasOpt=Array.prototype.some.call(curEl.options,function(o){ return o.value===wantCur; });
   if(!hasOpt){ var op=document.createElement("option"); op.value=op.textContent=wantCur; curEl.appendChild(op); }
   curEl.value=wantCur;
-  updateRateUI(); renderCustom();
+  updateRateUI(); renderCustom(); renderFormTrip();
   $("formTitle").textContent="编辑账目";
   $("submitBtn").textContent="💾 保存修改";
   $("cancelEditBtn").style.display="";
@@ -708,7 +952,7 @@ function clearForm(){
   selPayer=state.members.length?state.members[0].name:"";
   selParts=state.members.map(function(m){return m.name;});
   $("fCur").value=baseLabel();
-  renderFormDynamic(); updateRateUI(); renderCustom();
+  renderFormDynamic(); updateRateUI(); renderCustom(); renderFormTrip();
   $("formTitle").textContent="记一笔";
   $("submitBtn").textContent="💾 记一笔";
   $("cancelEditBtn").style.display="none";
@@ -900,6 +1144,8 @@ $("partAll").onclick=function(){
 /* ---------- 提交 ---------- */
 $("submitBtn").onclick=function(){
   if(!state.members.length){ toast("请先在 ⚙ 设置中添加成员"); return; }
+  if(!state.trips.length){ toast("先创建一个行程，再记账 🧳"); openTripModal(); return; }
+  var tripId=targetTripId();
   var item=$("fItem").value.trim()||"未命名支出";
   var date=$("fDate").value||todayStr();
   var amt=parseFloat($("fAmount").value);
@@ -925,11 +1171,12 @@ $("submitBtn").onclick=function(){
     item:item, date:date, category:selCat, payer:selPayer,
     participants:selParts.join("/"), amount:Math.round(amt*100)/100,
     splitMode:selMode, customSplit:customSplit, status:selStatus,
-    note:$("fNote").value.trim(), currency:cur, rate:rate
+    note:$("fNote").value.trim(), currency:cur, rate:rate,
+    trip: editingId ? ((DB.get("t",editingId)||{}).trip||tripId) : tripId
   };
   var wasEdit=!!editingId;
   DB.upsert("t",rec);
-  loadAll(); clearForm(); renderList(); renderMembers();
+  loadAll(); clearForm(); renderList(); renderMembers(); renderTripBar();
   toast(wasEdit? "已保存修改 ✅" : "已记一笔 ✅");
   editingId=null; switchTab("list");
 };
@@ -940,17 +1187,127 @@ function switchTab(name){
   document.querySelectorAll(".tab").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-tab")===name); });
   document.querySelectorAll(".view").forEach(function(v){ v.classList.remove("on"); });
   $("view-"+name).classList.add("on");
+  renderTripBar();
   if(name==="list") renderList();
   if(name==="members") renderMembers();
   if(name==="add") renderFormDynamic();
 }
 document.querySelectorAll(".tab").forEach(function(b){ b.onclick=function(){ switchTab(b.getAttribute("data-tab")); }; });
 
+/* ---------- 行程条 / 行程管理 ---------- */
+var edTripId=null; /* 行程管理弹窗中正在编辑的行程 id */
+function renderTripBar(){
+  var onTab=document.querySelector(".tab.on");
+  var inAdd = !!onTab && onTab.getAttribute("data-tab")==="add";
+  var chips=[];
+  if(!inAdd){
+    chips.push('<button class="trip-chip'+(state.curTrip==="__all__"?" on":"")+'" data-trip="__all__"><span class="tn">🗂 全部行程</span><span class="cnt">'+state.txns.length+'</span></button>');
+  }
+  state.trips.forEach(function(p){
+    var n=state.txns.filter(function(t){ return (t.trip||"")===p.id; }).length;
+    chips.push('<button class="trip-chip'+(state.curTrip===p.id?" on":"")+'" data-trip="'+esc(p.id)+'"><span class="tn">🧳 '+esc(p.name)+'</span><span class="cnt">'+n+'</span></button>');
+  });
+  chips.push('<button class="trip-chip new" id="tripNewBtn">＋ 新行程</button>');
+  chips.push('<button class="trip-chip manage" id="tripMgrBtn">⚙ 管理</button>');
+  $("tripBar").innerHTML=chips.join("");
+  Array.prototype.forEach.call($("tripBar").querySelectorAll("[data-trip]"),function(b){
+    b.onclick=function(){ selectTrip(b.getAttribute("data-trip")); };
+  });
+  $("tripNewBtn").onclick=openTripModal;
+  $("tripMgrBtn").onclick=openTripModal;
+  if($("tripMask").classList.contains("on")) renderTripList();
+  renderFormTrip();
+}
+function selectTrip(id){
+  state.curTrip=id; saveTripSel();
+  renderTripBar(); renderList(); renderMembers();
+}
+function renderFormTrip(){
+  var el=$("formTrip"); if(!el) return;
+  if(!state.trips.length){
+    el.className="form-trip warn";
+    el.innerHTML="⚠ 还没有行程，先点上方「＋ 新行程」创建一个";
+    return;
+  }
+  var editRec = editingId ? DB.get("t",editingId) : null;
+  if(editRec){
+    el.className="form-trip";
+    el.innerHTML="📁 这笔属于：<b>"+esc(tripName(editRec.trip))+"</b> <span style=\"color:var(--muted)\">（编辑不会改变行程归属）</span>";
+    return;
+  }
+  var p=tripById(targetTripId());
+  el.className="form-trip"+(state.curTrip==="__all__"?" warn":"");
+  el.innerHTML="📁 记入行程：<b>"+esc(p?p.name:"—")+"</b>"+(state.curTrip==="__all__"?' <span style="color:var(--coral-deep)">（当前是「全部」视图，将记入最新行程）</span>':"");
+}
+function openTripModal(){
+  edTripId=null; $("tpName").value=""; $("tpStart").value=""; $("tpEnd").value="";
+  $("tpSave").textContent="＋ 创建行程";
+  renderTripList();
+  $("tripMask").classList.add("on");
+}
+function renderTripList(){
+  $("tripList").innerHTML = state.trips.length ? state.trips.map(function(p){
+    var n=state.txns.filter(function(t){ return (t.trip||"")===p.id; }).length;
+    var d=(p.startDate||p.endDate)? (esc(p.startDate||"…")+" ~ "+esc(p.endDate||"…")) : "日期未设置";
+    return '<div class="trip-row"><span class="tr-n">'+esc(p.name)+'<small style="color:var(--muted);font-weight:400"> · '+n+' 笔</small></span>'+
+      '<span class="tr-d">'+d+"</span>"+
+      (state.curTrip===p.id?'<span class="tr-cur">当前</span>':"")+
+      '<button class="btn btn-sm btn-ghost" data-tpe="'+esc(p.id)+'">编辑</button>'+
+      '<button class="btn btn-sm btn-ghost" data-tpd="'+esc(p.id)+'" style="color:var(--coral-deep)">删除</button></div>';
+  }).join("") : '<div style="font-size:13px;color:var(--muted);padding:6px 2px">还没有行程，先在上方创建一个</div>';
+  Array.prototype.forEach.call($("tripList").querySelectorAll("[data-tpe]"),function(b){
+    b.onclick=function(){
+      var p=tripById(b.getAttribute("data-tpe")); if(!p) return;
+      edTripId=p.id; $("tpName").value=p.name||""; $("tpStart").value=p.startDate||""; $("tpEnd").value=p.endDate||"";
+      $("tpSave").textContent="💾 保存修改";
+      toast("编辑中，改完点「保存修改」");
+    };
+  });
+  Array.prototype.forEach.call($("tripList").querySelectorAll("[data-tpd]"),function(b){
+    b.onclick=function(){
+      var p=tripById(b.getAttribute("data-tpd")); if(!p) return;
+      var n=state.txns.filter(function(t){ return (t.trip||"")===p.id; }).length;
+      confirmDialog("删除行程「"+p.name+"」？该行程下 "+n+" 笔账目会变成「未分配」（账目本身不删除）。").then(function(ok){
+        if(!ok) return;
+        DB.remove("x",p.id);
+        if(state.curTrip===p.id){ state.curTrip="__all__"; saveTripSel(); }
+        loadAll(); renderTripBar(); renderAll();
+        toast("已删除行程");
+      });
+    };
+  });
+}
+$("tpCancel").onclick=function(){ $("tripMask").classList.remove("on"); };
+$("tripMask").addEventListener("click",function(e){ if(e.target===this) $("tripMask").classList.remove("on"); });
+$("tpSave").onclick=function(){
+  var name=$("tpName").value.trim();
+  if(!name){ toast("请输入行程名称"); return; }
+  var sv=$("tpStart").value||"", ev=$("tpEnd").value||"";
+  if(sv && ev && ev<sv){ toast("结束日期不能早于开始日期"); return; }
+  if(edTripId){
+    var p=tripById(edTripId); if(!p) return;
+    p.name=name; p.startDate=sv; p.endDate=ev; p.ts=Date.now();
+    DB.upsert("x",p);
+    edTripId=null;
+    $("tpName").value=""; $("tpStart").value=""; $("tpEnd").value=""; $("tpSave").textContent="＋ 创建行程";
+    loadAll(); renderTripBar(); renderList(); renderMembers();
+    toast("行程已更新 ✅");
+  }else{
+    var rec={ id:uid(), name:name, startDate:sv, endDate:ev, note:"", ts:Date.now() };
+    DB.upsert("x",rec);
+    state.curTrip=rec.id; saveTripSel();
+    $("tpName").value=""; $("tpStart").value=""; $("tpEnd").value="";
+    loadAll(); renderTripBar(); renderList(); renderMembers();
+    toast("行程已创建 🧳");
+  }
+};
+
 /* ---------- 账目列表 ---------- */
 var filterPayer="全部";
 function renderList(){
+  var src=scopedTxns(); /* 行程范围内的账目 */
   /* 付款人筛选胶囊 */
-  var payers=["全部"]; state.txns.forEach(function(t){ if(t.payer && payers.indexOf(t.payer)<0) payers.push(t.payer); });
+  var payers=["全部"]; src.forEach(function(t){ if(t.payer && payers.indexOf(t.payer)<0) payers.push(t.payer); });
   $("filterPills").innerHTML=payers.map(function(p){
     return '<button class="fp'+(p===filterPayer?" on":"")+'" data-v="'+esc(p)+'">'+esc(p)+"</button>";
   }).join("");
@@ -958,16 +1315,17 @@ function renderList(){
     b.onclick=function(){ filterPayer=b.getAttribute("data-v"); renderList(); };
   });
 
-  var list=state.txns.filter(function(t){ return filterPayer==="全部"||t.payer===filterPayer; });
+  var list=src.filter(function(t){ return filterPayer==="全部"||t.payer===filterPayer; });
   var total=0, confirmed=0, waitN=0;
   list.forEach(function(t){ var b=txnBase(t); total+=b; if(t.status==="已确认") confirmed+=b; else waitN++; });
   var bc=baseCode(), bs=baseSym();
+  var scopeLabel=(state.curTrip==="__all__")? "全部行程" : tripName(state.curTrip);
   $("listSummary").innerHTML=
-    '<div><div class="big">'+bs+fmt(total)+'</div><div class="sub">'+esc(bc)+' · 共 '+list.length+' 笔 · 已确认 '+bs+fmt(confirmed)+'</div></div>'+
+    '<div><div class="big">'+bs+fmt(total)+'</div><div class="sub">'+esc(bc)+' · '+esc(scopeLabel)+' · 共 '+list.length+' 笔 · 已确认 '+bs+fmt(confirmed)+'</div></div>'+
     '<div style="text-align:right"><div class="big coral" style="font-size:18px;color:#FFB48C">'+waitN+' 笔</div><div class="sub">待确认</div></div>';
 
   if(!list.length){
-    $("txnList").innerHTML='<div class="empty"><span class="emo">🧳✈️</span>'+(state.txns.length?"这个付款人名下还没有账目":"还没有账目，去「记一笔」写下第一笔吧")+"</div>";
+    $("txnList").innerHTML='<div class="empty"><span class="emo">🧳✈️</span>'+(src.length?"这个付款人名下还没有账目":(state.curTrip==="__all__"?"还没有账目，去「记一笔」写下第一笔吧":"这个行程还没有账目"))+"</div>";
     return;
   }
   $("txnList").innerHTML=list.map(function(t){
@@ -1000,6 +1358,7 @@ function renderList(){
         '<span><i class="cat-dot" style="background:'+CAT_COLOR[t.category]+'"></i>'+CAT_ICON[t.category]+" "+esc(t.category||"其他")+"</span>"+
         '<span>💳 '+esc(t.payer||"-")+' 垫付</span>'+
         '<span>👥 '+n+' 人分</span>'+
+        (state.curTrip==="__all__"?'<span class="t-trip">🧳 '+esc(tripName(t.trip))+"</span>":"")+
       "</div>"+
       '<div class="t-split">'+splitHtml+"</div>"+
       (t.note?'<div class="t-note">📝 '+esc(t.note)+"</div>":"")+
@@ -1023,12 +1382,15 @@ function renderList(){
 /* ---------- 成员页 ---------- */
 function renderMembers(){
   var bc=baseCode(), bs=baseSym();
+  var src=scopedTxns();
+  var scopeLabel=(state.curTrip==="__all__")?"全部行程":tripName(state.curTrip);
   var confirmed=0, waitN=0;
-  state.txns.forEach(function(t){ if(t.status==="已确认") confirmed+=txnBase(t); else waitN++; });
+  src.forEach(function(t){ if(t.status==="已确认") confirmed+=txnBase(t); else waitN++; });
   $("mStats").innerHTML=
     '<div class="sb-item"><div class="sb-num">'+bs+fmt(confirmed)+'</div><div class="sb-label">已确认共同支出（'+esc(bc)+"）</div></div>"+
     '<div class="sb-item"><div class="sb-num coral">'+waitN+'</div><div class="sb-label">待确认笔数</div></div>'+
     '<div class="sb-item"><div class="sb-num">'+state.members.length+'</div><div class="sb-label">成员人数</div></div>';
+  $("mScope").innerHTML="🧳 统计范围：<b>"+esc(scopeLabel)+"</b> · 共 "+src.length+" 笔账目";
 
   /* 成员管理 */
   $("adminList").innerHTML = state.members.length ? state.members.map(function(m){
@@ -1050,13 +1412,16 @@ function renderMembers(){
   });
 
   /* 成员卡片 */
-  var s=memberStats(), maxAbs=0.01;
+  var s=memberStats(src), maxAbs=0.01;
   state.members.forEach(function(m){ maxAbs=Math.max(maxAbs, Math.abs(s[m.name].paid-s[m.name].owed)); });
   $("memberGrid").innerHTML = state.members.length ? state.members.map(function(m){
     var st=s[m.name], bal=st.paid-st.owed, pos=bal>0.005, neg=bal<-0.005;
     var w=Math.min(50, Math.abs(bal)/maxAbs*50);
     return '<div class="m-card"><div class="m-head"><span class="m-name">'+esc(m.name)+'</span>'+(m.note?'<span class="m-note">'+esc(m.note)+"</span>":"")+"</div>"+
-      '<div class="m-nums"><span>垫付 <b>'+bs+fmt(st.paid)+'</b></span><span>应摊 <b>'+bs+fmt(st.owed)+"</b></span></div>"+
+      '<div class="m-nums">'+
+        '<span class="n"><span class="lb">垫付</span><b>'+bs+fmt(st.paid)+'</b></span>'+
+        '<span class="n"><span class="lb">应摊</span><b>'+bs+fmt(st.owed)+'</b></span>'+
+      "</div>"+
       '<div class="m-bal '+(pos?"pos":neg?"neg":"zero")+'"><span class="num">'+(pos?"+":"")+bs+fmt(bal)+'</span>'+
       '<span class="tag">'+(pos?"应收 💰":neg?"应付 💸":"两清 ✅")+"</span></div>"+
       '<div class="bal-track">'+(pos?'<div class="bal-fill pos" style="width:'+w+'%"></div>':neg?'<div class="bal-fill neg" style="width:'+w+'%"></div>':"")+"</div></div>";
@@ -1112,23 +1477,29 @@ $("rnSave").onclick=function(){
 };
 
 /* ---------- CSV 导出 / 导入 ---------- */
-var CSV_HEAD=["项目","日期","类别","付款人","参与人","金额","分摊方式","自定义分摊","状态","备注","币种","汇率"];
+var CSV_HEAD=["项目","日期","类别","付款人","参与人","金额","分摊方式","自定义分摊","状态","备注","币种","汇率","行程"];
 function csvEsc(v){
   v=String(v==null?"":v);
   return /[",\n\r]/.test(v) ? '"'+v.replace(/"/g,'""')+'"' : v;
 }
+function exportRows(){
+  var src=scopedTxns();
+  return src.filter(function(t){ return filterPayer==="全部"||t.payer===filterPayer; });
+}
 $("exportBtn").onclick=function(){
-  if(!state.txns.length){ toast("还没有账目可导出"); return; }
+  var list=exportRows();
+  if(!list.length){ toast("当前范围还没有账目可导出"); return; }
   var rows=[CSV_HEAD];
-  state.txns.forEach(function(t){
-    rows.push([t.item,t.date,t.category,t.payer,t.participants,t.amount,t.splitMode,t.customSplit,t.status,t.note,t.currency,Number(t.rate).toFixed(6)]);
+  list.forEach(function(t){
+    rows.push([t.item,t.date,t.category,t.payer,t.participants,t.amount,t.splitMode,t.customSplit,t.status,t.note,t.currency,Number(t.rate).toFixed(6),tripName(t.trip)]);
   });
   var csv="\ufeff"+rows.map(function(r){ return r.map(csvEsc).join(","); }).join("\r\n");
+  var scopeName=(state.curTrip==="__all__")?"全部行程":(tripById(state.curTrip)?tripById(state.curTrip).name:"行程");
   var a=document.createElement("a");
   a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
-  a.download="旅游AA账本_"+todayStr().replace(/-/g,"")+".csv";
+  a.download="旅游AA账本_"+scopeName+"_"+todayStr().replace(/-/g,"")+".csv";
   document.body.appendChild(a); a.click(); a.remove();
-  toast("已导出 "+state.txns.length+" 笔 📤");
+  toast("已导出 "+list.length+" 笔 📤");
 };
 
 function parseCSV(text){
@@ -1145,18 +1516,27 @@ function parseCSV(text){
   if(cur!==""||row.length){ row.push(cur); rows.push(row); }
   return rows.filter(function(r){ return r.some(function(c){return String(c).trim()!=="";}); });
 }
-$("importBtn").onclick=function(){ $("imFile").value=""; $("imClear").checked=false; $("imMask").classList.add("on"); };
+$("importBtn").onclick=function(){
+  $("imFile").value=""; $("imClear").checked=false;
+  var p=tripById(targetTripId());
+  $("imTripHint").textContent = state.trips.length ? ("行程「"+(p?p.name:"—")+"」") : "（还没有行程，请先创建）";
+  $("imMask").classList.add("on");
+};
 $("imCancel").onclick=function(){ $("imMask").classList.remove("on"); };
 $("imGo").onclick=function(){
   var f=$("imFile").files[0];
   if(!f){ toast("请先选择 CSV 文件"); return; }
+  if(!state.trips.length){ toast("先创建一个行程再导入 🧳"); return; }
+  var impTrip=targetTripId();
   var reader=new FileReader();
   reader.onload=function(){
     var rows=parseCSV(reader.result);
     if(rows.length && rows[0][0]==="项目") rows=rows.slice(1); /* 跳过表头 */
     if(!rows.length){ toast("文件里没有数据行"); return; }
     var doImport=function(){
-      if($("imClear").checked) DB.list("t").forEach(function(t){ DB.remove("t",t.id); });
+      if($("imClear").checked){
+        DB.list("t").forEach(function(t){ if((t.trip||"")===impTrip) DB.remove("t",t.id); });
+      }
       var okN=0, skipN=0;
       rows.forEach(function(r){
         var item=String(r[0]||"").trim()||"未命名支出";
@@ -1173,15 +1553,16 @@ $("imGo").onclick=function(){
         var rate=parseFloat(r[11]); if(!isFinite(rate)||rate<=0) rate=1;
         DB.upsert("t",{id:uid(),ts:Date.now(),item:item,date:date,category:cat,payer:payer,
           participants:parts,amount:Math.round(amount*100)/100,splitMode:mode,customSplit:custom,
-          status:status,note:String(r[9]||"").trim(),currency:cur,rate:rate});
+          status:status,note:String(r[9]||"").trim(),currency:cur,rate:rate,trip:impTrip});
         okN++;
       });
-      loadAll(); renderAll();
+      loadAll(); renderAll(); renderTripBar();
       $("imMask").classList.remove("on");
-      toast("导入完成："+okN+" 笔"+(skipN?"，跳过 "+skipN+" 行无效数据":"")+" 📥");
+      toast("导入完成："+okN+" 笔 → 「"+tripName(impTrip)+"」"+(skipN?"，跳过 "+skipN+" 行无效数据":"")+" 📥");
     };
-    if($("imClear").checked && state.txns.length){
-      confirmDialog("⚠ 将先清空现有 "+state.txns.length+" 笔账目再导入，确定继续吗？").then(function(ok){ if(ok) doImport(); });
+    var curN=DB.list("t").filter(function(t){ return (t.trip||"")===impTrip; }).length;
+    if($("imClear").checked && curN){
+      confirmDialog("⚠ 将先清空行程「"+tripName(impTrip)+"」下的 "+curN+" 笔账目再导入，确定继续吗？").then(function(ok){ if(ok) doImport(); });
     } else doImport();
   };
   reader.readAsText(f,"utf-8");
@@ -1271,8 +1652,14 @@ function finishWizard(){
   var common=wiz.common.map(curLabel);
   if(common.indexOf(curLabel(wiz.base))<0) common.unshift(curLabel(wiz.base));
   DB.upsert("s",{id:"cfg",baseCurrency:curLabel(wiz.base),commonCurrencies:common,initialized:true});
+  /* 行程表：首次初始化时自动建一个默认行程，保证可以立即记账 */
+  if(!state.trips.length){
+    var tp={ id:uid(), name:"我的行程", startDate:todayStr(), endDate:"", note:"", ts:Date.now() };
+    DB.upsert("x",tp);
+    state.curTrip=tp.id; saveTripSel();
+  }
   loadAll();
-  clearForm(); renderAll();
+  clearForm(); renderAll(); renderTripBar();
   $("wizMask").classList.remove("on"); $("wizMask").dataset.lock="";
   toast("设置已保存，出发吧！🧳✈️");
 }
@@ -1296,14 +1683,17 @@ function syncFromDB(fromRemote){
 function renderAll(preserve){
   if(!preserve){ /* 保持金额等输入，仅刷新胶囊/下拉 */ }
   renderFormDynamic(); updateRateUI(); if(customModeOn()) renderCustom();
-  renderList(); renderMembers();
+  renderList(); renderMembers(); renderTripBar();
 }
 
 /* ---------- 启动 ---------- */
+loadTripSel();
 loadAll();
 clearForm();
 renderAll();
+renderTripBar();
 if(!state.settings || !state.settings.initialized) openWizard(true);
+cloudBoot();
 </script>
 </body>
 </html>
