@@ -184,6 +184,8 @@ main{max-width:780px;margin:0 auto;padding:16px 14px 60px;}
 .trip-chip.on{background:var(--ink-deep);border-color:var(--ink-deep);color:#F6EFDD;box-shadow:0 2px 8px rgba(36,70,59,.28);}
 .trip-chip.new{border-style:dashed;color:var(--coral-deep);border-color:#E4A98A;background:var(--coral-soft);}
 .trip-chip.manage{border-style:dotted;color:var(--muted);}
+.trip-chip.none{border-style:dashed;color:#8A4A2E;border-color:#EFA98A;}
+.trip-chip.none.on{background:var(--coral-deep);border-color:var(--coral-deep);color:#fff;}
 .form-trip{
   display:inline-flex;align-items:center;gap:6px;background:var(--paper);border:1px solid var(--line-soft);
   border-radius:999px;padding:5px 12px;font-size:12.5px;color:var(--ink-soft);margin-bottom:12px;
@@ -377,6 +379,36 @@ main{max-width:780px;margin:0 auto;padding:16px 14px 60px;}
 
 footer{max-width:780px;margin:26px auto 0;padding:0 16px;text-align:center;font-size:11.5px;color:#B0A98D;line-height:1.8;}
 footer .dot{margin:0 6px;}
+/* ---------- 批量归入行程 ---------- */
+.toolbar .btn.batch-on{background:var(--ink-deep);border-color:var(--ink-deep);color:#F6EFDD;}
+.batch-bar{
+  display:none;position:sticky;bottom:calc(10px + env(safe-area-inset-bottom));z-index:50;margin:0 0 14px;
+  background:var(--ink-deep);color:#F0EAD8;border-radius:var(--radius);padding:12px 13px;
+  box-shadow:0 8px 26px rgba(27,42,34,.35);
+}
+.batch-bar.on{display:block;}
+.batch-bar .bb-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.batch-bar .bb-row+.bb-row{margin-top:10px;}
+.batch-bar .bb-cnt{font-weight:700;font-size:14px;margin-right:auto;}
+.batch-bar .bb-cnt b{font-family:var(--serif);font-size:18px;color:#FFB48C;margin:0 2px;}
+.batch-bar .bb-lnk{border:1px solid rgba(240,234,216,.35);background:transparent;color:#F0EAD8;border-radius:8px;padding:6px 10px;font-size:12.5px;font-weight:600;}
+.batch-bar .bb-lnk:active{background:rgba(255,255,255,.12);}
+.batch-bar select{flex:1 1 140px;min-width:0;border:none;border-radius:10px;padding:10px 10px;font-size:14px;background:#FFFDF8;color:var(--ink-deep);font-weight:600;}
+.batch-bar .btn-primary{flex:none;padding:10px 16px;font-size:14px;}
+.batch-bar .bb-x{flex:none;background:transparent;border:1px solid rgba(240,234,216,.35);color:#F0EAD8;padding:10px 12px;font-size:14px;}
+.batch-bar .bb-hint{font-size:11.5px;color:#B9CBBB;margin-top:8px;line-height:1.5;}
+.txn-card.pick{cursor:pointer;padding-left:46px;user-select:none;-webkit-user-select:none;}
+.txn-card.pick .t-ops{display:none;}
+.txn-card.pick .t-top{padding-right:0;}
+.txn-card.pick .t-amt-wrap{padding-right:0;}
+.txn-card .t-chk{
+  position:absolute;left:13px;top:15px;width:22px;height:22px;border-radius:7px;border:2px solid var(--line);
+  background:#FFFDF8;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;
+}
+.txn-card.pick.sel{border-color:var(--coral);border-left-color:var(--coral);background:#FFF8F1;}
+.txn-card.pick.sel .t-chk{background:var(--coral);border-color:var(--coral);}
+.t-trip.none{background:var(--coral-soft);color:var(--coral-deep);}
+
 /* ==== 竖排断字硬修复：所有胶囊/统计类元素强制单行 ==== */
 [class*="trip"] *, [class*="chip"] *, [class*="pill"] *, [class*="sb-"] *, [class*="stat"] *{
   white-space:nowrap;word-break:keep-all;overflow-wrap:normal;
@@ -491,8 +523,23 @@ footer .dot{margin:0 6px;}
     <div class="toolbar">
       <button class="btn" id="exportBtn">📤 导出 CSV</button>
       <button class="btn" id="importBtn">📥 导入 CSV</button>
+      <button class="btn" id="batchBtn">☑ 批量归行程</button>
     </div>
     <div id="txnList"></div>
+    <div class="batch-bar" id="batchBar">
+      <div class="bb-row">
+        <span class="bb-cnt">已选<b id="bbCnt">0</b>笔</span>
+        <button class="bb-lnk" id="bbAll">全选</button>
+        <button class="bb-lnk" id="bbNone">清空</button>
+        <button class="bb-lnk" id="bbDate">按行程日期勾选</button>
+      </div>
+      <div class="bb-row">
+        <select id="bbTarget"></select>
+        <button class="btn btn-primary" id="bbGo">归入</button>
+        <button class="btn bb-x" id="bbExit">完成</button>
+      </div>
+      <div class="bb-hint" id="bbHint">点卡片勾选账目，选好目标行程后点「归入」。</div>
+    </div>
   </section>
 
   <!-- ============ 页签 3：成员 ============ -->
@@ -795,7 +842,7 @@ function applyCloudDiff(boxes){
   if(changed){ syncFromDB(false); }
   /* 当前选中的行程若已被删除，回到「全部」 */
   loadAll();
-  if(state.curTrip!=="__all__" && !tripById(state.curTrip)){ state.curTrip="__all__"; saveTripSel(); changed=true; }
+  if(!isVirtualScope() && !tripById(state.curTrip)){ state.curTrip="__all__"; saveTripSel(); changed=true; }
   if(changed){
     renderTripBar();
     if(state.settings && state.settings.initialized && $("wizMask").classList.contains("on") && $("wizMask").dataset.lock){ $("wizMask").dataset.lock=""; closeWizard(); }
@@ -847,12 +894,16 @@ function loadAll(){
 /* ---------- 行程工具 ---------- */
 function tripById(id){ for(var i=0;i<state.trips.length;i++){ if(state.trips[i].id===id) return state.trips[i]; } return null; }
 function tripName(id){ var t=tripById(id); return t? t.name : "未分配行程"; }
+function isVirtualScope(){ return state.curTrip==="__all__" || state.curTrip==="__none__"; }
+function isUnassigned(t){ return !tripById(t.trip||""); }
+function scopeLabel(){ return state.curTrip==="__all__" ? "全部行程" : tripName(state.curTrip); }
 function scopedTxns(){ /* 受行程筛选影响的账目集合 */
   if(state.curTrip==="__all__") return state.txns;
+  if(state.curTrip==="__none__") return state.txns.filter(isUnassigned);
   return state.txns.filter(function(t){ return (t.trip||"")===state.curTrip; });
 }
 function targetTripId(){ /* 记账目标行程：必须落到某个具体行程 */
-  if(state.curTrip!=="__all__") return state.curTrip;
+  if(!isVirtualScope()) return state.curTrip;
   return state.trips.length ? state.trips[0].id : "";
 }
 function saveTripSel(){ try{ LS.setItem("aaluitrip", state.curTrip); }catch(e){} }
@@ -1205,6 +1256,10 @@ function renderTripBar(){
   var chips=[];
   if(!inAdd){
     chips.push('<button class="trip-chip'+(state.curTrip==="__all__"?" on":"")+'" data-trip="__all__"><span class="tn">🗂 全部行程</span><span class="cnt">'+state.txns.length+'</span></button>');
+    var noneN=state.txns.filter(isUnassigned).length;
+    if(noneN || state.curTrip==="__none__"){
+      chips.push('<button class="trip-chip none'+(state.curTrip==="__none__"?" on":"")+'" data-trip="__none__"><span class="tn">📭 未分配</span><span class="cnt">'+noneN+'</span></button>');
+    }
   }
   state.trips.forEach(function(p){
     var n=state.txns.filter(function(t){ return (t.trip||"")===p.id; }).length;
@@ -1239,8 +1294,8 @@ function renderFormTrip(){
     return;
   }
   var p=tripById(targetTripId());
-  el.className="form-trip"+(state.curTrip==="__all__"?" warn":"");
-  el.innerHTML="📁 记入行程：<b>"+esc(p?p.name:"—")+"</b>"+(state.curTrip==="__all__"?' <span style="color:var(--coral-deep)">（当前是「全部」视图，将记入最新行程）</span>':"");
+  el.className="form-trip"+(isVirtualScope()?" warn":"");
+  el.innerHTML="📁 记入行程：<b>"+esc(p?p.name:"—")+"</b>"+(isVirtualScope()?' <span style="color:var(--coral-deep)">（当前是「'+(state.curTrip==="__all__"?"全部":"未分配")+'」视图，将记入最新行程）</span>':"");
 }
 function openTripModal(){
   edTripId=null; $("tpName").value=""; $("tpStart").value=""; $("tpEnd").value="";
@@ -1255,6 +1310,7 @@ function renderTripList(){
     return '<div class="trip-row"><span class="tr-n">'+esc(p.name)+'<small style="color:var(--muted);font-weight:400"> · '+n+' 笔</small></span>'+
       '<span class="tr-d">'+d+"</span>"+
       (state.curTrip===p.id?'<span class="tr-cur">当前</span>':"")+
+      '<button class="btn btn-sm btn-ghost" data-tpc="'+esc(p.id)+'">认领账目</button>'+
       '<button class="btn btn-sm btn-ghost" data-tpe="'+esc(p.id)+'">编辑</button>'+
       '<button class="btn btn-sm btn-ghost" data-tpd="'+esc(p.id)+'" style="color:var(--coral-deep)">删除</button></div>';
   }).join("") : '<div style="font-size:13px;color:var(--muted);padding:6px 2px">还没有行程，先在上方创建一个</div>';
@@ -1265,6 +1321,9 @@ function renderTripList(){
       $("tpSave").textContent="💾 保存修改";
       toast("编辑中，改完点「保存修改」");
     };
+  });
+  Array.prototype.forEach.call($("tripList").querySelectorAll("[data-tpc]"),function(b){
+    b.onclick=function(){ $("tripMask").classList.remove("on"); startClaim(b.getAttribute("data-tpc")); };
   });
   Array.prototype.forEach.call($("tripList").querySelectorAll("[data-tpd]"),function(b){
     b.onclick=function(){
@@ -1322,15 +1381,17 @@ function renderList(){
   var total=0, confirmed=0, waitN=0;
   list.forEach(function(t){ var b=txnBase(t); total+=b; if(t.status==="已确认") confirmed+=b; else waitN++; });
   var bc=baseCode(), bs=baseSym();
-  var scopeLabel=(state.curTrip==="__all__")? "全部行程" : tripName(state.curTrip);
+  var scopeLbl=scopeLabel();
   $("listSummary").innerHTML=
-    '<div><div class="big">'+bs+fmt(total)+'</div><div class="sub">'+esc(bc)+' · '+esc(scopeLabel)+' · 共 '+list.length+' 笔 · 已确认 '+bs+fmt(confirmed)+'</div></div>'+
+    '<div><div class="big">'+bs+fmt(total)+'</div><div class="sub">'+esc(bc)+' · '+esc(scopeLbl)+' · 共 '+list.length+' 笔 · 已确认 '+bs+fmt(confirmed)+'</div></div>'+
     '<div style="text-align:right"><div class="big coral" style="font-size:18px;color:#FFB48C">'+waitN+' 笔</div><div class="sub">待确认</div></div>';
 
   if(!list.length){
-    $("txnList").innerHTML='<div class="empty"><span class="emo">🧳✈️</span>'+(src.length?"这个付款人名下还没有账目":(state.curTrip==="__all__"?"还没有账目，去「记一笔」写下第一笔吧":"这个行程还没有账目"))+"</div>";
+    batchList=[]; renderBatchBar();
+    $("txnList").innerHTML='<div class="empty"><span class="emo">🧳✈️</span>'+(src.length?"这个付款人名下还没有账目":(state.curTrip==="__all__"?"还没有账目，去「记一笔」写下第一笔吧":state.curTrip==="__none__"?"没有未分配的账目 🎉":"这个行程还没有账目"))+"</div>";
     return;
   }
+  batchList=list;
   $("txnList").innerHTML=list.map(function(t){
     var c=curCode(t.currency), isBase=(c===bc), sm=shareMap(t), n=Object.keys(sm).length;
     var splitHtml, tMode=normMode(t.splitMode);
@@ -1351,7 +1412,9 @@ function renderList(){
       var each=n? t.amount/n : 0;
       splitHtml="平均分摊 · 每人 "+curSym(c)+fmt(each)+(isBase?"":"（≈"+bs+fmt(each*(+t.rate||0))+"）");
     }
-    return '<div class="txn-card">'+
+    var picked=batchOn && !!batchSel[t.id];
+    return '<div class="txn-card'+(batchOn?" pick":"")+(picked?" sel":"")+'"'+(batchOn?' data-pick="'+esc(t.id)+'"':"")+'>'+
+      (batchOn?'<span class="t-chk">'+(picked?"✓":"")+"</span>":"")+
       '<div class="t-top"><div style="min-width:0"><div class="t-item">'+esc(t.item)+'</div>'+
       '<div class="t-sub">'+(isBase? esc(c) : "折算 "+bs+fmt(txnBase(t))+" · 汇率 "+Number(t.rate).toFixed(6))+'</div></div>'+
       '<div class="t-amt-wrap" style="text-align:right"><div class="t-amt"><span class="code">'+esc(c)+'</span>'+fmt(t.amount)+'</div>'+
@@ -1361,13 +1424,22 @@ function renderList(){
         '<span><i class="cat-dot" style="background:'+CAT_COLOR[t.category]+'"></i>'+CAT_ICON[t.category]+" "+esc(t.category||"其他")+"</span>"+
         '<span>💳 '+esc(t.payer||"-")+' 垫付</span>'+
         '<span>👥 '+n+' 人分</span>'+
-        (state.curTrip==="__all__"?'<span class="t-trip">🧳 '+esc(tripName(t.trip))+"</span>":"")+
+        ((state.curTrip==="__all__"||batchOn)?'<span class="t-trip'+(isUnassigned(t)?" none":"")+'">'+(isUnassigned(t)?"📭 ":"🧳 ")+esc(tripName(t.trip))+"</span>":"")+
       "</div>"+
       '<div class="t-split">'+splitHtml+"</div>"+
       (t.note?'<div class="t-note">📝 '+esc(t.note)+"</div>":"")+
       '<div class="t-ops"><button class="op" data-edit="'+esc(t.id)+'">编辑</button><button class="op del" data-del="'+esc(t.id)+'">删除</button></div>'+
     "</div>";
   }).join("");
+  Array.prototype.forEach.call($("txnList").querySelectorAll("[data-pick]"),function(c){
+    c.onclick=function(){
+      var id=c.getAttribute("data-pick");
+      if(batchSel[id]) delete batchSel[id]; else batchSel[id]=1;
+      var on=!!batchSel[id];
+      c.classList.toggle("sel",on); c.querySelector(".t-chk").textContent=on?"✓":"";
+      renderBatchBar();
+    };
+  });
   Array.prototype.forEach.call($("txnList").querySelectorAll("[data-edit]"),function(b){
     b.onclick=function(){ var t=DB.get("t",b.getAttribute("data-edit")); if(t) fillForm(t); };
   });
@@ -1380,20 +1452,93 @@ function renderList(){
       });
     };
   });
+  renderBatchBar();
 }
+
+/* ---------- 批量归入行程 ---------- */
+var batchOn=false, batchSel={}, batchList=[], batchTarget="";
+function batchCount(){ return state.txns.filter(function(t){ return batchSel[t.id]; }).length; }
+function renderBatchBar(){
+  $("batchBtn").classList.toggle("batch-on",batchOn);
+  $("batchBtn").textContent=batchOn?"☑ 批量中…":"☑ 批量归行程";
+  $("batchBar").classList.toggle("on",batchOn);
+  if(!batchOn) return;
+  if(batchTarget!=="__none__" && !tripById(batchTarget)) batchTarget=state.trips.length?state.trips[0].id:"__none__";
+  $("bbTarget").innerHTML=state.trips.map(function(p){
+    return '<option value="'+esc(p.id)+'"'+(p.id===batchTarget?" selected":"")+'>归入 🧳 '+esc(p.name)+"</option>";
+  }).join("")+'<option value="__none__"'+(batchTarget==="__none__"?" selected":"")+'>移出行程（设为未分配）</option>';
+  var n=batchCount();
+  $("bbCnt").textContent=n;
+  $("bbGo").disabled=!n;
+  var allOn=batchList.length && batchList.every(function(t){ return batchSel[t.id]; });
+  $("bbAll").textContent=allOn?"取消全选":"全选 "+batchList.length;
+  var tp=tripById(batchTarget);
+  $("bbDate").style.display=(tp && (tp.startDate||tp.endDate))?"":"none";
+  $("bbHint").textContent=state.trips.length?"点卡片勾选；可切换上方行程/付款人筛选继续勾选。":"还没有行程，先点上方「＋ 新行程」创建一个。";
+}
+function setBatch(on){
+  batchOn=on; if(!on) batchSel={};
+  renderList();
+}
+function startClaim(tripId){ /* 从行程管理进入：为指定行程认领账目 */
+  batchTarget=tripId; batchSel={};
+  var hasNone=state.txns.some(isUnassigned);
+  state.curTrip=hasNone?"__none__":"__all__"; saveTripSel();
+  filterPayer="全部";
+  batchOn=true;
+  switchTab("list");
+  renderMembers();
+  var p=tripById(tripId);
+  toast("勾选要归入「"+(p?p.name:"")+"」的账目 ☑");
+}
+$("batchBtn").onclick=function(){
+  if(!batchOn && !state.trips.length){ toast("先创建一个行程 🧳"); openTripModal(); return; }
+  if(!batchOn && !isVirtualScope()) batchTarget=state.curTrip;
+  setBatch(!batchOn);
+};
+$("bbExit").onclick=function(){ setBatch(false); };
+$("bbTarget").onchange=function(){ batchTarget=this.value; renderBatchBar(); };
+$("bbAll").onclick=function(){
+  var allOn=batchList.length && batchList.every(function(t){ return batchSel[t.id]; });
+  batchList.forEach(function(t){ if(allOn) delete batchSel[t.id]; else batchSel[t.id]=1; });
+  renderList();
+};
+$("bbNone").onclick=function(){ batchSel={}; renderList(); };
+$("bbDate").onclick=function(){
+  var p=tripById(batchTarget); if(!p) return;
+  var s=p.startDate||"0000-00-00", e=p.endDate||"9999-99-99", n=0;
+  batchList.forEach(function(t){ if(t.date && t.date>=s && t.date<=e && !batchSel[t.id]){ batchSel[t.id]=1; n++; } });
+  renderList();
+  toast(n?("按日期新勾选了 "+n+" 笔"):"当前列表里没有落在该行程日期内的账目");
+};
+$("bbGo").onclick=function(){
+  var target=batchTarget, toId=(target==="__none__")?"":target;
+  var ids=state.txns.filter(function(t){ return batchSel[t.id]; }).map(function(t){ return t.id; });
+  if(!ids.length) return;
+  var name=(target==="__none__")?"未分配":tripName(target);
+  var moved=0;
+  ids.forEach(function(id){
+    var rec=DB.get("t",id); if(!rec) return;
+    if((rec.trip||"")===toId) return;
+    rec.trip=toId; DB.upsert("t",rec); moved++;
+  });
+  batchSel={};
+  loadAll(); renderList(); renderMembers(); renderTripBar();
+  toast(moved?("已将 "+moved+" 笔归入「"+name+"」✅"):("所选账目本来就在「"+name+"」"));
+};
 
 /* ---------- 成员页 ---------- */
 function renderMembers(){
   var bc=baseCode(), bs=baseSym();
   var src=scopedTxns();
-  var scopeLabel=(state.curTrip==="__all__")?"全部行程":tripName(state.curTrip);
+  var scopeLbl=scopeLabel();
   var confirmed=0, waitN=0;
   src.forEach(function(t){ if(t.status==="已确认") confirmed+=txnBase(t); else waitN++; });
   $("mStats").innerHTML=
     '<div class="sb-item"><div class="sb-num">'+bs+fmt(confirmed)+'</div><div class="sb-label">已确认共同支出（'+esc(bc)+"）</div></div>"+
     '<div class="sb-item"><div class="sb-num coral">'+waitN+'</div><div class="sb-label">待确认笔数</div></div>'+
     '<div class="sb-item"><div class="sb-num">'+state.members.length+'</div><div class="sb-label">成员人数</div></div>';
-  $("mScope").innerHTML="🧳 统计范围：<b>"+esc(scopeLabel)+"</b> · 共 "+src.length+" 笔账目";
+  $("mScope").innerHTML="🧳 统计范围：<b>"+esc(scopeLbl)+"</b> · 共 "+src.length+" 笔账目";
 
   /* 成员管理 */
   $("adminList").innerHTML = state.members.length ? state.members.map(function(m){
@@ -1497,7 +1642,7 @@ $("exportBtn").onclick=function(){
     rows.push([t.item,t.date,t.category,t.payer,t.participants,t.amount,t.splitMode,t.customSplit,t.status,t.note,t.currency,Number(t.rate).toFixed(6),tripName(t.trip)]);
   });
   var csv="\ufeff"+rows.map(function(r){ return r.map(csvEsc).join(","); }).join("\r\n");
-  var scopeName=(state.curTrip==="__all__")?"全部行程":(tripById(state.curTrip)?tripById(state.curTrip).name:"行程");
+  var scopeName=scopeLabel();
   var a=document.createElement("a");
   a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8"}));
   a.download="旅游AA账本_"+scopeName+"_"+todayStr().replace(/-/g,"")+".csv";
