@@ -409,6 +409,31 @@ footer .dot{margin:0 6px;}
 .txn-card.pick.sel .t-chk{background:var(--coral);border-color:var(--coral);}
 .t-trip.none{background:var(--coral-soft);color:var(--coral-deep);}
 
+/* ---------- 账目：搜索 / 排序 / 筛选 / 分组 ---------- */
+.lv-bar{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
+.lv-bar input[type=search]{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:11px;padding:10px 12px;font-size:14px;background:#FFFDF8;outline:none;}
+.lv-bar input[type=search]:focus{border-color:var(--coral);}
+.lv-btn{flex:none;border:1.5px solid var(--line);background:var(--card);border-radius:11px;padding:10px 14px;font-size:14px;font-weight:700;color:var(--ink-soft);}
+.lv-btn.on{background:var(--coral);border-color:var(--coral);color:#fff;}
+.lv-sel label{flex:1;min-width:0;display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);font-weight:600;}
+.lv-sel select{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;padding:8px 8px;font-size:13.5px;background:#FFFDF8;color:var(--ink-deep);font-weight:600;}
+.lv-panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:var(--shadow);}
+.lv-panel .pill-group{margin-bottom:10px;gap:6px;}
+.lv-panel .pill{padding:6px 11px;font-size:12.5px;}
+.lv-lbl{font-size:12px;color:var(--muted);margin:2px 2px 6px;letter-spacing:1px;}
+.lv-dates{display:flex;gap:8px;align-items:center;margin-bottom:10px;}
+.lv-dates input{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;font-size:14px;background:#FFFDF8;}
+.lv-dates span{color:var(--muted);}
+.lv-active{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.lv-active:empty{display:none;}
+.lv-tag{font-size:12px;font-weight:600;border-radius:999px;padding:4px 6px 4px 10px;background:var(--coral-soft);color:var(--coral-deep);border:1px solid #F2CBB5;display:inline-flex;align-items:center;gap:4px;}
+.lv-tag button{border:none;background:rgba(212,85,43,.14);color:var(--coral-deep);width:18px;height:18px;border-radius:50%;font-size:11px;line-height:1;}
+.lv-group{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:16px 2px 9px;cursor:pointer;user-select:none;}
+.lv-group .g-n{font-family:var(--serif);font-size:14.5px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+.lv-group .g-s{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.lv-group .g-c{display:inline-block;width:14px;color:var(--muted);transition:.15s;}
+.lv-group.closed .g-c{transform:rotate(-90deg);}
+
 /* ---------- 预算 ---------- */
 .plan-sum-r{text-align:right;}
 .plan-sum-r .big.ok{color:#9FE0BC;} .plan-sum-r .big.over{color:#FFB48C;}
@@ -583,7 +608,37 @@ footer .dot{margin:0 6px;}
 
   <!-- ============ 页签 2：账目 ============ -->
   <section class="view" id="view-list">
-    <div class="filter-bar" id="filterPills"></div>
+    <div class="lv-bar">
+      <input type="search" id="lvQ" placeholder="🔍 搜索项目 / 备注 / 人名" autocomplete="off">
+      <button class="lv-btn" id="lvFilterBtn">筛选</button>
+    </div>
+    <div class="lv-bar lv-sel">
+      <label>排序<select id="lvSort">
+        <option value="date_desc">日期 新→旧</option><option value="date_asc">日期 旧→新</option>
+        <option value="amt_desc">金额 高→低</option><option value="amt_asc">金额 低→高</option>
+        <option value="added_desc">最近添加</option><option value="item_asc">项目名 A→Z</option>
+      </select></label>
+      <label>分组<select id="lvGroup">
+        <option value="none">不分组</option><option value="date">按日期</option><option value="cat">按类别</option>
+        <option value="payer">按付款人</option><option value="trip">按行程</option><option value="status">按状态</option><option value="cur">按币种</option>
+      </select></label>
+    </div>
+    <div class="lv-panel" id="lvPanel" style="display:none">
+      <div class="lv-lbl">付款人</div><div class="pill-group" id="lvPayer"></div>
+      <div class="lv-lbl">参与人包含</div><div class="pill-group" id="lvPart"></div>
+      <div class="lv-lbl">类别（可多选）</div><div class="pill-group" id="lvCats"></div>
+      <div class="lv-lbl">状态</div><div class="pill-group" id="lvStatus"></div>
+      <div class="lv-lbl">币种</div><div class="pill-group" id="lvCur"></div>
+      <div class="lv-lbl">日期范围</div>
+      <div class="lv-dates"><input type="date" id="lvFrom"><span>~</span><input type="date" id="lvTo"></div>
+      <div class="lv-lbl">金额范围（<span class="lvBase"></span>）</div>
+      <div class="lv-dates"><input id="lvMin" inputmode="decimal" placeholder="最低"><span>~</span><input id="lvMax" inputmode="decimal" placeholder="最高"></div>
+      <div class="modal-actions" style="margin-top:12px">
+        <button class="btn btn-ghost" id="lvReset">清空筛选</button>
+        <button class="btn btn-green" id="lvDone">完成</button>
+      </div>
+    </div>
+    <div class="lv-active" id="lvActive"></div>
     <div class="summary-card" id="listSummary"></div>
     <div class="toolbar">
       <button class="btn" id="exportBtn">📤 导出 CSV</button>
@@ -1525,19 +1580,139 @@ $("tpSave").onclick=function(){
 };
 
 /* ---------- 账目列表 ---------- */
-var filterPayer="全部";
+/* 列表视图：搜索 / 排序 / 筛选 / 分组（偏好记在本机） */
+var LV_DEF={ q:"", sort:"date_desc", group:"none", payer:"", part:"", cats:[], status:"", cur:"", from:"", to:"", min:"", max:"" };
+var lv=JSON.parse(JSON.stringify(LV_DEF)), lvClosed={};
+try{ var _lv=JSON.parse(LS.getItem("aallv")||"null"); if(_lv){ lv.sort=_lv.sort||lv.sort; lv.group=_lv.group||lv.group; } }catch(e){}
+function saveLv(){ try{ LS.setItem("aallv",JSON.stringify({sort:lv.sort,group:lv.group})); }catch(e){} }
+function lvResetFilters(){ var keep={sort:lv.sort,group:lv.group}; lv=JSON.parse(JSON.stringify(LV_DEF)); lv.sort=keep.sort; lv.group=keep.group; }
+function txnParts(t){ return String(t.participants||"").split("/").map(function(x){return x.trim();}).filter(Boolean); }
+function lvMatch(t){
+  if(lv.payer && t.payer!==lv.payer) return false;
+  if(lv.part && txnParts(t).indexOf(lv.part)<0) return false;
+  if(lv.cats.length && lv.cats.indexOf(t.category||"其他")<0) return false;
+  if(lv.status && t.status!==lv.status) return false;
+  if(lv.cur && curCode(t.currency)!==lv.cur) return false;
+  if(lv.from && (t.date||"")<lv.from) return false;
+  if(lv.to && (t.date||"")>lv.to) return false;
+  var b=txnBase(t);
+  if(lv.min!=="" && isFinite(+lv.min) && b < +lv.min) return false;
+  if(lv.max!=="" && isFinite(+lv.max) && b > +lv.max) return false;
+  if(lv.q.trim()){
+    var q=lv.q.trim().toLowerCase(), hay=[t.item,t.note,t.payer,t.participants,t.category,tripName(t.trip)].join(" ").toLowerCase();
+    if(hay.indexOf(q)<0) return false;
+  }
+  return true;
+}
+function lvSorter(a,b){
+  switch(lv.sort){
+    case "date_asc": return (a.date||"").localeCompare(b.date||"") || (a.ts||0)-(b.ts||0);
+    case "amt_desc": return txnBase(b)-txnBase(a);
+    case "amt_asc": return txnBase(a)-txnBase(b);
+    case "added_desc": return (b.ts||0)-(a.ts||0);
+    case "item_asc": return (a.item||"").localeCompare(b.item||"","zh-CN");
+    default: return (b.date||"").localeCompare(a.date||"") || (b.ts||0)-(a.ts||0);
+  }
+}
+function lvKey(t){
+  switch(lv.group){
+    case "date": return t.date||"";
+    case "cat": return t.category||"其他";
+    case "payer": return t.payer||"";
+    case "trip": return isUnassigned(t)? "" : t.trip;
+    case "status": return t.status||"";
+    case "cur": return curCode(t.currency);
+  }
+  return "";
+}
+function lvKeyLabel(k){
+  switch(lv.group){
+    case "date": return k? "📅 "+k+" 周"+"日一二三四五六".charAt(new Date(k+"T00:00:00").getDay()) : "📅 无日期";
+    case "cat": return (CAT_ICON[k]||"🧾")+" "+k;
+    case "payer": return "💳 "+(k||"—");
+    case "trip": return k? "🧳 "+tripName(k) : "📭 未分配";
+    case "status": return k==="已确认"?"✅ 已确认":"⏳ 待确认";
+    case "cur": return "💱 "+curLabel(k);
+  }
+  return k;
+}
+function lvGroupOrder(keys, groups){
+  if(lv.group==="date") return keys.sort(function(a,b){ return lv.sort==="date_asc"? (a||"9").localeCompare(b||"9") : (b||"").localeCompare(a||""); });
+  if(lv.group==="cat") return keys.sort(function(a,b){ return CATS.indexOf(a)-CATS.indexOf(b); });
+  /* 其余按小计从大到小 */
+  return keys.sort(function(a,b){ return groups[b].sum-groups[a].sum; });
+}
+function lvFilterCount(){ return (lv.payer?1:0)+(lv.part?1:0)+(lv.cats.length?1:0)+(lv.status?1:0)+(lv.cur?1:0)+((lv.from||lv.to)?1:0)+((lv.min!==""||lv.max!=="")?1:0); }
+function renderLvPanel(src){
+  var payers=[], parts=[], curs=[];
+  src.forEach(function(t){
+    if(t.payer && payers.indexOf(t.payer)<0) payers.push(t.payer);
+    txnParts(t).forEach(function(n){ if(parts.indexOf(n)<0) parts.push(n); });
+    var c=curCode(t.currency); if(curs.indexOf(c)<0) curs.push(c);
+  });
+  function pills(id, vals, cur, labelFn, multi){
+    $(id).innerHTML=['<button type="button" class="pill'+((multi? !cur.length : !cur)?" on":"")+'" data-v="">全部</button>'].concat(vals.map(function(v){
+      var on = multi? cur.indexOf(v)>=0 : cur===v;
+      return '<button type="button" class="pill'+(on?" on coral":"")+'" data-v="'+esc(v)+'">'+esc(labelFn?labelFn(v):v)+'</button>';
+    })).join("");
+  }
+  pills("lvPayer", payers, lv.payer);
+  pills("lvPart", parts, lv.part);
+  pills("lvCats", CATS, lv.cats, function(c){ return CAT_ICON[c]+" "+c; }, true);
+  pills("lvStatus", ["已确认","待确认"], lv.status);
+  pills("lvCur", curs, lv.cur);
+  bindPills("lvPayer",function(v){ lv.payer=v; renderList(); });
+  bindPills("lvPart",function(v){ lv.part=v; renderList(); });
+  bindPills("lvCats",function(v){ if(!v) lv.cats=[]; else { var i=lv.cats.indexOf(v); if(i>=0) lv.cats.splice(i,1); else lv.cats.push(v); } renderList(); });
+  bindPills("lvStatus",function(v){ lv.status=v; renderList(); });
+  bindPills("lvCur",function(v){ lv.cur=v; renderList(); });
+  Array.prototype.forEach.call(document.querySelectorAll(".lvBase"),function(e){ e.textContent=baseCode(); });
+}
+function renderLvActive(){
+  var tags=[];
+  function tag(k,label){ tags.push('<span class="lv-tag">'+esc(label)+'<button data-lvx="'+k+'">✕</button></span>'); }
+  if(lv.q.trim()) tag("q","“"+lv.q.trim()+"”");
+  if(lv.payer) tag("payer","付款人："+lv.payer);
+  if(lv.part) tag("part","含："+lv.part);
+  if(lv.cats.length) tag("cats","类别："+lv.cats.join("/"));
+  if(lv.status) tag("status",lv.status);
+  if(lv.cur) tag("cur","币种："+lv.cur);
+  if(lv.from||lv.to) tag("date",(lv.from||"…")+" ~ "+(lv.to||"…"));
+  if(lv.min!==""||lv.max!=="") tag("amt",baseSym()+(lv.min||"0")+" ~ "+(lv.max!==""?baseSym()+lv.max:"不限"));
+  $("lvActive").innerHTML=tags.join("");
+  Array.prototype.forEach.call($("lvActive").querySelectorAll("[data-lvx]"),function(b){
+    b.onclick=function(){
+      var k=b.getAttribute("data-lvx");
+      if(k==="cats") lv.cats=[]; else if(k==="date"){ lv.from=""; lv.to=""; } else if(k==="amt"){ lv.min=""; lv.max=""; } else lv[k]="";
+      syncLvInputs(); renderList();
+    };
+  });
+  var n=lvFilterCount();
+  $("lvFilterBtn").textContent = n? "筛选 · "+n : "筛选";
+  $("lvFilterBtn").classList.toggle("on", !!n || $("lvPanel").style.display!=="none");
+}
+function syncLvInputs(){
+  if(document.activeElement!==$("lvQ")) $("lvQ").value=lv.q;
+  $("lvSort").value=lv.sort; $("lvGroup").value=lv.group;
+  $("lvFrom").value=lv.from; $("lvTo").value=lv.to; $("lvMin").value=lv.min; $("lvMax").value=lv.max;
+}
+var _lvQT=null;
+$("lvQ").addEventListener("input",function(){ var v=this.value; clearTimeout(_lvQT); _lvQT=setTimeout(function(){ lv.q=v; renderList(); },150); });
+$("lvSort").onchange=function(){ lv.sort=this.value; saveLv(); renderList(); };
+$("lvGroup").onchange=function(){ lv.group=this.value; lvClosed={}; saveLv(); renderList(); };
+["lvFrom","lvTo","lvMin","lvMax"].forEach(function(id){
+  $(id).addEventListener("change",function(){ var k=id.slice(2).toLowerCase(); lv[k]=this.value.trim(); renderList(); });
+});
+$("lvFilterBtn").onclick=function(){ var p=$("lvPanel"); p.style.display = p.style.display==="none"?"":"none"; renderLvActive(); };
+$("lvDone").onclick=function(){ $("lvPanel").style.display="none"; renderLvActive(); };
+$("lvReset").onclick=function(){ lvResetFilters(); syncLvInputs(); renderList(); };
+
 function renderList(){
   var src=scopedTxns(); /* 行程范围内的账目 */
-  /* 付款人筛选胶囊 */
-  var payers=["全部"]; src.forEach(function(t){ if(t.payer && payers.indexOf(t.payer)<0) payers.push(t.payer); });
-  $("filterPills").innerHTML=payers.map(function(p){
-    return '<button class="fp'+(p===filterPayer?" on":"")+'" data-v="'+esc(p)+'">'+esc(p)+"</button>";
-  }).join("");
-  Array.prototype.forEach.call($("filterPills").querySelectorAll(".fp"),function(b){
-    b.onclick=function(){ filterPayer=b.getAttribute("data-v"); renderList(); };
-  });
-
-  var list=src.filter(function(t){ return filterPayer==="全部"||t.payer===filterPayer; });
+  renderLvPanel(src);
+  syncLvInputs();
+  var list=src.filter(lvMatch).sort(lvSorter);
+  renderLvActive();
   var total=0, confirmed=0, waitN=0;
   list.forEach(function(t){ var b=txnBase(t); total+=b; if(t.status==="已确认") confirmed+=b; else waitN++; });
   var bc=baseCode(), bs=baseSym();
@@ -1548,11 +1723,11 @@ function renderList(){
 
   if(!list.length){
     batchList=[]; renderBatchBar();
-    $("txnList").innerHTML='<div class="empty"><span class="emo">🧳✈️</span>'+(src.length?"这个付款人名下还没有账目":(state.curTrip==="__all__"?"还没有账目，去「记一笔」写下第一笔吧":state.curTrip==="__none__"?"没有未分配的账目 🎉":"这个行程还没有账目"))+"</div>";
+    $("txnList").innerHTML='<div class="empty"><span class="emo">🧳✈️</span>'+(src.length?"没有符合筛选条件的账目":(state.curTrip==="__all__"?"还没有账目，去「记一笔」写下第一笔吧":state.curTrip==="__none__"?"没有未分配的账目 🎉":"这个行程还没有账目"))+"</div>";
     return;
   }
   batchList=list;
-  $("txnList").innerHTML=list.map(function(t){
+  var cardHtml=function(t){
     var c=curCode(t.currency), isBase=(c===bc), sm=shareMap(t), n=Object.keys(sm).length;
     var splitHtml, tMode=normMode(t.splitMode);
     if(tMode==="按金额" && t.customSplit){
@@ -1590,7 +1765,22 @@ function renderList(){
       (t.note?'<div class="t-note">📝 '+esc(t.note)+"</div>":"")+
       '<div class="t-ops"><button class="op" data-edit="'+esc(t.id)+'">编辑</button><button class="op del" data-del="'+esc(t.id)+'">删除</button></div>'+
     "</div>";
-  }).join("");
+  };
+  if(lv.group==="none"){
+    $("txnList").innerHTML=list.map(cardHtml).join("");
+  }else{
+    var groups={}, keys=[];
+    list.forEach(function(t){ var k=lvKey(t); if(!groups[k]){ groups[k]={items:[],sum:0}; keys.push(k); } groups[k].items.push(t); groups[k].sum+=txnBase(t); });
+    lvGroupOrder(keys,groups);
+    $("txnList").innerHTML=keys.map(function(k){
+      var g=groups[k], closed=!!lvClosed[lv.group+"|"+k];
+      return '<div class="lv-group'+(closed?" closed":"")+'" data-lvg="'+esc(k)+'"><span class="g-n"><span class="g-c">▾</span>'+esc(lvKeyLabel(k))+'</span><span class="g-s">'+g.items.length+' 笔 · '+bs+fmt(g.sum)+'</span></div>'+
+        (closed?"":g.items.map(cardHtml).join(""));
+    }).join("");
+    Array.prototype.forEach.call($("txnList").querySelectorAll("[data-lvg]"),function(h){
+      h.onclick=function(){ var key=lv.group+"|"+h.getAttribute("data-lvg"); lvClosed[key]=!lvClosed[key]; renderList(); };
+    });
+  }
   Array.prototype.forEach.call($("txnList").querySelectorAll("[data-pick]"),function(c){
     c.onclick=function(){
       var id=c.getAttribute("data-pick");
@@ -1644,7 +1834,7 @@ function startClaim(tripId){ /* 从行程管理进入：为指定行程认领账
   batchTarget=tripId; batchSel={};
   var hasNone=state.txns.some(isUnassigned);
   state.curTrip=hasNone?"__none__":"__all__"; saveTripSel();
-  filterPayer="全部";
+  lvResetFilters();
   batchOn=true;
   switchTab("list");
   renderMembers();
@@ -1792,7 +1982,7 @@ function csvEsc(v){
 }
 function exportRows(){
   var src=scopedTxns();
-  return src.filter(function(t){ return filterPayer==="全部"||t.payer===filterPayer; });
+  return src.filter(lvMatch).sort(lvSorter);
 }
 $("exportBtn").onclick=function(){
   var list=exportRows();
