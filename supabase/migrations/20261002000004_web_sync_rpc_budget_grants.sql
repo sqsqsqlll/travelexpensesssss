@@ -1,4 +1,6 @@
 -- 网页端同步 RPC（四）：预算项与比价、授权
+-- ⚠ 尚未应用到 Supabase 项目 travel-ledger。应用前建议仿照 save_expense 拆成 save_budget_row + save_budget_options，
+--   并在授权列表中补上 save_expense_row / save_expense_shares。
 
 -- ---------- 预算项 + 比价方案（原子写入） ----------
 create or replace function public.save_budget_item(p jsonb) returns void
