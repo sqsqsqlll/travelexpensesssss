@@ -66,7 +66,7 @@ header{
   border-bottom:1px solid var(--line-soft);overflow-x:auto;
 }
 .tab{
-  flex:1;min-width:96px;padding:9px 6px;border-radius:999px;border:1.5px solid var(--line);
+  flex:1;min-width:72px;padding:9px 4px;white-space:nowrap;border-radius:999px;border:1.5px solid var(--line);
   background:var(--card);color:var(--ink-soft);font-size:14px;font-weight:600;transition:.15s;
 }
 .tab.on{background:var(--ink);color:#F6EFDD;border-color:var(--ink);box-shadow:0 3px 10px rgba(36,70,59,.3);}
@@ -409,6 +409,95 @@ footer .dot{margin:0 6px;}
 .txn-card.pick.sel .t-chk{background:var(--coral);border-color:var(--coral);}
 .t-trip.none{background:var(--coral-soft);color:var(--coral-deep);}
 
+/* ---------- 账目：搜索 / 排序 / 筛选 / 分组 ---------- */
+.lv-bar{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
+.lv-bar input[type=search]{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:11px;padding:10px 12px;font-size:14px;background:#FFFDF8;outline:none;}
+.lv-bar input[type=search]:focus{border-color:var(--coral);}
+.lv-btn{flex:none;border:1.5px solid var(--line);background:var(--card);border-radius:11px;padding:10px 14px;font-size:14px;font-weight:700;color:var(--ink-soft);}
+.lv-btn.on{background:var(--coral);border-color:var(--coral);color:#fff;}
+.lv-sel label{flex:1;min-width:0;display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted);font-weight:600;}
+.lv-sel select{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;padding:8px 8px;font-size:13.5px;background:#FFFDF8;color:var(--ink-deep);font-weight:600;}
+.lv-panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:14px;margin-bottom:12px;box-shadow:var(--shadow);}
+.lv-panel .pill-group{margin-bottom:10px;gap:6px;}
+.lv-panel .pill{padding:6px 11px;font-size:12.5px;}
+.lv-lbl{font-size:12px;color:var(--muted);margin:2px 2px 6px;letter-spacing:1px;}
+.lv-dates{display:flex;gap:8px;align-items:center;margin-bottom:10px;}
+.lv-dates input{flex:1;min-width:0;border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;font-size:14px;background:#FFFDF8;}
+.lv-dates span{color:var(--muted);}
+.lv-active{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.lv-active:empty{display:none;}
+.lv-tag{font-size:12px;font-weight:600;border-radius:999px;padding:4px 6px 4px 10px;background:var(--coral-soft);color:var(--coral-deep);border:1px solid #F2CBB5;display:inline-flex;align-items:center;gap:4px;}
+.lv-tag button{border:none;background:rgba(212,85,43,.14);color:var(--coral-deep);width:18px;height:18px;border-radius:50%;font-size:11px;line-height:1;}
+.lv-group{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin:16px 2px 9px;cursor:pointer;user-select:none;}
+.lv-group .g-n{font-family:var(--serif);font-size:14.5px;font-weight:700;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;}
+.lv-group .g-s{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.lv-group .g-c{display:inline-block;width:14px;color:var(--muted);transition:.15s;}
+.lv-group.closed .g-c{transform:rotate(-90deg);}
+
+/* ---------- 预算 ---------- */
+.plan-sum-r{text-align:right;}
+.plan-sum-r .big.ok{color:#9FE0BC;} .plan-sum-r .big.over{color:#FFB48C;}
+.pc-row{margin-bottom:11px;}
+.pc-row:last-child{margin-bottom:0;}
+.pc-head{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:5px;}
+.pc-head .nm{font-weight:600;color:var(--ink-deep);}
+.pc-head .nums{color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap;}
+.pc-head .nums.over{color:var(--coral-deep);font-weight:700;}
+.pc-track{position:relative;height:9px;border-radius:99px;background:var(--paper-deep);overflow:hidden;}
+.pc-plan{position:absolute;left:0;top:0;bottom:0;background:#D8E7DD;border-radius:99px;}
+.pc-act{position:absolute;left:0;top:2px;bottom:2px;background:var(--green);border-radius:99px;}
+.pc-act.over{background:var(--coral-deep);}
+.pc-legend{display:flex;gap:14px;font-size:11.5px;color:var(--muted);margin-top:10px;}
+.pc-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px;}
+.plan-group{font-family:var(--serif);font-size:14px;font-weight:700;color:var(--ink);margin:18px 2px 9px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+.plan-group small{font-family:inherit;font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap;}
+.bi-card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;box-shadow:var(--shadow);}
+.bi-card.st-booked{border-left-color:#C2853B;}
+.bi-card.st-paid{border-left-color:var(--green);}
+.bi-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}
+.bi-name{font-weight:700;font-size:15px;color:var(--ink-deep);overflow-wrap:anywhere;min-width:0;}
+.bi-amt{text-align:right;flex:none;}
+.bi-amt .v{font-family:var(--serif);font-size:17px;font-weight:700;color:var(--coral-deep);white-space:nowrap;}
+.bi-amt .s{font-size:11.5px;color:var(--muted);white-space:nowrap;}
+.bi-meta{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center;font-size:12.5px;color:var(--ink-soft);margin-top:7px;}
+.bi-tag{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--paper-deep);color:var(--muted);}
+.bi-tag.fixed{background:#E4ECF6;color:#3E6690;}
+.bi-st{font-size:11px;font-weight:700;padding:2px 9px;border-radius:6px;border:1.5px dashed #D9CDB4;color:var(--muted);background:#FFFDF8;}
+.bi-st.booked{border-style:solid;border-color:#E3C08E;color:#9A6420;background:#FBF1E1;}
+.bi-st.paid{border-style:solid;border-color:#8FC3A8;color:var(--green);background:var(--green-soft);}
+.bi-chosen{margin-top:8px;font-size:12.5px;color:var(--green);background:var(--green-soft);border-radius:8px;padding:6px 9px;overflow-wrap:anywhere;}
+.bi-note{margin-top:6px;font-size:12.5px;color:#9A8F72;overflow-wrap:anywhere;}
+.bi-ops{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:9px;border-top:1.5px dashed var(--line-soft);}
+.bi-ops .op{border:1px solid var(--line-soft);background:var(--paper);}
+.bi-ops .op.main{border-color:#EFA98A;color:var(--coral-deep);background:var(--coral-soft);}
+.bi-total{font-size:13px;color:var(--ink-soft);margin:-2px 2px 10px;font-variant-numeric:tabular-nums;}
+.cmp-pref{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.cmp-search{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px;font-size:12.5px;color:var(--muted);align-items:center;}
+.cmp-search a{color:var(--ink-soft);background:var(--paper-deep);border-radius:999px;padding:4px 10px;text-decoration:none;font-weight:600;}
+.op-card{border:1.5px solid var(--line);border-radius:12px;padding:11px 12px;margin-bottom:9px;background:#FFFDF8;position:relative;}
+.op-card.chosen{border-color:var(--green);background:#F3F9F5;}
+.op-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}
+.op-name{font-weight:700;color:var(--ink-deep);font-size:14.5px;overflow-wrap:anywhere;min-width:0;}
+.op-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.op-price{text-align:right;flex:none;}
+.op-price .v{font-family:var(--serif);font-weight:700;color:var(--coral-deep);font-size:16px;white-space:nowrap;}
+.op-price .s{font-size:11px;color:var(--muted);white-space:nowrap;}
+.op-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;}
+.op-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--coral-soft);color:var(--coral-deep);}
+.op-badge.g{background:var(--green-soft);color:var(--green);}
+.op-badge.b{background:#E4ECF6;color:#3E6690;}
+.op-facts{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12.5px;color:var(--ink-soft);margin-top:7px;}
+.op-score{height:5px;border-radius:99px;background:var(--paper-deep);margin-top:9px;overflow:hidden;}
+.op-score b{display:block;height:100%;background:linear-gradient(90deg,#F0A27F,var(--coral));border-radius:99px;}
+.op-age{font-size:11.5px;color:var(--muted);margin-top:6px;}
+.op-age.stale{color:var(--coral-deep);font-weight:600;}
+.op-ops{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.op-ops a,.op-ops button{font-size:12.5px;font-weight:600;border-radius:8px;padding:5px 10px;border:1px solid var(--line);background:var(--card);color:var(--ink-soft);text-decoration:none;}
+.op-ops .pick{background:var(--ink);border-color:var(--ink);color:#F6EFDD;}
+.op-ops .del{color:var(--coral-deep);}
+.cmp-form{border-top:1.5px dashed var(--line);margin-top:12px;padding-top:14px;}
+.cmp-empty{font-size:13px;color:var(--muted);text-align:center;padding:16px 8px;border:1.5px dashed var(--line);border-radius:12px;margin-bottom:10px;line-height:1.7;}
+
 /* ==== 竖排断字硬修复：所有胶囊/统计类元素强制单行 ==== */
 [class*="trip"] *, [class*="chip"] *, [class*="pill"] *, [class*="sb-"] *, [class*="stat"] *{
   white-space:nowrap;word-break:keep-all;overflow-wrap:normal;
@@ -432,6 +521,7 @@ footer .dot{margin:0 6px;}
   <nav class="tabs">
     <button class="tab on" data-tab="add">✏️ 记一笔</button>
     <button class="tab" data-tab="list">📒 账目</button>
+    <button class="tab" data-tab="plan">🗓 预算</button>
     <button class="tab" data-tab="members">👥 成员</button>
   </nav>
 </div>
@@ -518,7 +608,37 @@ footer .dot{margin:0 6px;}
 
   <!-- ============ 页签 2：账目 ============ -->
   <section class="view" id="view-list">
-    <div class="filter-bar" id="filterPills"></div>
+    <div class="lv-bar">
+      <input type="search" id="lvQ" placeholder="🔍 搜索项目 / 备注 / 人名" autocomplete="off">
+      <button class="lv-btn" id="lvFilterBtn">筛选</button>
+    </div>
+    <div class="lv-bar lv-sel">
+      <label>排序<select id="lvSort">
+        <option value="date_desc">日期 新→旧</option><option value="date_asc">日期 旧→新</option>
+        <option value="amt_desc">金额 高→低</option><option value="amt_asc">金额 低→高</option>
+        <option value="added_desc">最近添加</option><option value="item_asc">项目名 A→Z</option>
+      </select></label>
+      <label>分组<select id="lvGroup">
+        <option value="none">不分组</option><option value="date">按日期</option><option value="cat">按类别</option>
+        <option value="payer">按付款人</option><option value="trip">按行程</option><option value="status">按状态</option><option value="cur">按币种</option>
+      </select></label>
+    </div>
+    <div class="lv-panel" id="lvPanel" style="display:none">
+      <div class="lv-lbl">付款人</div><div class="pill-group" id="lvPayer"></div>
+      <div class="lv-lbl">参与人包含</div><div class="pill-group" id="lvPart"></div>
+      <div class="lv-lbl">类别（可多选）</div><div class="pill-group" id="lvCats"></div>
+      <div class="lv-lbl">状态</div><div class="pill-group" id="lvStatus"></div>
+      <div class="lv-lbl">币种</div><div class="pill-group" id="lvCur"></div>
+      <div class="lv-lbl">日期范围</div>
+      <div class="lv-dates"><input type="date" id="lvFrom"><span>~</span><input type="date" id="lvTo"></div>
+      <div class="lv-lbl">金额范围（<span class="lvBase"></span>）</div>
+      <div class="lv-dates"><input id="lvMin" inputmode="decimal" placeholder="最低"><span>~</span><input id="lvMax" inputmode="decimal" placeholder="最高"></div>
+      <div class="modal-actions" style="margin-top:12px">
+        <button class="btn btn-ghost" id="lvReset">清空筛选</button>
+        <button class="btn btn-green" id="lvDone">完成</button>
+      </div>
+    </div>
+    <div class="lv-active" id="lvActive"></div>
     <div class="summary-card" id="listSummary"></div>
     <div class="toolbar">
       <button class="btn" id="exportBtn">📤 导出 CSV</button>
@@ -540,6 +660,22 @@ footer .dot{margin:0 6px;}
       </div>
       <div class="bb-hint" id="bbHint">点卡片勾选账目，选好目标行程后点「归入」。</div>
     </div>
+  </section>
+
+  <!-- ============ 页签：预算 ============ -->
+  <section class="view" id="view-plan">
+    <div id="planTrip" class="form-trip">📁 行程：<b>—</b></div>
+    <div class="summary-card" id="planSummary"></div>
+    <div class="card" id="planCatCard">
+      <div class="section-title">预算 vs 实际</div>
+      <div id="planCats"></div>
+    </div>
+    <div class="toolbar">
+      <button class="btn" id="planAddBtn" style="flex:2;background:var(--coral);border-color:var(--coral);color:#fff">＋ 添加预算项</button>
+      <button class="btn" id="planGroupBtn">按类别看</button>
+    </div>
+    <div id="planList"></div>
+    <div class="settle-note" style="text-align:center">💾 预算数据暂存本机浏览器，接入云端后会自动迁移</div>
   </section>
 
   <!-- ============ 页签 3：成员 ============ -->
@@ -653,6 +789,80 @@ footer .dot{margin:0 6px;}
   </div>
 </div>
 
+<!-- ============ 预算项编辑 ============ -->
+<div class="mask" id="bMask">
+  <div class="modal">
+    <h3><span id="bTitle">添加预算项</span><button class="m-close" id="bClose">✕</button></h3>
+    <div class="m-desc" id="bTripHint"></div>
+    <div class="fitem" style="margin-bottom:12px"><label>项目</label><input type="text" id="bName" maxlength="60" placeholder="如：京都 → 大阪 JR 新快速"></div>
+    <div class="fitem" style="margin-bottom:6px"><label>类别</label></div>
+    <div class="pill-group" id="bCats"></div>
+    <div class="row2">
+      <div class="fitem"><label>日期（可选）</label><input type="date" id="bDay"></div>
+      <div class="fitem"><label>数量（人数 / 份数）</label><input id="bQty" inputmode="numeric" placeholder="1"></div>
+    </div>
+    <div class="row2">
+      <div class="fitem"><label>单价</label><input id="bAmt" inputmode="decimal" placeholder="0.00"></div>
+      <div class="fitem"><label>币种</label><select id="bCur"></select></div>
+    </div>
+    <div class="fitem" id="bRateBox" style="margin-bottom:12px;display:none"><label>汇率：1 <span id="bRateCur"></span> = ? <span class="bBase"></span></label><input id="bRate" inputmode="decimal" placeholder="0.048200"></div>
+    <div class="bi-total" id="bTotal"></div>
+    <label class="check-line"><input type="checkbox" id="bFixed">固定费用（车票、门票等价格明确的项目）</label>
+    <div class="fitem" style="margin-bottom:6px"><label>状态</label></div>
+    <div class="pill-group" id="bStatus"></div>
+    <div class="row2">
+      <div class="fitem"><label>订单号（可选）</label><input type="text" id="bRef" maxlength="60"></div>
+      <div class="fitem"><label>链接（可选）</label><input type="text" id="bUrl" maxlength="500" placeholder="https://"></div>
+    </div>
+    <div class="fitem"><label>备注</label><input type="text" id="bNote" maxlength="200" placeholder="可选"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="bDel" style="flex:none;color:var(--coral-deep)">删除</button>
+      <button class="btn btn-primary" id="bSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 比价 ============ -->
+<div class="mask" id="cmpMask">
+  <div class="modal" style="max-width:560px">
+    <h3><span id="cmpTitle">⚖ 比价</span><button class="m-close" id="cmpClose">✕</button></h3>
+    <div class="m-desc" id="cmpDesc"></div>
+    <div class="cmp-pref" id="cmpPref"></div>
+    <div class="cmp-search" id="cmpSearch"></div>
+    <div id="cmpList"></div>
+    <button class="btn btn-ghost" id="cmpAddToggle" style="width:100%;margin-top:4px">＋ 添加方案</button>
+    <div class="cmp-form" id="cmpForm" style="display:none">
+      <div class="row2">
+        <div class="fitem"><label>方案名称</label><input type="text" id="oLabel" maxlength="60" placeholder="如：JR 新快速 / 高速巴士"></div>
+        <div class="fitem"><label>方式</label><select id="oMode"></select></div>
+      </div>
+      <div class="row2">
+        <div class="fitem"><label>购买渠道</label><input type="text" id="oChannel" maxlength="40" list="oChannelList" placeholder="官网 / 携程 / Klook / 现场"></div>
+        <div class="fitem"><label>单价</label><input id="oPrice" inputmode="decimal" placeholder="0.00"></div>
+      </div>
+      <datalist id="oChannelList"><option value="官网"><option value="现场购买"><option value="携程"><option value="Trip.com"><option value="飞猪"><option value="12306"><option value="Klook"><option value="KKday"><option value="Booking"><option value="Agoda"><option value="天巡"></datalist>
+      <div class="row2">
+        <div class="fitem"><label>币种</label><select id="oCur"></select></div>
+        <div class="fitem" id="oRateBox" style="display:none"><label>汇率：1 <span id="oRateCur"></span> = ? <span class="bBase"></span></label><input id="oRate" inputmode="decimal"></div>
+      </div>
+      <div class="row2">
+        <div class="fitem"><label>耗时（分钟，可选）</label><input id="oDur" inputmode="numeric" placeholder="如 45"></div>
+        <div class="fitem"><label>换乘次数（可选）</label><input id="oTrans" inputmode="numeric" placeholder="0"></div>
+      </div>
+      <div class="fitem" style="margin-bottom:6px"><label>便利度</label></div>
+      <div class="pill-group" id="oConv"></div>
+      <div class="fitem" style="margin-bottom:6px"><label>退改</label></div>
+      <div class="pill-group" id="oRefund"></div>
+      <div class="fitem" style="margin-bottom:12px"><label>购买链接（可选）</label><input type="text" id="oUrl" maxlength="500" placeholder="https://"></div>
+      <div class="fitem"><label>备注（可选）</label><input type="text" id="oNote" maxlength="200" placeholder="如：需提前 3 天预约 / 含行李"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="oCancel">取消</button>
+        <button class="btn btn-primary" id="oSave">保存方案</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- ============ 导入 CSV ============ -->
 <div class="mask" id="imMask">
   <div class="modal">
@@ -683,9 +893,9 @@ footer .dot{margin:0 6px;}
  * ========================================================= */
 
 /* ---------- 常量 ---------- */
-var CATS = ["餐饮","交通","购物","住宿","娱乐","医疗","其他"];
-var CAT_ICON = {"餐饮":"🍜","交通":"🚄","购物":"🛍️","住宿":"🏨","娱乐":"🎭","医疗":"💊","其他":"🧾"};
-var CAT_COLOR = {"餐饮":"#E8734A","交通":"#3E7C9B","购物":"#C2853B","住宿":"#2E7D5B","娱乐":"#9B5BA5","医疗":"#C34F4F","其他":"#7B8471"};
+var CATS = ["餐饮","交通","住宿","门票","购物","娱乐","医疗","其他"];
+var CAT_ICON = {"门票":"🎫","餐饮":"🍜","交通":"🚄","购物":"🛍️","住宿":"🏨","娱乐":"🎭","医疗":"💊","其他":"🧾"};
+var CAT_COLOR = {"门票":"#5B7BB5","餐饮":"#E8734A","交通":"#3E7C9B","购物":"#C2853B","住宿":"#2E7D5B","娱乐":"#9B5BA5","医疗":"#C34F4F","其他":"#7B8471"};
 var CURRENCIES = [
   ["CNY","人民币"],["JPY","日元"],["USD","美元"],["EUR","欧元"],["HKD","港币（中国香港）"],
   ["MOP","澳门币（中国澳门）"],["TWD","新台币（中国台湾）"],["KRW","韩元"],["THB","泰铢"],
@@ -715,7 +925,7 @@ var LS = (function(){
 })();
 var CH = null;
 try{ CH = new BroadcastChannel("trip-aa-ledger"); }catch(e){}
-var KEY = { t:"aal$t$", m:"aal$m$", s:"aal$settings", x:"aal$x$" }; /* 账目表 / 成员表 / 设置表 / 行程表 */
+var KEY = { t:"aal$t$", m:"aal$m$", s:"aal$settings", x:"aal$x$", b:"aal$b$" }; /* 账目表 / 成员表 / 设置表 / 行程表 / 预算表（暂仅本机） */
 
 var DB = {
   list:function(table){
@@ -756,7 +966,7 @@ function lsDel(table,id){ LS.removeItem(KEY[table]+id); DB._ping(); }
 /* 写穿队列：本地先落，云端异步补 */
 var dirty={}, flushing=false, cloudErrToasted=false;
 function cloudWrite(table,id){
-  if(!CLOUD_ON) return;
+  if(!CLOUD_ON || !CTAB[table]) return; /* 预算表暂未上云 */
   dirty[table+"$"+id]={ table:table, id:id };
   setTimeout(flushDirty, 200);
 }
@@ -883,12 +1093,13 @@ function cloudBoot(){
 }
 
 /* ---------- 全局状态 ---------- */
-var state = { members:[], settings:null, txns:[], trips:[], curTrip:"__all__" };
+var state = { members:[], settings:null, txns:[], trips:[], budget:[], curTrip:"__all__" };
 function loadAll(){
   state.members = DB.list("m");
   state.settings = DB.get("s","cfg");
   state.txns = DB.list("t");
   state.trips = DB.list("x").sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
+  state.budget = DB.list("b").sort(function(a,b){ return (a.day||"9999").localeCompare(b.day||"9999") || (a.ts||0)-(b.ts||0); });
   state.txns.sort(function(a,b){ return (b.date||"").localeCompare(a.date||"") || (b.ts||0)-(a.ts||0); });
 }
 /* ---------- 行程工具 ---------- */
@@ -999,7 +1210,7 @@ function fillForm(t){
   switchTab("add"); window.scrollTo({top:0,behavior:"smooth"});
 }
 function clearForm(){
-  editingId=null; customDraft={};
+  editingId=null; customDraft={}; planPending=null;
   $("fItem").value=""; $("fNote").value=""; $("fAmount").value="";
   $("fDate").value=todayStr(); $("fRate").value="";
   selCat="餐饮"; selMode="平均分摊"; selStatus="已确认";
@@ -1220,6 +1431,8 @@ $("submitBtn").onclick=function(){
     if(!customOk()){ toast("按金额分摊合计与实付金额不符"); return; }
     customSplit=selParts.map(function(p){ return p+"="+(parseFloat(customDraft[p])||0).toFixed(2); }).join("/");
   }
+  var fromBudget = (!editingId && planPending) ? DB.get("b",planPending) : null;
+  if(fromBudget && tripById(fromBudget.trip)) tripId=fromBudget.trip;
   var rec={
     id: editingId||uid(), ts: editingId? ((DB.get("t",editingId)||{}).ts||Date.now()) : Date.now(),
     item:item, date:date, category:selCat, payer:selPayer,
@@ -1230,11 +1443,12 @@ $("submitBtn").onclick=function(){
   };
   var wasEdit=!!editingId;
   DB.upsert("t",rec);
+  if(fromBudget){ fromBudget.status="paid"; fromBudget.expenseId=rec.id; DB.upsert("b",fromBudget); }
   loadAll(); clearForm(); renderList(); renderMembers(); renderTripBar();
-  toast(wasEdit? "已保存修改 ✅" : "已记一笔 ✅");
+  toast(wasEdit? "已保存修改 ✅" : fromBudget? "已记账，预算项标记为已付 ✅" : "已记一笔 ✅");
   editingId=null; switchTab("list");
 };
-$("cancelEditBtn").onclick=function(){ clearForm(); toast("已取消编辑"); };
+$("cancelEditBtn").onclick=function(){ var fromPlan=!!planPending; clearForm(); toast("已取消"+(fromPlan?"":"编辑")); if(fromPlan) switchTab("plan"); };
 
 /* ---------- 页签 ---------- */
 function switchTab(name){
@@ -1244,6 +1458,7 @@ function switchTab(name){
   renderTripBar();
   if(name==="list") renderList();
   if(name==="members") renderMembers();
+  if(name==="plan") renderPlan();
   if(name==="add") renderFormDynamic();
 }
 document.querySelectorAll(".tab").forEach(function(b){ b.onclick=function(){ switchTab(b.getAttribute("data-tab")); }; });
@@ -1252,7 +1467,7 @@ document.querySelectorAll(".tab").forEach(function(b){ b.onclick=function(){ swi
 var edTripId=null; /* 行程管理弹窗中正在编辑的行程 id */
 function renderTripBar(){
   var onTab=document.querySelector(".tab.on");
-  var inAdd = !!onTab && onTab.getAttribute("data-tab")==="add";
+  var inAdd = !!onTab && (onTab.getAttribute("data-tab")==="add" || onTab.getAttribute("data-tab")==="plan"); /* 记账/预算必须落到具体行程 */
   var chips=[];
   if(!inAdd){
     chips.push('<button class="trip-chip'+(state.curTrip==="__all__"?" on":"")+'" data-trip="__all__"><span class="tn">🗂 全部行程</span><span class="cnt">'+state.txns.length+'</span></button>');
@@ -1278,7 +1493,7 @@ function renderTripBar(){
 }
 function selectTrip(id){
   state.curTrip=id; saveTripSel();
-  renderTripBar(); renderList(); renderMembers();
+  renderTripBar(); renderList(); renderMembers(); renderPlan();
 }
 function renderFormTrip(){
   var el=$("formTrip"); if(!el) return;
@@ -1365,19 +1580,139 @@ $("tpSave").onclick=function(){
 };
 
 /* ---------- 账目列表 ---------- */
-var filterPayer="全部";
+/* 列表视图：搜索 / 排序 / 筛选 / 分组（偏好记在本机） */
+var LV_DEF={ q:"", sort:"date_desc", group:"none", payer:"", part:"", cats:[], status:"", cur:"", from:"", to:"", min:"", max:"" };
+var lv=JSON.parse(JSON.stringify(LV_DEF)), lvClosed={};
+try{ var _lv=JSON.parse(LS.getItem("aallv")||"null"); if(_lv){ lv.sort=_lv.sort||lv.sort; lv.group=_lv.group||lv.group; } }catch(e){}
+function saveLv(){ try{ LS.setItem("aallv",JSON.stringify({sort:lv.sort,group:lv.group})); }catch(e){} }
+function lvResetFilters(){ var keep={sort:lv.sort,group:lv.group}; lv=JSON.parse(JSON.stringify(LV_DEF)); lv.sort=keep.sort; lv.group=keep.group; }
+function txnParts(t){ return String(t.participants||"").split("/").map(function(x){return x.trim();}).filter(Boolean); }
+function lvMatch(t){
+  if(lv.payer && t.payer!==lv.payer) return false;
+  if(lv.part && txnParts(t).indexOf(lv.part)<0) return false;
+  if(lv.cats.length && lv.cats.indexOf(t.category||"其他")<0) return false;
+  if(lv.status && t.status!==lv.status) return false;
+  if(lv.cur && curCode(t.currency)!==lv.cur) return false;
+  if(lv.from && (t.date||"")<lv.from) return false;
+  if(lv.to && (t.date||"")>lv.to) return false;
+  var b=txnBase(t);
+  if(lv.min!=="" && isFinite(+lv.min) && b < +lv.min) return false;
+  if(lv.max!=="" && isFinite(+lv.max) && b > +lv.max) return false;
+  if(lv.q.trim()){
+    var q=lv.q.trim().toLowerCase(), hay=[t.item,t.note,t.payer,t.participants,t.category,tripName(t.trip)].join(" ").toLowerCase();
+    if(hay.indexOf(q)<0) return false;
+  }
+  return true;
+}
+function lvSorter(a,b){
+  switch(lv.sort){
+    case "date_asc": return (a.date||"").localeCompare(b.date||"") || (a.ts||0)-(b.ts||0);
+    case "amt_desc": return txnBase(b)-txnBase(a);
+    case "amt_asc": return txnBase(a)-txnBase(b);
+    case "added_desc": return (b.ts||0)-(a.ts||0);
+    case "item_asc": return (a.item||"").localeCompare(b.item||"","zh-CN");
+    default: return (b.date||"").localeCompare(a.date||"") || (b.ts||0)-(a.ts||0);
+  }
+}
+function lvKey(t){
+  switch(lv.group){
+    case "date": return t.date||"";
+    case "cat": return t.category||"其他";
+    case "payer": return t.payer||"";
+    case "trip": return isUnassigned(t)? "" : t.trip;
+    case "status": return t.status||"";
+    case "cur": return curCode(t.currency);
+  }
+  return "";
+}
+function lvKeyLabel(k){
+  switch(lv.group){
+    case "date": return k? "📅 "+k+" 周"+"日一二三四五六".charAt(new Date(k+"T00:00:00").getDay()) : "📅 无日期";
+    case "cat": return (CAT_ICON[k]||"🧾")+" "+k;
+    case "payer": return "💳 "+(k||"—");
+    case "trip": return k? "🧳 "+tripName(k) : "📭 未分配";
+    case "status": return k==="已确认"?"✅ 已确认":"⏳ 待确认";
+    case "cur": return "💱 "+curLabel(k);
+  }
+  return k;
+}
+function lvGroupOrder(keys, groups){
+  if(lv.group==="date") return keys.sort(function(a,b){ return lv.sort==="date_asc"? (a||"9").localeCompare(b||"9") : (b||"").localeCompare(a||""); });
+  if(lv.group==="cat") return keys.sort(function(a,b){ return CATS.indexOf(a)-CATS.indexOf(b); });
+  /* 其余按小计从大到小 */
+  return keys.sort(function(a,b){ return groups[b].sum-groups[a].sum; });
+}
+function lvFilterCount(){ return (lv.payer?1:0)+(lv.part?1:0)+(lv.cats.length?1:0)+(lv.status?1:0)+(lv.cur?1:0)+((lv.from||lv.to)?1:0)+((lv.min!==""||lv.max!=="")?1:0); }
+function renderLvPanel(src){
+  var payers=[], parts=[], curs=[];
+  src.forEach(function(t){
+    if(t.payer && payers.indexOf(t.payer)<0) payers.push(t.payer);
+    txnParts(t).forEach(function(n){ if(parts.indexOf(n)<0) parts.push(n); });
+    var c=curCode(t.currency); if(curs.indexOf(c)<0) curs.push(c);
+  });
+  function pills(id, vals, cur, labelFn, multi){
+    $(id).innerHTML=['<button type="button" class="pill'+((multi? !cur.length : !cur)?" on":"")+'" data-v="">全部</button>'].concat(vals.map(function(v){
+      var on = multi? cur.indexOf(v)>=0 : cur===v;
+      return '<button type="button" class="pill'+(on?" on coral":"")+'" data-v="'+esc(v)+'">'+esc(labelFn?labelFn(v):v)+'</button>';
+    })).join("");
+  }
+  pills("lvPayer", payers, lv.payer);
+  pills("lvPart", parts, lv.part);
+  pills("lvCats", CATS, lv.cats, function(c){ return CAT_ICON[c]+" "+c; }, true);
+  pills("lvStatus", ["已确认","待确认"], lv.status);
+  pills("lvCur", curs, lv.cur);
+  bindPills("lvPayer",function(v){ lv.payer=v; renderList(); });
+  bindPills("lvPart",function(v){ lv.part=v; renderList(); });
+  bindPills("lvCats",function(v){ if(!v) lv.cats=[]; else { var i=lv.cats.indexOf(v); if(i>=0) lv.cats.splice(i,1); else lv.cats.push(v); } renderList(); });
+  bindPills("lvStatus",function(v){ lv.status=v; renderList(); });
+  bindPills("lvCur",function(v){ lv.cur=v; renderList(); });
+  Array.prototype.forEach.call(document.querySelectorAll(".lvBase"),function(e){ e.textContent=baseCode(); });
+}
+function renderLvActive(){
+  var tags=[];
+  function tag(k,label){ tags.push('<span class="lv-tag">'+esc(label)+'<button data-lvx="'+k+'">✕</button></span>'); }
+  if(lv.q.trim()) tag("q","“"+lv.q.trim()+"”");
+  if(lv.payer) tag("payer","付款人："+lv.payer);
+  if(lv.part) tag("part","含："+lv.part);
+  if(lv.cats.length) tag("cats","类别："+lv.cats.join("/"));
+  if(lv.status) tag("status",lv.status);
+  if(lv.cur) tag("cur","币种："+lv.cur);
+  if(lv.from||lv.to) tag("date",(lv.from||"…")+" ~ "+(lv.to||"…"));
+  if(lv.min!==""||lv.max!=="") tag("amt",baseSym()+(lv.min||"0")+" ~ "+(lv.max!==""?baseSym()+lv.max:"不限"));
+  $("lvActive").innerHTML=tags.join("");
+  Array.prototype.forEach.call($("lvActive").querySelectorAll("[data-lvx]"),function(b){
+    b.onclick=function(){
+      var k=b.getAttribute("data-lvx");
+      if(k==="cats") lv.cats=[]; else if(k==="date"){ lv.from=""; lv.to=""; } else if(k==="amt"){ lv.min=""; lv.max=""; } else lv[k]="";
+      syncLvInputs(); renderList();
+    };
+  });
+  var n=lvFilterCount();
+  $("lvFilterBtn").textContent = n? "筛选 · "+n : "筛选";
+  $("lvFilterBtn").classList.toggle("on", !!n || $("lvPanel").style.display!=="none");
+}
+function syncLvInputs(){
+  if(document.activeElement!==$("lvQ")) $("lvQ").value=lv.q;
+  $("lvSort").value=lv.sort; $("lvGroup").value=lv.group;
+  $("lvFrom").value=lv.from; $("lvTo").value=lv.to; $("lvMin").value=lv.min; $("lvMax").value=lv.max;
+}
+var _lvQT=null;
+$("lvQ").addEventListener("input",function(){ var v=this.value; clearTimeout(_lvQT); _lvQT=setTimeout(function(){ lv.q=v; renderList(); },150); });
+$("lvSort").onchange=function(){ lv.sort=this.value; saveLv(); renderList(); };
+$("lvGroup").onchange=function(){ lv.group=this.value; lvClosed={}; saveLv(); renderList(); };
+["lvFrom","lvTo","lvMin","lvMax"].forEach(function(id){
+  $(id).addEventListener("change",function(){ var k=id.slice(2).toLowerCase(); lv[k]=this.value.trim(); renderList(); });
+});
+$("lvFilterBtn").onclick=function(){ var p=$("lvPanel"); p.style.display = p.style.display==="none"?"":"none"; renderLvActive(); };
+$("lvDone").onclick=function(){ $("lvPanel").style.display="none"; renderLvActive(); };
+$("lvReset").onclick=function(){ lvResetFilters(); syncLvInputs(); renderList(); };
+
 function renderList(){
   var src=scopedTxns(); /* 行程范围内的账目 */
-  /* 付款人筛选胶囊 */
-  var payers=["全部"]; src.forEach(function(t){ if(t.payer && payers.indexOf(t.payer)<0) payers.push(t.payer); });
-  $("filterPills").innerHTML=payers.map(function(p){
-    return '<button class="fp'+(p===filterPayer?" on":"")+'" data-v="'+esc(p)+'">'+esc(p)+"</button>";
-  }).join("");
-  Array.prototype.forEach.call($("filterPills").querySelectorAll(".fp"),function(b){
-    b.onclick=function(){ filterPayer=b.getAttribute("data-v"); renderList(); };
-  });
-
-  var list=src.filter(function(t){ return filterPayer==="全部"||t.payer===filterPayer; });
+  renderLvPanel(src);
+  syncLvInputs();
+  var list=src.filter(lvMatch).sort(lvSorter);
+  renderLvActive();
   var total=0, confirmed=0, waitN=0;
   list.forEach(function(t){ var b=txnBase(t); total+=b; if(t.status==="已确认") confirmed+=b; else waitN++; });
   var bc=baseCode(), bs=baseSym();
@@ -1388,11 +1723,11 @@ function renderList(){
 
   if(!list.length){
     batchList=[]; renderBatchBar();
-    $("txnList").innerHTML='<div class="empty"><span class="emo">🧳✈️</span>'+(src.length?"这个付款人名下还没有账目":(state.curTrip==="__all__"?"还没有账目，去「记一笔」写下第一笔吧":state.curTrip==="__none__"?"没有未分配的账目 🎉":"这个行程还没有账目"))+"</div>";
+    $("txnList").innerHTML='<div class="empty"><span class="emo">🧳✈️</span>'+(src.length?"没有符合筛选条件的账目":(state.curTrip==="__all__"?"还没有账目，去「记一笔」写下第一笔吧":state.curTrip==="__none__"?"没有未分配的账目 🎉":"这个行程还没有账目"))+"</div>";
     return;
   }
   batchList=list;
-  $("txnList").innerHTML=list.map(function(t){
+  var cardHtml=function(t){
     var c=curCode(t.currency), isBase=(c===bc), sm=shareMap(t), n=Object.keys(sm).length;
     var splitHtml, tMode=normMode(t.splitMode);
     if(tMode==="按金额" && t.customSplit){
@@ -1430,7 +1765,22 @@ function renderList(){
       (t.note?'<div class="t-note">📝 '+esc(t.note)+"</div>":"")+
       '<div class="t-ops"><button class="op" data-edit="'+esc(t.id)+'">编辑</button><button class="op del" data-del="'+esc(t.id)+'">删除</button></div>'+
     "</div>";
-  }).join("");
+  };
+  if(lv.group==="none"){
+    $("txnList").innerHTML=list.map(cardHtml).join("");
+  }else{
+    var groups={}, keys=[];
+    list.forEach(function(t){ var k=lvKey(t); if(!groups[k]){ groups[k]={items:[],sum:0}; keys.push(k); } groups[k].items.push(t); groups[k].sum+=txnBase(t); });
+    lvGroupOrder(keys,groups);
+    $("txnList").innerHTML=keys.map(function(k){
+      var g=groups[k], closed=!!lvClosed[lv.group+"|"+k];
+      return '<div class="lv-group'+(closed?" closed":"")+'" data-lvg="'+esc(k)+'"><span class="g-n"><span class="g-c">▾</span>'+esc(lvKeyLabel(k))+'</span><span class="g-s">'+g.items.length+' 笔 · '+bs+fmt(g.sum)+'</span></div>'+
+        (closed?"":g.items.map(cardHtml).join(""));
+    }).join("");
+    Array.prototype.forEach.call($("txnList").querySelectorAll("[data-lvg]"),function(h){
+      h.onclick=function(){ var key=lv.group+"|"+h.getAttribute("data-lvg"); lvClosed[key]=!lvClosed[key]; renderList(); };
+    });
+  }
   Array.prototype.forEach.call($("txnList").querySelectorAll("[data-pick]"),function(c){
     c.onclick=function(){
       var id=c.getAttribute("data-pick");
@@ -1484,7 +1834,7 @@ function startClaim(tripId){ /* 从行程管理进入：为指定行程认领账
   batchTarget=tripId; batchSel={};
   var hasNone=state.txns.some(isUnassigned);
   state.curTrip=hasNone?"__none__":"__all__"; saveTripSel();
-  filterPayer="全部";
+  lvResetFilters();
   batchOn=true;
   switchTab("list");
   renderMembers();
@@ -1632,7 +1982,7 @@ function csvEsc(v){
 }
 function exportRows(){
   var src=scopedTxns();
-  return src.filter(function(t){ return filterPayer==="全部"||t.payer===filterPayer; });
+  return src.filter(lvMatch).sort(lvSorter);
 }
 $("exportBtn").onclick=function(){
   var list=exportRows();
@@ -1823,6 +2173,390 @@ $("cfmYes").onclick=function(){ $("cfmMask").classList.remove("on"); if(cfmRes){
 $("cfmNo").onclick=function(){ $("cfmMask").classList.remove("on"); if(cfmRes){cfmRes(false);cfmRes=null;} };
 $("cfmMask").addEventListener("click",function(e){ if(e.target===this) $("cfmNo").click(); });
 
+
+/* ---------- 预算 / 比价 ---------- */
+/* 预算项结构（与 Supabase budget_items / price_options 对齐）：
+ * {id, ts, trip, title, category, day, amount(单价), qty, currency(标签), rate, fixed, status: idea|booked|paid,
+ *  ref, url, note, chosenOptionId, expenseId, options:[{id,label,mode,channel,price,currency,rate,dur,transfers,conv,refund,url,note,checkedAt}]} */
+var PLAN_STATUS = { idea:"💭 计划", booked:"📌 已订", paid:"✅ 已付" };
+var PLAN_STATUS_ORDER = ["idea","booked","paid"];
+var OPT_MODES = ["火车","高铁/新干线","地铁","巴士","飞机","出租/网约车","自驾","轮渡","步行","门票","酒店","套餐","其他"];
+var PREFS = { balanced:{n:"⚖ 均衡",p:.4,t:.3,c:.3}, cheap:{n:"💰 省钱",p:.7,t:.15,c:.15}, fast:{n:"⚡ 省时",p:.2,t:.6,c:.2}, easy:{n:"😌 省心",p:.2,t:.2,c:.6} };
+var planPending=null;           /* 正在「记为账目」的预算项 id */
+var planGroup="day"; try{ planGroup=LS.getItem("aalplangroup")||"day"; }catch(e){}
+var cmpPref="balanced"; try{ cmpPref=LS.getItem("aalcmppref")||"balanced"; if(!PREFS[cmpPref]) cmpPref="balanced"; }catch(e){}
+var bEditId=null, bCat="交通", bStatus="idea";
+var cmpItemId=null, oEditId=null, oConv=0, oRefund="";
+
+function planTripId(){ return targetTripId(); }
+function planItems(){ var tid=planTripId(); return state.budget.filter(function(b){ return b.trip===tid; }); }
+function biTotal(b){ return (+b.amount||0) * (Math.max(1,+b.qty||1)); }
+function biBase(b){ return biTotal(b) * (+b.rate||0); }
+function curOpts(keep){ /* 基准币 + 常用币种（+ 需要保留的旧值） */
+  var opts=[baseLabel()], common=(state.settings&&state.settings.commonCurrencies)||[];
+  common.forEach(function(c){ if(opts.indexOf(c)<0) opts.push(c); });
+  if(keep && opts.indexOf(keep)<0) opts.push(keep);
+  return opts.map(function(o){ return '<option value="'+esc(o)+'">'+esc(o)+'</option>'; }).join("");
+}
+function lastRate(code){ var v=null; try{ v=LS.getItem("aalrate$"+code); }catch(e){} return v? +v : NaN; }
+function readRate(curLabel, inputEl){ /* 基准币返回 1；外币读输入框，非法返回 NaN */
+  var c=curCode(curLabel); if(c===baseCode()) return 1;
+  var r=parseFloat(inputEl.value); return (isFinite(r)&&r>0)? r : NaN;
+}
+function durText(m){ m=+m; if(!isFinite(m)||m<0) return ""; var h=Math.floor(m/60), mm=m%60; return h? (h+" 小时"+(mm?" "+mm+" 分":"")) : (mm+" 分钟"); }
+function dayLabel(day, trip){
+  if(!day) return "📌 未定日期";
+  var d=new Date(day+"T00:00:00"), wk="日一二三四五六".charAt(d.getDay());
+  var pre="";
+  if(trip && trip.startDate){
+    var n=Math.round((d-new Date(trip.startDate+"T00:00:00"))/864e5)+1;
+    pre = n>=1 ? "D"+n+" · " : "出发前 · ";
+  }
+  return pre+day.slice(5).replace("-","/")+" 周"+wk;
+}
+
+function renderPlan(){
+  if(!$("view-plan")) return;
+  var tid=planTripId(), trip=tripById(tid);
+  var pt=$("planTrip");
+  if(!trip){
+    pt.className="form-trip warn"; pt.innerHTML="⚠ 还没有行程，先点上方「＋ 新行程」创建一个";
+    $("planSummary").style.display="none"; $("planCatCard").style.display="none";
+    $("planList").innerHTML='<div class="empty"><span class="emo">🗓️</span>创建行程后，就可以在出发前把车票、门票、住宿等费用写进预算</div>';
+    return;
+  }
+  $("planSummary").style.display=""; 
+  pt.className="form-trip"+(isVirtualScope()?" warn":"");
+  pt.innerHTML="📁 预算行程：<b>"+esc(trip.name)+"</b>"+(isVirtualScope()?' <span style="color:var(--coral-deep)">（在上方点选其他行程可切换）</span>':"")+
+    ((trip.startDate||trip.endDate)?' <span style="color:var(--muted)">'+esc(trip.startDate||"…")+" ~ "+esc(trip.endDate||"…")+"</span>":"");
+
+  var items=planItems(), bs=baseSym(), bc=baseCode();
+  var tot=0, byStatus={idea:0,booked:0,paid:0}, fixedTot=0;
+  items.forEach(function(b){ var v=biBase(b); tot+=v; byStatus[b.status||"idea"]=(byStatus[b.status||"idea"]||0)+v; if(b.fixed) fixedTot+=v; });
+  var txns=state.txns.filter(function(t){ return (t.trip||"")===tid; });
+  var actual=0; txns.forEach(function(t){ actual+=txnBase(t); });
+  var left=tot-actual;
+  $("planSummary").innerHTML=
+    '<div><div class="big">'+bs+fmt(tot)+'</div><div class="sub">'+esc(bc)+' 预算 · '+items.length+' 项 · 固定 '+bs+fmt(fixedTot)+'<br>已付 '+bs+fmt(byStatus.paid)+' · 已订 '+bs+fmt(byStatus.booked)+' · 计划 '+bs+fmt(byStatus.idea)+'</div></div>'+
+    '<div class="plan-sum-r"><div class="big '+(left<0?"over":"ok")+'" style="font-size:18px">'+(left<0?"超支 ":"剩余 ")+bs+fmt(Math.abs(left))+'</div><div class="sub">实际已花 '+bs+fmt(actual)+'（'+txns.length+' 笔）</div></div>';
+
+  /* 预算 vs 实际（按类别） */
+  var plan={}, act={};
+  items.forEach(function(b){ plan[b.category]=(plan[b.category]||0)+biBase(b); });
+  txns.forEach(function(t){ act[t.category]=(act[t.category]||0)+txnBase(t); });
+  var cats=CATS.filter(function(c){ return plan[c]||act[c]; });
+  $("planCatCard").style.display=cats.length?"":"none";
+  var mx=0; cats.forEach(function(c){ mx=Math.max(mx,plan[c]||0,act[c]||0); });
+  $("planCats").innerHTML=cats.map(function(c){
+    var p=plan[c]||0, a=act[c]||0, over=a>p && p>0 || (p===0 && a>0);
+    return '<div class="pc-row"><div class="pc-head"><span class="nm">'+CAT_ICON[c]+" "+esc(c)+'</span><span class="nums'+(a>p?" over":"")+'">'+bs+fmt(a)+" / "+bs+fmt(p)+'</span></div>'+
+      '<div class="pc-track"><i class="pc-plan" style="width:'+(mx?p/mx*100:0)+'%"></i><i class="pc-act'+(over?" over":"")+'" style="width:'+(mx?a/mx*100:0)+'%"></i></div></div>';
+  }).join("")+'<div class="pc-legend"><span><i style="background:#D8E7DD"></i>预算</span><span><i style="background:var(--green)"></i>实际</span><span><i style="background:var(--coral-deep)"></i>超出预算</span></div>';
+
+  $("planGroupBtn").textContent = planGroup==="day" ? "按类别看" : "按日期看";
+
+  if(!items.length){
+    $("planList").innerHTML='<div class="empty"><span class="emo">🗓️</span>还没有预算项<br><span style="font-size:12.5px">查攻略时把车票、门票、住宿这类确定的费用先记下来，多个方案可以用「⚖ 比价」对比</span></div>';
+    return;
+  }
+  var groups={}, order=[];
+  items.forEach(function(b){
+    var k = planGroup==="day" ? (b.day||"") : (b.category||"其他");
+    if(!groups[k]){ groups[k]=[]; order.push(k); }
+    groups[k].push(b);
+  });
+  if(planGroup==="day") order.sort(function(a,b){ return (a||"9999").localeCompare(b||"9999"); });
+  else order.sort(function(a,b){ return CATS.indexOf(a)-CATS.indexOf(b); });
+  $("planList").innerHTML=order.map(function(k){
+    var sum=0; groups[k].forEach(function(b){ sum+=biBase(b); });
+    var head = planGroup==="day" ? dayLabel(k,trip) : (CAT_ICON[k]||"🧾")+" "+k;
+    return '<div class="plan-group"><span>'+esc(head)+'</span><small>'+bs+fmt(sum)+'</small></div>'+groups[k].map(biCardHtml).join("");
+  }).join("");
+  bindPlanList();
+}
+function biCardHtml(b){
+  var c=curCode(b.currency), isBase=(c===baseCode()), q=Math.max(1,+b.qty||1), st=b.status||"idea";
+  var opts=b.options||[], chosen=null;
+  opts.forEach(function(o){ if(o.id===b.chosenOptionId) chosen=o; });
+  var linked = b.expenseId && state.txns.some(function(t){ return t.id===b.expenseId; });
+  return '<div class="bi-card st-'+st+'">'+
+    '<div class="bi-top"><div class="bi-name">'+(CAT_ICON[b.category]||"🧾")+" "+esc(b.title)+'</div>'+
+    '<div class="bi-amt"><div class="v">'+curSym(c)+fmt(biTotal(b))+'</div><div class="s">'+
+      (q>1? curSym(c)+fmt(+b.amount||0)+" × "+q : "")+(isBase?"":(q>1?" · ":"")+"≈ "+baseSym()+fmt(biBase(b)))+'</div></div></div>'+
+    '<div class="bi-meta"><button class="bi-st '+st+'" data-bst="'+esc(b.id)+'" title="点击切换状态">'+PLAN_STATUS[st]+'</button>'+
+      '<span class="bi-tag'+(b.fixed?" fixed":"")+'">'+(b.fixed?"固定费用":"预估")+'</span>'+
+      (planGroup!=="day" && b.day ? '<span>📅 '+esc(b.day)+'</span>' : "")+
+      (b.ref?'<span>🧾 '+esc(b.ref)+'</span>':"")+
+      (linked?'<span style="color:var(--green);font-weight:600">✓ 已记账</span>':"")+
+      (b.url?'<a href="'+esc(safeUrl(b.url))+'" target="_blank" rel="noopener" style="color:var(--ink-soft)">🔗 链接</a>':"")+
+    '</div>'+
+    (chosen?'<div class="bi-chosen">✓ 已选方案：'+esc(chosen.label)+(chosen.channel?" · "+esc(chosen.channel):"")+(chosen.dur?" · "+durText(chosen.dur):"")+'</div>':"")+
+    (b.note?'<div class="bi-note">📝 '+esc(b.note)+'</div>':"")+
+    '<div class="bi-ops">'+
+      '<button class="op main" data-bcmp="'+esc(b.id)+'">⚖ 比价'+(opts.length?" ("+opts.length+")":"")+'</button>'+
+      (linked?"":'<button class="op" data-bpay="'+esc(b.id)+'">💳 记为账目</button>')+
+      '<button class="op" data-bedit="'+esc(b.id)+'">编辑</button>'+
+    '</div></div>';
+}
+function safeUrl(u){ u=String(u||"").trim(); return /^https?:\/\//i.test(u)? u : (u? "https://"+u : ""); }
+function bindPlanList(){
+  var L=$("planList");
+  Array.prototype.forEach.call(L.querySelectorAll("[data-bst]"),function(el){
+    el.onclick=function(){
+      var b=DB.get("b",el.getAttribute("data-bst")); if(!b) return;
+      b.status=PLAN_STATUS_ORDER[(PLAN_STATUS_ORDER.indexOf(b.status||"idea")+1)%3];
+      DB.upsert("b",b); loadAll(); renderPlan();
+    };
+  });
+  Array.prototype.forEach.call(L.querySelectorAll("[data-bedit]"),function(el){ el.onclick=function(){ openBudget(el.getAttribute("data-bedit")); }; });
+  Array.prototype.forEach.call(L.querySelectorAll("[data-bcmp]"),function(el){ el.onclick=function(){ openCompare(el.getAttribute("data-bcmp")); }; });
+  Array.prototype.forEach.call(L.querySelectorAll("[data-bpay]"),function(el){ el.onclick=function(){ budgetToExpense(el.getAttribute("data-bpay")); }; });
+}
+$("planGroupBtn").onclick=function(){ planGroup = planGroup==="day"?"cat":"day"; try{ LS.setItem("aalplangroup",planGroup); }catch(e){} renderPlan(); };
+$("planAddBtn").onclick=function(){
+  if(!tripById(planTripId())){ toast("先创建一个行程 🧳"); openTripModal(); return; }
+  openBudget(null);
+};
+
+/* ---- 预算项编辑 ---- */
+function openBudget(id){
+  var b = id? DB.get("b",id) : null;
+  bEditId = b? b.id : null;
+  var trip=tripById(b? b.trip : planTripId());
+  $("bTitle").textContent = b? "编辑预算项" : "添加预算项";
+  $("bTripHint").textContent = "行程：" + (trip? trip.name : "—");
+  $("bName").value = b? b.title : "";
+  $("bDay").value = b? (b.day||"") : "";
+  $("bQty").value = b? (b.qty||1) : "";
+  $("bAmt").value = b? (b.amount||"") : "";
+  $("bCur").innerHTML = curOpts(b? b.currency : null);
+  $("bCur").value = b? b.currency : baseLabel();
+  $("bRate").value = (b && curCode(b.currency)!==baseCode())? Number(b.rate).toFixed(6) : "";
+  $("bFixed").checked = b? !!b.fixed : false;
+  $("bRef").value = b? (b.ref||"") : ""; $("bUrl").value = b? (b.url||"") : ""; $("bNote").value = b? (b.note||"") : "";
+  bCat = b? b.category : "交通"; bStatus = b? (b.status||"idea") : "idea";
+  $("bDel").style.display = b? "" : "none";
+  renderBudgetPills(); bRateUI();
+  $("bMask").classList.add("on");
+  setTimeout(function(){ if(!b) $("bName").focus(); }, 60);
+}
+function renderBudgetPills(){
+  $("bCats").innerHTML=CATS.map(function(c){ return '<button type="button" class="pill'+(c===bCat?" on coral":"")+'" data-v="'+esc(c)+'">'+CAT_ICON[c]+" "+esc(c)+"</button>"; }).join("");
+  bindPills("bCats",function(v){ bCat=v; renderBudgetPills(); });
+  $("bStatus").innerHTML=PLAN_STATUS_ORDER.map(function(k){ return '<button type="button" class="pill'+(k===bStatus?" on":"")+'" data-v="'+k+'">'+PLAN_STATUS[k]+"</button>"; }).join("");
+  bindPills("bStatus",function(v){ bStatus=v; renderBudgetPills(); });
+}
+function bRateUI(){
+  var c=curCode($("bCur").value), isBase=c===baseCode();
+  $("bRateBox").style.display=isBase?"none":"";
+  $("bRateCur").textContent=c;
+  Array.prototype.forEach.call(document.querySelectorAll(".bBase"),function(e){ e.textContent=baseCode(); });
+  if(!isBase && !$("bRate").value){ var r=lastRate(c); if(isFinite(r)) $("bRate").value=r.toFixed(6); }
+  var amt=parseFloat($("bAmt").value), q=Math.max(1,parseInt($("bQty").value,10)||1), rate=readRate($("bCur").value,$("bRate"));
+  $("bTotal").textContent = isFinite(amt)&&amt>0 ? ("合计 "+curSym(c)+fmt(amt*q)+(q>1?"（"+fmt(amt)+" × "+q+"）":"")+(!isBase&&isFinite(rate)?" ≈ "+baseSym()+fmt(amt*q*rate):"")) : "";
+}
+["bAmt","bQty","bRate"].forEach(function(k){ $(k).addEventListener("input",bRateUI); });
+$("bCur").onchange=function(){ $("bRate").value=""; bRateUI(); };
+$("bClose").onclick=function(){ $("bMask").classList.remove("on"); };
+$("bMask").addEventListener("click",function(e){ if(e.target===this) $("bMask").classList.remove("on"); });
+$("bSave").onclick=function(){
+  var title=$("bName").value.trim(); if(!title){ toast("请输入项目名称"); return; }
+  var amtStr=$("bAmt").value.trim(), amt=amtStr===""?0:parseFloat(amtStr);
+  if(!isFinite(amt)||amt<0){ toast("请输入有效单价"); return; }
+  var cur=$("bCur").value||baseLabel(), rate=readRate(cur,$("bRate"));
+  if(!isFinite(rate)){ toast("请输入有效汇率（1 "+curCode(cur)+" 折多少 "+baseCode()+"）"); return; }
+  if(curCode(cur)!==baseCode()) try{ LS.setItem("aalrate$"+curCode(cur),String(rate)); }catch(e){}
+  var old = bEditId? DB.get("b",bEditId) : null;
+  var rec = old || { id:uid(), ts:Date.now(), trip:planTripId(), options:[], chosenOptionId:"", expenseId:"" };
+  rec.title=title; rec.category=bCat; rec.day=$("bDay").value||""; rec.qty=Math.max(1,parseInt($("bQty").value,10)||1);
+  rec.amount=Math.round(amt*100)/100; rec.currency=cur; rec.rate=rate; rec.fixed=$("bFixed").checked; rec.status=bStatus;
+  rec.ref=$("bRef").value.trim(); rec.url=$("bUrl").value.trim(); rec.note=$("bNote").value.trim();
+  DB.upsert("b",rec); loadAll(); renderPlan();
+  $("bMask").classList.remove("on");
+  toast(old? "预算项已更新 ✅" : "已加入预算 🗓");
+};
+$("bDel").onclick=function(){
+  var b=bEditId? DB.get("b",bEditId) : null; if(!b) return;
+  $("bMask").classList.remove("on");
+  confirmDialog("删除预算项「"+esc(b.title)+"」？比价方案会一起删除（已记的账目不受影响）。").then(function(ok){
+    if(!ok) return; DB.remove("b",b.id); loadAll(); renderPlan(); toast("已删除 🗑");
+  });
+};
+
+/* ---- 记为账目：预填「记一笔」表单 ---- */
+function budgetToExpense(id){
+  var b=DB.get("b",id); if(!b) return;
+  if(!state.members.length){ toast("请先在 ⚙ 设置中添加成员"); return; }
+  if(tripById(b.trip) && state.curTrip!==b.trip){ state.curTrip=b.trip; saveTripSel(); }
+  clearForm();
+  planPending=b.id;
+  $("fItem").value=b.title; $("fDate").value=b.day||todayStr();
+  $("fAmount").value=biTotal(b)? (Math.round(biTotal(b)*100)/100) : "";
+  $("fNote").value=(b.note? b.note+" · " : "")+"来自预算";
+  selCat=CATS.indexOf(b.category)>=0? b.category : "其他";
+  renderFormDynamic();
+  var curEl=$("fCur");
+  if(!Array.prototype.some.call(curEl.options,function(o){ return o.value===b.currency; })){ var op=document.createElement("option"); op.value=op.textContent=b.currency; curEl.appendChild(op); }
+  curEl.value=b.currency||baseLabel();
+  $("fRate").value = curCode(b.currency)!==baseCode()? Number(b.rate).toFixed(6) : "";
+  updateRateUI(); renderCustom(); renderFormTrip();
+  $("formTitle").textContent="记一笔（来自预算）";
+  $("cancelEditBtn").style.display="";
+  switchTab("add"); window.scrollTo({top:0,behavior:"smooth"});
+  toast("核对付款人和参与人后点「记一笔」");
+}
+
+/* ---- 比价 ---- */
+function optBase(o){ return (+o.price||0) * (+o.rate||0); }
+function scoreOptions(opts){ /* 按偏好加权：价格/耗时越低越好，便利度越高越好；缺失项记 0.5 */
+  var w=PREFS[cmpPref]||PREFS.balanced;
+  var prices=opts.map(optBase).filter(function(v){ return v>0; });
+  var durs=opts.map(function(o){ return +o.dur; }).filter(function(v){ return isFinite(v)&&v>0; });
+  var minP=prices.length?Math.min.apply(null,prices):0, minD=durs.length?Math.min.apply(null,durs):0;
+  var res={};
+  opts.forEach(function(o){
+    var p=optBase(o), d=+o.dur, c=+o.conv;
+    var sp = p>0&&minP>0 ? minP/p : (p===0&&prices.length?1:.5);
+    var sd = isFinite(d)&&d>0&&minD>0 ? minD/d : .5;
+    var sc = c>=1&&c<=5 ? c/5 : .5;
+    if(isFinite(+o.transfers) && o.transfers!=="" && o.transfers!=null) sc = Math.max(0, sc - Math.min(.3, .1*(+o.transfers)));
+    res[o.id] = w.p*sp + w.t*sd + w.c*sc;
+  });
+  return res;
+}
+function openCompare(id){
+  var b=DB.get("b",id); if(!b) return;
+  cmpItemId=id; oEditId=null;
+  $("cmpForm").style.display="none"; $("cmpAddToggle").style.display="";
+  renderCompare();
+  $("cmpMask").classList.add("on");
+}
+function renderCompare(){
+  var b=DB.get("b",cmpItemId); if(!b){ $("cmpMask").classList.remove("on"); return; }
+  var trip=tripById(b.trip), q=Math.max(1,+b.qty||1);
+  $("cmpTitle").textContent="⚖ 比价 · "+b.title;
+  $("cmpDesc").innerHTML="同一个预算项的多个方案，按偏好综合排序。价格填<b>单价</b>，总价会乘以数量 × "+q+"。选定后会自动更新预算金额。";
+  $("cmpPref").innerHTML=Object.keys(PREFS).map(function(k){ return '<button type="button" class="pill'+(k===cmpPref?" on coral":"")+'" data-v="'+k+'">'+PREFS[k].n+'</button>'; }).join("");
+  bindPills("cmpPref",function(v){ cmpPref=v; try{ LS.setItem("aalcmppref",v); }catch(e){} renderCompare(); });
+  var qstr=encodeURIComponent(((trip&&trip.name)?trip.name+" ":"")+b.title);
+  $("cmpSearch").innerHTML='🔍 查价：<a target="_blank" rel="noopener" href="https://www.google.com/search?q='+qstr+'%20价格">Google</a>'+
+    '<a target="_blank" rel="noopener" href="https://www.baidu.com/s?wd='+qstr+'%20价格">百度</a>'+
+    '<a target="_blank" rel="noopener" href="https://www.xiaohongshu.com/search_result?keyword='+qstr+'">小红书</a>';
+  var opts=(b.options||[]).slice();
+  if(!opts.length){
+    $("cmpList").innerHTML='<div class="cmp-empty">还没有方案。<br>例如交通可以同时记「JR 新快速」「高速巴士」「打车」，分别填价格、耗时、便利度和购买渠道。</div>';
+    return;
+  }
+  var sc=scoreOptions(opts);
+  opts.sort(function(x,y){ return sc[y.id]-sc[x.id]; });
+  var bestId=opts[0].id, cheapId=null, fastId=null, easyId=null, minP=Infinity, minD=Infinity, maxC=0;
+  opts.forEach(function(o){
+    var p=optBase(o); if(p>0&&p<minP){ minP=p; cheapId=o.id; }
+    var d=+o.dur; if(isFinite(d)&&d>0&&d<minD){ minD=d; fastId=o.id; }
+    var c=+o.conv; if(c>maxC){ maxC=c; easyId=o.id; }
+  });
+  var now=Date.now();
+  $("cmpList").innerHTML=opts.map(function(o){
+    var c=curCode(o.currency), isBase=c===baseCode(), chosen=o.id===b.chosenOptionId;
+    var age = o.checkedAt ? Math.floor((now-o.checkedAt)/864e5) : null;
+    var badges=[];
+    if(opts.length>1 && o.id===bestId) badges.push('<span class="op-badge">🏆 综合推荐</span>');
+    if(opts.length>1 && o.id===cheapId) badges.push('<span class="op-badge g">💰 最便宜</span>');
+    if(opts.length>1 && o.id===fastId) badges.push('<span class="op-badge b">⚡ 最快</span>');
+    if(opts.length>1 && o.id===easyId && maxC>0) badges.push('<span class="op-badge b">😌 最省心</span>');
+    var facts=[];
+    if(o.dur) facts.push("⏱ "+durText(o.dur));
+    if(o.transfers!==""&&o.transfers!=null&&isFinite(+o.transfers)) facts.push("🔁 "+(+o.transfers? o.transfers+" 次换乘":"直达"));
+    if(o.conv) facts.push("便利 "+"★★★★★".slice(0,+o.conv)+"☆☆☆☆☆".slice(0,5-o.conv));
+    if(o.refund) facts.push(o.refund==="yes"?"✅ 可退改":o.refund==="partial"?"⚠ 有条件退改":"⛔ 不可退");
+    return '<div class="op-card'+(chosen?" chosen":"")+'">'+
+      '<div class="op-top"><div style="min-width:0"><div class="op-name">'+(chosen?"✓ ":"")+esc(o.label)+'</div>'+
+      '<div class="op-sub">'+[o.mode,o.channel?"🛒 "+o.channel:""].filter(Boolean).map(esc).join(" · ")+'</div></div>'+
+      '<div class="op-price"><div class="v">'+curSym(c)+fmt(o.price)+'</div><div class="s">'+(q>1?"× "+q+" = "+curSym(c)+fmt(o.price*q):"单价")+(isBase?"":" ≈ "+baseSym()+fmt(optBase(o)*q))+'</div></div></div>'+
+      (badges.length?'<div class="op-badges">'+badges.join("")+'</div>':"")+
+      (facts.length?'<div class="op-facts">'+facts.map(function(f){ return "<span>"+esc(f)+"</span>"; }).join("")+'</div>':"")+
+      (o.note?'<div class="bi-note">📝 '+esc(o.note)+'</div>':"")+
+      '<div class="op-score" title="综合得分"><b style="width:'+Math.round(sc[o.id]*100)+'%"></b></div>'+
+      (age!=null?'<div class="op-age'+(age>14?" stale":"")+'">'+(age===0?"今天查询":"查于 "+age+" 天前")+(age>14?" · 价格可能已变，出发前再核对":"")+'</div>':"")+
+      '<div class="op-ops">'+(chosen?'<button data-ounpick="'+esc(o.id)+'">取消选择</button>':'<button class="pick" data-opick="'+esc(o.id)+'">选这个</button>')+
+        (o.url?'<a href="'+esc(safeUrl(o.url))+'" target="_blank" rel="noopener">去购买 ↗</a>':"")+
+        '<button data-oedit="'+esc(o.id)+'">编辑</button><button class="del" data-odel="'+esc(o.id)+'">删除</button></div>'+
+    '</div>';
+  }).join("");
+  var L=$("cmpList");
+  Array.prototype.forEach.call(L.querySelectorAll("[data-opick]"),function(el){ el.onclick=function(){ pickOption(el.getAttribute("data-opick")); }; });
+  Array.prototype.forEach.call(L.querySelectorAll("[data-ounpick]"),function(el){ el.onclick=function(){ var bb=DB.get("b",cmpItemId); if(!bb) return; bb.chosenOptionId=""; DB.upsert("b",bb); loadAll(); renderCompare(); renderPlan(); }; });
+  Array.prototype.forEach.call(L.querySelectorAll("[data-oedit]"),function(el){ el.onclick=function(){ openOptionForm(el.getAttribute("data-oedit")); }; });
+  Array.prototype.forEach.call(L.querySelectorAll("[data-odel]"),function(el){ el.onclick=function(){
+    var bb=DB.get("b",cmpItemId); if(!bb) return;
+    var oid=el.getAttribute("data-odel");
+    bb.options=(bb.options||[]).filter(function(o){ return o.id!==oid; });
+    if(bb.chosenOptionId===oid) bb.chosenOptionId="";
+    DB.upsert("b",bb); loadAll(); renderCompare(); renderPlan(); toast("已删除方案");
+  }; });
+}
+function pickOption(oid){
+  var b=DB.get("b",cmpItemId); if(!b) return;
+  var o=null; (b.options||[]).forEach(function(x){ if(x.id===oid) o=x; }); if(!o) return;
+  b.chosenOptionId=o.id; b.amount=+o.price||0; b.currency=o.currency; b.rate=+o.rate||1;
+  if(!b.url && o.url) b.url=o.url;
+  DB.upsert("b",b); loadAll(); renderCompare(); renderPlan();
+  toast("已选「"+o.label+"」，预算金额已更新 ✅");
+}
+function openOptionForm(oid){
+  var b=DB.get("b",cmpItemId); if(!b) return;
+  var o=null; if(oid) (b.options||[]).forEach(function(x){ if(x.id===oid) o=x; });
+  oEditId = o? o.id : null;
+  $("oLabel").value=o?o.label:""; $("oChannel").value=o?(o.channel||""):"";
+  $("oPrice").value=o?o.price:""; $("oDur").value=o&&o.dur?o.dur:""; $("oTrans").value=o&&o.transfers!==""&&o.transfers!=null?o.transfers:"";
+  $("oUrl").value=o?(o.url||""):""; $("oNote").value=o?(o.note||""):"";
+  $("oMode").innerHTML=OPT_MODES.map(function(m){ return '<option>'+esc(m)+'</option>'; }).join("");
+  $("oMode").value = o&&o.mode ? o.mode : (b.category==="门票"?"门票":b.category==="住宿"?"酒店":b.category==="交通"?"火车":"其他");
+  var cur = o? o.currency : b.currency || baseLabel();
+  $("oCur").innerHTML=curOpts(cur); $("oCur").value=cur;
+  $("oRate").value = curCode(cur)!==baseCode()? Number(o? o.rate : b.rate).toFixed(6) : "";
+  oConv = o? (+o.conv||0) : 0; oRefund = o? (o.refund||"") : "";
+  renderOptionPills(); oRateUI();
+  $("cmpForm").style.display=""; $("cmpAddToggle").style.display="none";
+  $("oSave").textContent = o? "保存修改" : "保存方案";
+  setTimeout(function(){ $("cmpForm").scrollIntoView({behavior:"smooth",block:"nearest"}); $("oLabel").focus(); }, 60);
+}
+function renderOptionPills(){
+  $("oConv").innerHTML=[1,2,3,4,5].map(function(n){ return '<button type="button" class="pill'+(n===oConv?" on coral":"")+'" data-v="'+n+'">'+n+" ★</button>"; }).join("");
+  bindPills("oConv",function(v){ v=+v; oConv = oConv===v?0:v; renderOptionPills(); });
+  $("oRefund").innerHTML=[["yes","✅ 可退改"],["partial","⚠ 有条件"],["no","⛔ 不可退"]].map(function(r){ return '<button type="button" class="pill'+(r[0]===oRefund?" on":"")+'" data-v="'+r[0]+'">'+r[1]+"</button>"; }).join("");
+  bindPills("oRefund",function(v){ oRefund = oRefund===v?"":v; renderOptionPills(); });
+}
+function oRateUI(){
+  var c=curCode($("oCur").value), isBase=c===baseCode();
+  $("oRateBox").style.display=isBase?"none":""; $("oRateCur").textContent=c;
+  if(!isBase && !$("oRate").value){ var r=lastRate(c); if(isFinite(r)) $("oRate").value=r.toFixed(6); }
+}
+$("oCur").onchange=function(){ $("oRate").value=""; oRateUI(); };
+$("cmpAddToggle").onclick=function(){ openOptionForm(null); };
+$("oCancel").onclick=function(){ oEditId=null; $("cmpForm").style.display="none"; $("cmpAddToggle").style.display=""; };
+$("oSave").onclick=function(){
+  var b=DB.get("b",cmpItemId); if(!b) return;
+  var label=$("oLabel").value.trim(); if(!label){ toast("请输入方案名称"); return; }
+  var price=parseFloat($("oPrice").value); if(!isFinite(price)||price<0){ toast("请输入有效价格"); return; }
+  var cur=$("oCur").value||baseLabel(), rate=readRate(cur,$("oRate"));
+  if(!isFinite(rate)){ toast("请输入有效汇率（1 "+curCode(cur)+" 折多少 "+baseCode()+"）"); return; }
+  if(curCode(cur)!==baseCode()) try{ LS.setItem("aalrate$"+curCode(cur),String(rate)); }catch(e){}
+  var dur=parseInt($("oDur").value,10), tr=$("oTrans").value.trim();
+  var rec={ id:oEditId||uid(), label:label, mode:$("oMode").value, channel:$("oChannel").value.trim(),
+    price:Math.round(price*100)/100, currency:cur, rate:rate,
+    dur:(isFinite(dur)&&dur>0)?dur:"", transfers:(tr!==""&&isFinite(+tr)&&+tr>=0)?Math.floor(+tr):"",
+    conv:oConv||"", refund:oRefund, url:$("oUrl").value.trim(), note:$("oNote").value.trim(), checkedAt:Date.now() };
+  b.options=(b.options||[]).filter(function(o){ return o.id!==rec.id; }).concat([rec]);
+  if(b.chosenOptionId===rec.id){ b.amount=rec.price; b.currency=rec.currency; b.rate=rec.rate; }
+  DB.upsert("b",b); loadAll();
+  oEditId=null; $("cmpForm").style.display="none"; $("cmpAddToggle").style.display="";
+  renderCompare(); renderPlan();
+  toast("方案已保存 ⚖");
+};
+$("cmpClose").onclick=function(){ $("cmpMask").classList.remove("on"); };
+$("cmpMask").addEventListener("click",function(e){ if(e.target===this) $("cmpMask").classList.remove("on"); });
+
 /* ---------- 同步刷新 ---------- */
 function syncFromDB(fromRemote){
   loadAll(); renderAll(true);
@@ -1831,7 +2565,7 @@ function syncFromDB(fromRemote){
 function renderAll(preserve){
   if(!preserve){ /* 保持金额等输入，仅刷新胶囊/下拉 */ }
   renderFormDynamic(); updateRateUI(); if(customModeOn()) renderCustom();
-  renderList(); renderMembers(); renderTripBar();
+  renderList(); renderMembers(); renderTripBar(); renderPlan();
 }
 
 /* ---------- 启动 ---------- */
