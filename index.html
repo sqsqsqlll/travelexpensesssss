@@ -66,7 +66,7 @@ header{
   border-bottom:1px solid var(--line-soft);overflow-x:auto;
 }
 .tab{
-  flex:1;min-width:72px;padding:9px 4px;white-space:nowrap;border-radius:999px;border:1.5px solid var(--line);
+  flex:1;min-width:58px;padding:9px 2px;white-space:nowrap;border-radius:999px;border:1.5px solid var(--line);
   background:var(--card);color:var(--ink-soft);font-size:14px;font-weight:600;transition:.15s;
 }
 .tab.on{background:var(--ink);color:#F6EFDD;border-color:var(--ink);box-shadow:0 3px 10px rgba(36,70,59,.3);}
@@ -434,6 +434,58 @@ footer .dot{margin:0 6px;}
 .lv-group .g-c{display:inline-block;width:14px;color:var(--muted);transition:.15s;}
 .lv-group.closed .g-c{transform:rotate(-90deg);}
 
+/* ---------- 统计 ---------- */
+.st-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px;}
+@media(min-width:560px){.st-tiles{grid-template-columns:repeat(4,minmax(0,1fr));}}
+.st-tile{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 13px;box-shadow:var(--shadow);min-width:0;}
+.st-tile .v{font-family:var(--serif);font-size:clamp(17px,5vw,21px);font-weight:700;color:var(--ink-deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.st-tile .l{font-size:12px;color:var(--muted);margin-top:2px;}
+.st-tile .d{font-size:11.5px;margin-top:4px;font-weight:600;color:var(--muted);}
+.st-tile .d.up{color:var(--coral-deep);} .st-tile .d.down{color:var(--green);}
+.st-note{font-size:12px;color:var(--muted);line-height:1.6;margin-top:8px;}
+.cb-row{display:grid;grid-template-columns:76px minmax(0,1fr) auto;gap:8px;align-items:center;margin-bottom:9px;font-size:13px;}
+.cb-row .cn{color:var(--ink-deep);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cb-track{position:relative;height:14px;}
+.cb-bar{position:absolute;left:0;top:2px;height:10px;background:var(--ink);border-radius:0 4px 4px 0;min-width:2px;}
+.cb-avg{position:absolute;top:-1px;width:2px;height:16px;background:var(--coral-deep);border-radius:1px;}
+.cb-row .cv{font-size:12.5px;color:var(--ink-soft);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;}
+.cb-row .cv small{color:var(--muted);margin-left:4px;}
+.cb-legend{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--muted);margin-top:4px;}
+.cb-legend i{display:inline-block;vertical-align:-1px;margin-right:4px;}
+.dc-wrap{display:flex;align-items:flex-end;gap:2px;height:120px;border-bottom:1px solid var(--line);padding-top:6px;}
+.dc-col{flex:1;min-width:3px;display:flex;align-items:flex-end;height:100%;cursor:default;}
+.dc-col b{display:block;width:100%;background:var(--ink);border-radius:4px 4px 0 0;min-height:2px;}
+.dc-col:hover b,.dc-col.on b{background:var(--coral);}
+.dc-axis{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:5px;font-variant-numeric:tabular-nums;}
+.hm-scroll{overflow-x:auto;margin:0 -4px;padding:0 4px;}
+.hm{border-collapse:separate;border-spacing:2px;font-size:12px;width:100%;min-width:520px;}
+.hm th{font-weight:600;color:var(--muted);font-size:11.5px;padding:4px 4px;text-align:center;white-space:nowrap;}
+.hm th.tn{text-align:left;}
+.hm td{padding:6px 4px;text-align:center;border-radius:5px;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--ink-deep);}
+.hm td.tn{text-align:left;font-weight:700;max-width:120px;overflow:hidden;text-overflow:ellipsis;background:transparent;}
+.hm td.num{color:var(--ink-soft);background:transparent;}
+.hm tr.cur td.tn{color:var(--coral-deep);}
+.sg-list{display:flex;flex-direction:column;gap:9px;}
+.sg{display:flex;gap:10px;align-items:flex-start;background:var(--paper);border:1px solid var(--line-soft);border-left:4px solid var(--line);border-radius:11px;padding:10px 12px;}
+.sg.warn{border-left-color:var(--coral-deep);background:#FFF8F2;}
+.sg.good{border-left-color:var(--green);background:#F3F9F5;}
+.sg.info{border-left-color:#7E9AB8;}
+.sg .si{font-size:17px;line-height:1.3;flex:none;}
+.sg .st{font-weight:700;font-size:13.5px;color:var(--ink-deep);}
+.sg .sb{font-size:12.5px;color:var(--ink-soft);line-height:1.65;margin-top:2px;}
+.sg .tagl{font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:999px;margin-left:6px;vertical-align:1px;}
+.sg.warn .tagl{background:var(--coral-soft);color:var(--coral-deep);}
+.sg.good .tagl{background:var(--green-soft);color:var(--green);}
+.sg.info .tagl{background:#E4ECF6;color:#3E6690;}
+.est-in{display:flex;gap:10px;margin-bottom:12px;}
+.est-in label{flex:1;font-size:12px;color:var(--muted);}
+.est-in input{width:100%;margin-top:4px;border:1.5px solid var(--line);border-radius:10px;padding:9px 10px;font-size:15px;background:#FFFDF8;}
+.est-total{font-family:var(--serif);font-size:22px;font-weight:700;color:var(--ink-deep);}
+.est-row{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px dashed var(--line-soft);font-variant-numeric:tabular-nums;}
+.est-row:last-child{border-bottom:none;}
+#vizTip{position:fixed;z-index:300;pointer-events:none;background:var(--ink-deep);color:#F6EFDD;font-size:12px;line-height:1.5;padding:6px 9px;border-radius:8px;box-shadow:0 4px 14px rgba(0,0,0,.25);opacity:0;transition:opacity .12s;max-width:220px;white-space:pre-line;}
+#vizTip.on{opacity:1;}
+
 /* ---------- 预算 ---------- */
 .plan-sum-r{text-align:right;}
 .plan-sum-r .big.ok{color:#9FE0BC;} .plan-sum-r .big.over{color:#FFB48C;}
@@ -519,9 +571,10 @@ footer .dot{margin:0 6px;}
     <button class="gear" id="gearBtn" title="设置">⚙</button>
   </header>
   <nav class="tabs">
-    <button class="tab on" data-tab="add">✏️ 记一笔</button>
+    <button class="tab on" data-tab="add">✏️ 记账</button>
     <button class="tab" data-tab="list">📒 账目</button>
     <button class="tab" data-tab="plan">🗓 预算</button>
+    <button class="tab" data-tab="stats">📊 统计</button>
     <button class="tab" data-tab="members">👥 成员</button>
   </nav>
 </div>
@@ -676,6 +729,12 @@ footer .dot{margin:0 6px;}
     </div>
     <div id="planList"></div>
     <div class="settle-note" style="text-align:center">💾 预算数据暂存本机浏览器，接入云端后会自动迁移</div>
+  </section>
+
+  <!-- ============ 页签：统计 ============ -->
+  <section class="view" id="view-stats">
+    <div class="form-trip" id="stScope">📊 统计范围：<b>—</b></div>
+    <div id="stBody"></div>
   </section>
 
   <!-- ============ 页签 3：成员 ============ -->
@@ -881,6 +940,7 @@ footer .dot{margin:0 6px;}
 </div>
 
 <div id="toast"></div>
+<div id="vizTip" role="tooltip"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/@tencent-ai/workbuddy-cloud-sdk@dev/lib/index.global.js"></script>
 <script>
@@ -1459,6 +1519,7 @@ function switchTab(name){
   if(name==="list") renderList();
   if(name==="members") renderMembers();
   if(name==="plan") renderPlan();
+  if(name==="stats") renderStats();
   if(name==="add") renderFormDynamic();
 }
 document.querySelectorAll(".tab").forEach(function(b){ b.onclick=function(){ switchTab(b.getAttribute("data-tab")); }; });
@@ -1493,7 +1554,7 @@ function renderTripBar(){
 }
 function selectTrip(id){
   state.curTrip=id; saveTripSel();
-  renderTripBar(); renderList(); renderMembers(); renderPlan();
+  renderTripBar(); renderList(); renderMembers(); renderPlan(); renderStats();
 }
 function renderFormTrip(){
   var el=$("formTrip"); if(!el) return;
@@ -2557,6 +2618,251 @@ $("oSave").onclick=function(){
 $("cmpClose").onclick=function(){ $("cmpMask").classList.remove("on"); };
 $("cmpMask").addEventListener("click",function(e){ if(e.target===this) $("cmpMask").classList.remove("on"); });
 
+
+/* ---------- 统计与建议 ---------- */
+var CAT_TIPS = {
+  "交通":"多段地铁/公交可以算一下交通卡、一日券或周游券是否更划算；打车多的话可以拼车或先比价。",
+  "住宿":"同一家酒店在不同平台价格可能不同，可以对比后再订；人多时公寓或家庭房往往更省，越早订通常越便宜。",
+  "餐饮":"可以多安排当地平价餐馆、市场或便利店早餐，把高价餐集中到一两顿体验。",
+  "门票":"看看有没有联票、城市通票、线上提前购票或学生/团体优惠。",
+  "购物":"出发前给购物单独设一个预算，并留意退税门槛和免税额度。",
+  "娱乐":"体验类项目可以在不同平台对比套餐价，提前预约常有折扣。",
+  "医疗":"出发前考虑购买旅行保险，并带上常用药。",
+  "其他":"「其他」里的账目越多，统计越不准，建议把它们改到更具体的类别。"
+};
+function tripDays(trip, list){
+  if(trip && trip.startDate && trip.endDate){
+    var d=Math.round((new Date(trip.endDate+"T00:00:00")-new Date(trip.startDate+"T00:00:00"))/864e5)+1;
+    if(d>=1) return d;
+  }
+  var ds={}; list.forEach(function(t){ if(t.date) ds[t.date]=1; });
+  return Math.max(1, Object.keys(ds).length);
+}
+function calcStats(list, trip){
+  var st={ n:list.length, total:0, byCat:{}, byDay:{}, payers:{}, people:{}, pending:0, top:null, foreign:0 };
+  list.forEach(function(t){
+    var b=txnBase(t); st.total+=b;
+    var c=t.category||"其他"; st.byCat[c]=(st.byCat[c]||0)+b;
+    if(t.date){ var d=st.byDay[t.date]||(st.byDay[t.date]={sum:0,n:0}); d.sum+=b; d.n++; }
+    if(t.payer) st.payers[t.payer]=(st.payers[t.payer]||0)+b;
+    txnParts(t).forEach(function(n){ st.people[n]=1; });
+    if(t.status!=="已确认") st.pending++;
+    if(curCode(t.currency)!==baseCode()) st.foreign++;
+    if(!st.top || b>txnBase(st.top)) st.top=t;
+  });
+  st.days=tripDays(trip, list);
+  st.ppl=Math.max(1, Object.keys(st.people).length);
+  st.perDay=st.total/st.days;
+  st.perPersonDay=st.total/st.days/st.ppl;
+  st.share={}; CATS.forEach(function(c){ st.share[c]= st.total? (st.byCat[c]||0)/st.total : 0; });
+  return st;
+}
+/* 历史基准：除当前行程外、至少 3 笔账目的行程 */
+function historyBase(excludeId){
+  var trips=[], shareSum={}, ppdW=0, pdSum=0, catPPD={};
+  state.trips.forEach(function(p){
+    if(p.id===excludeId) return;
+    var list=state.txns.filter(function(t){ return (t.trip||"")===p.id; });
+    if(list.length<3) return;
+    var s=calcStats(list,p); trips.push({trip:p, st:s});
+    CATS.forEach(function(c){ shareSum[c]=(shareSum[c]||0)+s.share[c]; });
+    var pd=s.days*s.ppl; pdSum+=pd;
+    CATS.forEach(function(c){ catPPD[c]=(catPPD[c]||0)+(s.byCat[c]||0); });
+    ppdW+=s.total;
+  });
+  if(!trips.length) return null;
+  var avgShare={}; CATS.forEach(function(c){ avgShare[c]=shareSum[c]/trips.length; });
+  var perCatPPD={}; CATS.forEach(function(c){ perCatPPD[c]=pdSum? catPPD[c]/pdSum : 0; });
+  return { trips:trips, avgShare:avgShare, perPersonDay: pdSum? ppdW/pdSum : 0, perCatPPD:perCatPPD };
+}
+function pct(x){ return (x*100).toFixed(x>=0.1||x===0?0:1)+"%"; }
+
+function buildSuggestions(st, list, trip, hist){
+  var out=[], bs=baseSym();
+  if(!st.n) return out;
+  /* 1. 类别占比对比历史 */
+  if(hist){
+    CATS.forEach(function(c){
+      var d=st.share[c]-hist.avgShare[c];
+      if(st.share[c]>=0.15 && d>=0.08){
+        out.push({lv:"warn",ic:CAT_ICON[c],tag:"偏高",t:c+"占 "+pct(st.share[c])+"，比你过往行程平均高 "+Math.round(d*100)+" 个百分点",b:CAT_TIPS[c]});
+      }
+    });
+    if(hist.perPersonDay>0){
+      var r=st.perPersonDay/hist.perPersonDay-1;
+      if(r<=-0.15) out.push({lv:"good",ic:"👏",tag:"省",t:"人均每天 "+bs+fmt(st.perPersonDay)+"，比过往平均低 "+Math.round(-r*100)+"%",b:"这趟控制得不错，可以留意是哪几个类别省下来的，下次沿用。"});
+      else if(r>=0.25) out.push({lv:"warn",ic:"📈",tag:"偏高",t:"人均每天 "+bs+fmt(st.perPersonDay)+"，比过往平均高 "+Math.round(r*100)+"%",b:"目的地物价、季节和住宿档次都会影响，看看上面占比偏高的类别是否有可调整的地方。"});
+    }
+  }else if(trip){
+    out.push({lv:"info",ic:"🧭",tag:"提示",t:"还没有可对比的历史行程",b:"再记录一两趟完整行程（每趟至少 3 笔），这里就会和你过往的消费结构做对比，给出分类别建议。"});
+  }
+  if(st.share["其他"]>=0.15) out.push({lv:"info",ic:"🧾",tag:"整理",t:"「其他」占 "+pct(st.share["其他"]),b:CAT_TIPS["其他"]});
+  /* 2. 单笔大额 */
+  if(st.n>=3 && st.top && txnBase(st.top)/st.total>=0.25){
+    out.push({lv:"info",ic:"💰",tag:"大额",t:"最大一笔「"+st.top.item+"」"+bs+fmt(txnBase(st.top))+"，占总花费 "+pct(txnBase(st.top)/st.total),b:"大额项目（机票、酒店、套票）最值得提前比价，可以在「预算」页用比价卡片记录多个方案。"});
+  }
+  /* 3. 消费高峰日 */
+  var days=Object.keys(st.byDay);
+  if(days.length>=3){
+    var vals=days.map(function(d){ return st.byDay[d].sum; }).sort(function(a,b){return a-b;});
+    var med=vals[Math.floor(vals.length/2)], peak=null;
+    days.forEach(function(d){ if(!peak || st.byDay[d].sum>st.byDay[peak].sum) peak=d; });
+    if(med>0 && st.byDay[peak].sum>=med*2.5){
+      out.push({lv:"info",ic:"📅",tag:"高峰",t:peak+" 花了 "+bs+fmt(st.byDay[peak].sum)+"，约为平常一天的 "+(st.byDay[peak].sum/med).toFixed(1)+" 倍",b:"如果是集中付了住宿或交通，这是正常的；否则可以回看当天的账目。"});
+    }
+  }
+  /* 4. 预算超支（行程级） */
+  if(trip){
+    var plan={}, act={};
+    state.budget.filter(function(b){ return b.trip===trip.id; }).forEach(function(b){ plan[b.category]=(plan[b.category]||0)+biBase(b); });
+    list.forEach(function(t){ act[t.category]=(act[t.category]||0)+txnBase(t); });
+    CATS.forEach(function(c){
+      if(plan[c]>0 && (act[c]||0)>plan[c]*1.1){
+        out.push({lv:"warn",ic:"🗓",tag:"超预算",t:c+"已花 "+bs+fmt(act[c])+"，超出预算 "+pct(act[c]/plan[c]-1),b:"预算是 "+bs+fmt(plan[c])+"。可以在「预算」页调整后面几天的安排。"});
+      }
+    });
+  }
+  /* 5. 垫付集中 / 待确认 / 未分配 */
+  var payers=Object.keys(st.payers);
+  if(st.ppl>=2 && payers.length){
+    var mx=payers.reduce(function(a,b){ return st.payers[a]>=st.payers[b]?a:b; });
+    var sh=st.payers[mx]/st.total;
+    if(sh>=0.6) out.push({lv:"info",ic:"🤝",tag:"结算",t:mx+" 垫付了 "+pct(sh),b:"垫付比较集中，记得在「成员」页查看最少转账方案，及时结清。"});
+  }
+  if(st.pending) out.push({lv:"warn",ic:"⏳",tag:"待确认",t:st.pending+" 笔账目还是「待确认」",b:"待确认的账目不计入结算，核对后在账目页改为已确认。"});
+  if(state.curTrip==="__all__"){
+    var un=state.txns.filter(isUnassigned).length;
+    if(un) out.push({lv:"info",ic:"📭",tag:"整理",t:un+" 笔账目还没归入行程",b:"在账目页用「批量归行程」处理后，按行程的统计和对比会更准确。"});
+  }
+  if(st.foreign && st.foreign===st.n) out.push({lv:"info",ic:"💱",tag:"汇率",t:"全部账目都是外币",b:"统计按记账时填写的汇率折算成 "+baseCode()+"；实际刷卡汇率可能略有不同。"});
+  var order={warn:0,info:1,good:2};
+  out.sort(function(a,b){ return order[a.lv]-order[b.lv]; });
+  return out;
+}
+
+function renderStats(){
+  if(!$("view-stats")) return;
+  var list=scopedTxns(), trip=isVirtualScope()? null : tripById(state.curTrip);
+  var bs=baseSym(), bc=baseCode();
+  $("stScope").innerHTML="📊 统计范围：<b>"+esc(scopeLabel())+"</b> · "+list.length+" 笔"+(trip?"":' <span style="color:var(--muted)">（在上方选一个行程可看单趟分析）</span>');
+  if(!list.length){
+    $("stBody").innerHTML='<div class="empty"><span class="emo">📊</span>这个范围还没有账目</div>';
+    return;
+  }
+  var st=calcStats(list,trip), hist=historyBase(trip? trip.id : null);
+  if(!trip && hist && hist.trips.length<2) hist=null; /* 全部视图下，对比需要至少两趟 */
+  var html=[];
+
+  /* 指标卡 */
+  function delta(v, base){
+    if(!hist || !trip || !base) return "";
+    var r=v/base-1; if(Math.abs(r)<0.05) return '<div class="d">≈ 过往平均</div>';
+    return '<div class="d '+(r>0?"up":"down")+'">'+(r>0?"▲ 高 ":"▼ 低 ")+Math.round(Math.abs(r)*100)+'% vs 过往</div>';
+  }
+  html.push('<div class="st-tiles">'+
+    '<div class="st-tile"><div class="v">'+bs+fmt(st.total)+'</div><div class="l">总花费（'+esc(bc)+'）</div></div>'+
+    '<div class="st-tile"><div class="v">'+bs+fmt(st.total/st.ppl)+'</div><div class="l">人均 · '+st.ppl+' 人</div></div>'+
+    '<div class="st-tile"><div class="v">'+bs+fmt(st.perDay)+'</div><div class="l">每天 · '+st.days+' 天</div></div>'+
+    '<div class="st-tile"><div class="v">'+bs+fmt(st.perPersonDay)+'</div><div class="l">人均每天</div>'+delta(st.perPersonDay, hist&&hist.perPersonDay)+'</div>'+
+  '</div>');
+
+  /* 建议 */
+  var sgs=buildSuggestions(st,list,trip,trip?hist:null);
+  if(sgs.length){
+    html.push('<div class="card"><div class="section-title">💡 消费建议</div><div class="sg-list">'+sgs.map(function(g){
+      return '<div class="sg '+g.lv+'"><span class="si">'+g.ic+'</span><div style="min-width:0"><div class="st">'+esc(g.t)+'<span class="tagl">'+esc(g.tag)+'</span></div><div class="sb">'+esc(g.b)+'</div></div></div>';
+    }).join("")+'</div></div>');
+  }
+
+  /* 分类占比（横向条，单一色相；珊瑚色刻度 = 过往平均占比） */
+  var cats=CATS.filter(function(c){ return st.byCat[c]>0 || (hist&&trip&&hist.avgShare[c]>0.01); })
+    .sort(function(a,b){ return (st.byCat[b]||0)-(st.byCat[a]||0); });
+  var mxS=0; cats.forEach(function(c){ mxS=Math.max(mxS, st.share[c], (hist&&trip)? hist.avgShare[c] : 0); });
+  html.push('<div class="card"><div class="section-title">分类花费</div>'+cats.map(function(c){
+    var w=mxS? st.share[c]/mxS*100 : 0, avg=(hist&&trip)? hist.avgShare[c] : null;
+    var tip=c+"\n"+bs+fmt(st.byCat[c]||0)+" · 占 "+pct(st.share[c])+(avg!=null?"\n过往平均占比 "+pct(avg):"");
+    return '<div class="cb-row" data-tip="'+esc(tip)+'"><span class="cn">'+CAT_ICON[c]+" "+esc(c)+'</span>'+
+      '<div class="cb-track"><i class="cb-bar" style="width:'+w+'%"></i>'+(avg!=null&&avg>0?'<i class="cb-avg" style="left:calc('+(avg/mxS*100)+'% - 1px)"></i>':"")+'</div>'+
+      '<span class="cv">'+bs+fmt(st.byCat[c]||0)+'<small>'+pct(st.share[c])+'</small></span></div>';
+  }).join("")+((hist&&trip)?'<div class="cb-legend"><span><i style="width:12px;height:8px;background:var(--ink);border-radius:2px"></i>本次占比</span><span><i style="width:2px;height:12px;background:var(--coral-deep)"></i>过往 '+hist.trips.length+' 趟平均占比</span></div>':"")+'</div>');
+
+  /* 每日花费（柱状，单一色相） */
+  var dkeys=Object.keys(st.byDay).sort();
+  if(dkeys.length>=2){
+    var first=dkeys[0], last=dkeys[dkeys.length-1], seq=[];
+    for(var d=new Date(first+"T00:00:00"); d<=new Date(last+"T00:00:00") && seq.length<120; d.setDate(d.getDate()+1)){
+      seq.push(d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"));
+    }
+    var mxD=0; seq.forEach(function(k){ if(st.byDay[k]) mxD=Math.max(mxD, st.byDay[k].sum); });
+    html.push('<div class="card"><div class="section-title">每日花费</div><div class="dc-wrap">'+seq.map(function(k){
+      var v=st.byDay[k]? st.byDay[k].sum : 0, n=st.byDay[k]? st.byDay[k].n : 0;
+      return '<div class="dc-col" data-tip="'+esc(k+"\n"+bs+fmt(v)+" · "+n+" 笔")+'"><b style="height:'+(mxD? Math.max(v? 2:0, v/mxD*100) : 0)+'%"></b></div>';
+    }).join("")+'</div><div class="dc-axis"><span>'+first.slice(5)+'</span><span>最高 '+bs+fmt(mxD)+'</span><span>'+last.slice(5)+'</span></div></div>');
+  }
+
+  /* 跨行程对比（占比热力表，单一色相深浅） */
+  var rows=[];
+  state.trips.forEach(function(p){
+    var l=state.txns.filter(function(t){ return (t.trip||"")===p.id; });
+    if(l.length) rows.push({trip:p, st:calcStats(l,p)});
+  });
+  if(rows.length>=2){
+    var usedCats=CATS.filter(function(c){ return rows.some(function(r){ return r.st.byCat[c]>0; }); });
+    html.push('<div class="card"><div class="section-title">行程对比 · 分类占比</div><div class="hm-scroll"><table class="hm"><thead><tr><th class="tn">行程</th><th>人均/天</th>'+
+      usedCats.map(function(c){ return '<th>'+CAT_ICON[c]+'<br>'+esc(c)+'</th>'; }).join("")+'</tr></thead><tbody>'+
+      rows.map(function(r){
+        return '<tr'+(trip&&r.trip.id===trip.id?' class="cur"':'')+'><td class="tn" title="'+esc(r.trip.name)+'">'+esc(r.trip.name)+'</td><td class="num">'+bs+fmt(r.st.perPersonDay,0)+'</td>'+
+          usedCats.map(function(c){
+            var v=r.st.share[c], a=Math.min(1,v/0.5);
+            return '<td data-tip="'+esc(r.trip.name+" · "+c+"\n"+bs+fmt(r.st.byCat[c]||0)+" · 占 "+pct(v))+'" style="background:rgba(46,125,91,'+(0.06+a*0.6).toFixed(3)+');color:'+(a>0.6?"#fff":"var(--ink-deep)")+'">'+(v? Math.round(v*100)+"%" : "–")+'</td>';
+          }).join("")+'</tr>';
+      }).join("")+'</tbody></table></div><div class="st-note">颜色越深，该类别占这趟行程的比例越高。人均/天 = 总花费 ÷ 天数 ÷ 参与人数。</div></div>');
+  }
+
+  /* 下次出行估算 */
+  var baseH = historyBase(null);
+  if(baseH && baseH.perPersonDay>0){
+    var dDays=trip? st.days : 5, dPpl=trip? st.ppl : Math.max(2,state.members.length);
+    try{ var sv=JSON.parse(LS.getItem("aalest")||"null"); if(sv){ dDays=sv.d||dDays; dPpl=sv.p||dPpl; } }catch(e){}
+    html.push('<div class="card"><div class="section-title">🧮 下次出行估算</div>'+
+      '<div class="est-in"><label>天数<input id="estDays" inputmode="numeric" value="'+dDays+'"></label><label>人数<input id="estPpl" inputmode="numeric" value="'+dPpl+'"></label></div>'+
+      '<div id="estOut"></div><div class="st-note">按你过往 '+baseH.trips.length+' 趟行程（每趟至少 3 笔）的人均每天花费估算，仅供做预算参考。</div></div>');
+  }
+
+  $("stBody").innerHTML=html.join("");
+  if($("estDays")){
+    var upd=function(){
+      var d=Math.max(1,parseInt($("estDays").value,10)||1), n=Math.max(1,parseInt($("estPpl").value,10)||1);
+      try{ LS.setItem("aalest",JSON.stringify({d:d,p:n})); }catch(e){}
+      var rowsH=CATS.filter(function(c){ return baseH.perCatPPD[c]>0; }).sort(function(a,b){ return baseH.perCatPPD[b]-baseH.perCatPPD[a]; });
+      $("estOut").innerHTML='<div class="est-total">≈ '+bs+fmt(baseH.perPersonDay*d*n,0)+'</div><div class="st-note" style="margin:0 0 6px">'+d+' 天 × '+n+' 人 · 人均每天约 '+bs+fmt(baseH.perPersonDay,0)+'</div>'+
+        rowsH.map(function(c){ return '<div class="est-row"><span>'+CAT_ICON[c]+" "+esc(c)+'</span><span>'+bs+fmt(baseH.perCatPPD[c]*d*n,0)+'</span></div>'; }).join("");
+    };
+    $("estDays").oninput=upd; $("estPpl").oninput=upd; upd();
+  }
+}
+
+/* 图表悬停提示（触屏点按） */
+(function(){
+  var tip=$("vizTip"), curEl=null;
+  function show(el, x, y){
+    curEl=el; tip.textContent=el.getAttribute("data-tip"); tip.classList.add("on");
+    var w=tip.offsetWidth, h=tip.offsetHeight;
+    tip.style.left=Math.max(8, Math.min(window.innerWidth-w-8, x-w/2))+"px";
+    tip.style.top=Math.max(8, y-h-12)+"px";
+  }
+  function hide(){ curEl=null; tip.classList.remove("on"); }
+  document.addEventListener("mousemove",function(e){
+    var el=e.target.closest && e.target.closest("#view-stats [data-tip]");
+    if(el) show(el, e.clientX, e.clientY); else if(curEl) hide();
+  });
+  document.addEventListener("click",function(e){
+    var el=e.target.closest && e.target.closest("#view-stats [data-tip]");
+    if(el){ var r=el.getBoundingClientRect(); show(el, r.left+r.width/2, r.top); } else hide();
+  });
+  window.addEventListener("scroll",hide,{passive:true});
+})();
+
 /* ---------- 同步刷新 ---------- */
 function syncFromDB(fromRemote){
   loadAll(); renderAll(true);
@@ -2565,7 +2871,7 @@ function syncFromDB(fromRemote){
 function renderAll(preserve){
   if(!preserve){ /* 保持金额等输入，仅刷新胶囊/下拉 */ }
   renderFormDynamic(); updateRateUI(); if(customModeOn()) renderCustom();
-  renderList(); renderMembers(); renderTripBar(); renderPlan();
+  renderList(); renderMembers(); renderTripBar(); renderPlan(); renderStats();
 }
 
 /* ---------- 启动 ---------- */
