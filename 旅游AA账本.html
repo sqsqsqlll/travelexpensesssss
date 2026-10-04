@@ -3,28 +3,30 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#24463B">
+<meta name="theme-color" content="#24443C">
 <title>旅游AA账本 · 多人分账工作台</title>
 <style>
 :root{
-  --ink:#24463B;          /* 深墨绿 */
-  --ink-deep:#1B352B;
-  --ink-soft:#4A6B5C;
-  --paper:#F8F1E1;        /* 米白 */
-  --paper-deep:#F1E7D0;
-  --card:#FFFDF6;
-  --line:#E2D5B8;
-  --line-soft:#EEE4CC;
-  --coral:#E8734A;        /* 珊瑚橙 */
-  --coral-deep:#D4552B;
-  --coral-soft:#FBE7DB;
-  --green:#2E7D5B;
-  --green-soft:#E3F0E8;
-  --text:#39463E;
-  --muted:#8D9180;
-  --shadow:0 2px 10px rgba(84,68,38,.08);
-  --radius:14px;
-  --serif:"Noto Serif SC","Songti SC","STSong",Georgia,serif;
+  /* v2 沉稳配色：暖灰底 + 深墨绿主色 + 低饱和赤陶仅用于提醒 */
+  --ink:#24443C;          /* 主色：深墨绿 */
+  --ink-deep:#1A322C;
+  --ink-soft:#4E625B;
+  --paper:#F4F3EF;        /* 页面底：暖灰 */
+  --paper-deep:#EAE8E2;
+  --card:#FFFFFF;
+  --line:#DEDBD3;
+  --line-soft:#ECEAE4;
+  --coral:#B4664B;        /* 强调 / 提醒：赤陶 */
+  --coral-deep:#9A4F36;
+  --coral-soft:#F4E8E2;
+  --green:#2F6B55;
+  --green-soft:#E5EFEA;
+  --text:#2B302E;
+  --muted:#7B807B;
+  --shadow:0 1px 2px rgba(30,40,36,.06),0 2px 8px rgba(30,40,36,.04);
+  --radius:12px;
+  --sans:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Noto Sans SC","Microsoft YaHei",sans-serif;
+  --serif:var(--sans);     /* 统一字体：不再混用衬线体 */
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html{-webkit-text-size-adjust:100%;}
@@ -267,7 +269,7 @@ main{max-width:780px;margin:0 auto;padding:16px 14px 60px;}
 }
 .stats-band .sb-item{flex:1;min-width:130px;}
 .stats-band .sb-num{font-family:var(--serif);font-size:22px;font-weight:700;color:#F6EFDD;}
-.stats-band .sb-num.coral{color:#FFB48C;}
+.stats-band .sb-num.coral{color:#E9C6A9;}
 .stats-band .sb-label{font-size:12px;color:#B9CBBB;margin-top:3px;letter-spacing:1px;}
 
 .member-grid{display:grid;grid-template-columns:1fr;gap:12px;}
@@ -390,7 +392,7 @@ footer .dot{margin:0 6px;}
 .batch-bar .bb-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .batch-bar .bb-row+.bb-row{margin-top:10px;}
 .batch-bar .bb-cnt{font-weight:700;font-size:14px;margin-right:auto;}
-.batch-bar .bb-cnt b{font-family:var(--serif);font-size:18px;color:#FFB48C;margin:0 2px;}
+.batch-bar .bb-cnt b{font-family:var(--serif);font-size:18px;color:#E9C6A9;margin:0 2px;}
 .batch-bar .bb-lnk{border:1px solid rgba(240,234,216,.35);background:transparent;color:#F0EAD8;border-radius:8px;padding:6px 10px;font-size:12.5px;font-weight:600;}
 .batch-bar .bb-lnk:active{background:rgba(255,255,255,.12);}
 .batch-bar select{flex:1 1 140px;min-width:0;border:none;border-radius:10px;padding:10px 10px;font-size:14px;background:#FFFDF8;color:var(--ink-deep);font-weight:600;}
@@ -433,6 +435,49 @@ footer .dot{margin:0 6px;}
 .lv-group .g-s{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap;font-variant-numeric:tabular-nums;}
 .lv-group .g-c{display:inline-block;width:14px;color:var(--muted);transition:.15s;}
 .lv-group.closed .g-c{transform:rotate(-90deg);}
+
+/* ---------- 预算：搜索 / 比价对比表 / 总览 ---------- */
+.plan-filters{margin-bottom:10px;gap:6px;}
+.plan-filters .pill{padding:6px 11px;font-size:12.5px;}
+.cmp-view{display:flex;gap:6px;margin-bottom:10px;}
+.cmp-search a.pf{background:var(--card);border:1px solid var(--line);color:var(--ink-soft);}
+.cmp-search a.pf.main{background:var(--paper-deep);color:var(--ink-deep);}
+.ct-scroll{overflow-x:auto;margin:0 -2px 10px;padding:0 2px;}
+.ct{border-collapse:separate;border-spacing:0;font-size:12.5px;min-width:100%;}
+.ct th,.ct td{padding:7px 9px;border-bottom:1px solid var(--line-soft);text-align:left;white-space:nowrap;vertical-align:top;}
+.ct thead th{font-weight:700;color:var(--ink-deep);background:var(--paper);position:sticky;top:0;}
+.ct tbody th{color:var(--muted);font-weight:600;background:var(--card);position:sticky;left:0;z-index:1;}
+.ct td.best{background:var(--green-soft);color:var(--green);font-weight:700;}
+.ct .chosen-h{color:var(--ink);}
+.ct td .sub{display:block;font-size:11px;color:var(--muted);font-weight:400;}
+.ct .act button{font-size:12px;border:1px solid var(--line);background:var(--card);border-radius:7px;padding:4px 9px;color:var(--ink-soft);font-weight:600;}
+.ct .act button.pick{background:var(--ink);border-color:var(--ink);color:#fff;}
+.ov-sum{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap;}
+.ov-sum div{flex:1;min-width:120px;background:var(--paper);border-radius:10px;padding:9px 11px;}
+.ov-sum b{display:block;font-size:17px;color:var(--ink-deep);}
+.ov-sum span{font-size:11.5px;color:var(--muted);}
+.ov-row{cursor:pointer;}
+.ov-row:hover td,.ov-row:hover th{background:var(--paper);}
+.save-tag{font-size:11px;font-weight:700;padding:1px 7px;border-radius:999px;background:var(--coral-soft);color:var(--coral-deep);margin-left:6px;}
+
+/* ---------- 地点 ---------- */
+.pl-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;box-shadow:var(--shadow);cursor:pointer;}
+.pl-card:hover{border-color:#C9CEC8;}
+.pl-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}
+.pl-name{font-weight:700;font-size:15px;color:var(--ink-deep);overflow-wrap:anywhere;min-width:0;}
+.pl-sub{font-size:12.5px;color:var(--muted);margin-top:2px;}
+.pl-rate{color:#B08A3E;font-size:13px;white-space:nowrap;flex:none;letter-spacing:1px;}
+.pl-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+.pl-tag{font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:999px;background:var(--paper-deep);color:var(--ink-soft);}
+.pl-tag.st-want{background:#EAF0F6;color:#3F6286;}
+.pl-tag.st-been{background:var(--green-soft);color:var(--green);}
+.pl-tag.fac-good{background:var(--green-soft);color:var(--green);}
+.pl-tag.fac-bad{background:var(--coral-soft);color:var(--coral-deep);}
+.pl-text{font-size:12.5px;color:var(--ink-soft);margin-top:7px;line-height:1.6;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.pl-links{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;padding-top:8px;border-top:1px solid var(--line-soft);}
+.pl-links a,.pl-links button{font-size:12px;font-weight:600;border:1px solid var(--line);border-radius:8px;padding:4px 9px;color:var(--ink-soft);text-decoration:none;background:var(--card);}
+.fitem textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;background:#fff;resize:vertical;font-family:inherit;outline:none;}
+.fitem textarea:focus{border-color:var(--ink);}
 
 /* ---------- 统计 ---------- */
 .st-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-bottom:14px;}
@@ -488,7 +533,7 @@ footer .dot{margin:0 6px;}
 
 /* ---------- 预算 ---------- */
 .plan-sum-r{text-align:right;}
-.plan-sum-r .big.ok{color:#9FE0BC;} .plan-sum-r .big.over{color:#FFB48C;}
+.plan-sum-r .big.ok{color:#BFE0CF;} .plan-sum-r .big.over{color:#E9C6A9;}
 .pc-row{margin-bottom:11px;}
 .pc-row:last-child{margin-bottom:0;}
 .pc-head{display:flex;justify-content:space-between;gap:8px;font-size:13px;margin-bottom:5px;}
@@ -558,6 +603,90 @@ footer .dot{margin:0 6px;}
 .form-trip{max-width:100%;flex-wrap:nowrap;}
 .form-trip b{flex:0 0 auto;max-width:70%;}
 .form-trip span{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;}
+
+/* =========================================================
+ * v2 设计统一层：同一字体、同一圆角、同一主色；去掉纸纹/渐变/倾斜印章/虚线装饰
+ * ========================================================= */
+body{font-family:var(--sans);background:var(--paper);color:var(--text);font-size:15px;line-height:1.5;}
+.serif{font-family:var(--sans);}
+body *{font-variant-numeric:tabular-nums;}
+header{background:var(--ink-deep);box-shadow:none;padding:12px 16px;}
+.brand h1{font-family:var(--sans);font-size:17px;font-weight:700;letter-spacing:.5px;}
+.brand .en{font-size:10.5px;letter-spacing:1.5px;color:#AFC0B8;}
+.gear{border:1px solid rgba(255,255,255,.22);background:transparent;width:34px;height:34px;font-size:16px;}
+.gear:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.35);}
+/* 页签：图标 + 文字 */
+.tabs{gap:4px;padding:6px 8px;background:var(--card);border-bottom:1px solid var(--line);}
+.tab{min-width:0;flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 0 5px;border:none;border-radius:10px;background:transparent;color:var(--muted);font-size:11.5px;font-weight:600;box-shadow:none;}
+.tab i{font-style:normal;font-size:17px;line-height:1.2;filter:grayscale(.35);opacity:.8;}
+.tab.on{background:var(--paper-deep);color:var(--ink-deep);box-shadow:none;}
+.tab.on i{filter:none;opacity:1;}
+/* 标题 */
+.section-title{font-family:var(--sans);font-size:14.5px;font-weight:700;color:var(--ink-deep);letter-spacing:0;}
+.section-title::before{width:3px;height:14px;background:var(--ink);border-radius:2px;}
+.card,.txn-card,.bi-card,.m-card,.st-tile,.lv-panel{border-radius:var(--radius);border-color:var(--line);box-shadow:var(--shadow);}
+/* 按钮：主按钮统一为墨绿实色 */
+.btn{border-radius:10px;font-weight:600;font-size:14.5px;}
+.btn-primary,.btn-solid,.btn-green{background:var(--ink);color:#fff;box-shadow:none;border:1px solid var(--ink);}
+.btn-primary:hover,.btn-solid:hover{background:var(--ink-deep);}
+.btn-primary:disabled{background:#C9CCC6;border-color:#C9CCC6;}
+.btn-ghost{border:1px solid var(--line);color:var(--ink-soft);background:var(--card);}
+.toolbar .btn{border:1px solid var(--line);border-radius:10px;font-weight:600;}
+.toolbar .btn.btn-solid{background:var(--ink);border-color:var(--ink);color:#fff;}
+/* 胶囊：选中统一用墨绿，不再区分橙色 */
+.pill,.fp,.trip-chip{border-width:1px;font-weight:500;}
+.pill.on,.pill.on.coral,.fp.on{background:var(--ink);border-color:var(--ink);color:#fff;box-shadow:none;}
+.trip-chip{border-radius:999px;background:var(--card);}
+.trip-chip.on{background:var(--ink);border-color:var(--ink);box-shadow:none;}
+.trip-chip.new,.trip-chip.manage{border-style:solid;background:transparent;color:var(--ink-soft);border-color:var(--line);}
+.trip-chip.none{border-style:solid;color:var(--coral-deep);border-color:#E3C9BE;background:var(--card);}
+.trip-chip.none.on{background:var(--coral-deep);border-color:var(--coral-deep);color:#fff;}
+.form-trip{border-radius:10px;}
+/* 输入框 */
+.fitem input[type=text],.fitem input[type=date],.fitem input:not([type]),.fitem select,.fitem textarea,
+.m-fields input,.admin-row input,.lv-bar input[type=search],.lv-sel select,.lv-dates input,.est-in input,.bb-row select{
+  border:1px solid var(--line);border-radius:10px;background:#fff;}
+.fitem input:focus,.fitem select:focus,.lv-bar input[type=search]:focus{border-color:var(--ink);box-shadow:0 0 0 3px rgba(36,68,60,.12);}
+.amount-box{background:#fff;border:1px solid var(--line);border-radius:var(--radius);}
+/* 深色汇总卡：纯色，无渐变 */
+.summary-card,.stats-band{background:var(--ink-deep);border-radius:var(--radius);box-shadow:none;}
+.summary-card .big,.stats-band .sb-num,.st-tile .v,.bi-amt .v,.op-price .v,.txn-card .t-amt,.est-total,.m-bal .num{font-family:var(--sans);letter-spacing:-.2px;}
+/* 账目卡片：左侧色条变细；金额用正文墨色 */
+.txn-card{border-left:3px solid var(--ink);}
+.txn-card .t-item{font-family:var(--sans);font-size:15px;font-weight:700;}
+.txn-card .t-amt{color:var(--ink-deep);font-size:17px;}
+.txn-card .t-split{border-top:1px solid var(--line-soft);}
+.txn-card .t-note,.bi-note{background:var(--paper);color:var(--ink-soft);}
+/* 状态章：去掉倾斜与虚线 */
+.stamp{transform:none;border-width:1px;border-radius:999px;letter-spacing:0;font-weight:600;padding:2px 9px;}
+.stamp.wait{border-style:solid;}
+.bi-st{border-style:solid;border-width:1px;border-radius:999px;}
+.bi-ops,.st-note,.cmp-form{border-top-style:solid;border-top-width:1px;}
+.bi-ops{border-top:1px solid var(--line-soft);}
+.bi-card{border-left-width:3px;}
+.bi-amt .v,.op-price .v{color:var(--ink-deep);}
+.bi-ops .op.main{border-color:var(--ink);color:#fff;background:var(--ink);}
+.empty{border:1px dashed var(--line);border-radius:var(--radius);background:transparent;}
+.mask{background:rgba(20,28,25,.45);backdrop-filter:blur(2px);}
+.modal{border-radius:16px 16px 0 0;background:var(--card);}
+@media(min-width:520px){.modal{border-radius:16px;}}
+.modal h3{font-family:var(--sans);font-size:17px;font-weight:700;}
+.batch-bar{background:var(--ink-deep);}
+.cb-bar,.dc-col b{background:var(--ink);}
+.lv-btn.on{background:var(--ink);border-color:var(--ink);}
+.lv-tag{background:var(--paper-deep);color:var(--ink-deep);border-color:var(--line);}
+.lv-tag button{background:rgba(36,68,60,.12);color:var(--ink-deep);}
+.op-card.chosen{border-color:var(--ink);background:#F3F6F4;}
+.op-ops .pick{background:var(--ink);border-color:var(--ink);}
+.op-badge{background:var(--paper-deep);color:var(--ink-deep);}
+.op-badge.g{background:var(--green-soft);color:var(--green);}
+.op-score b{background:var(--ink-soft);}
+#toast{background:var(--ink-deep);border-radius:10px;}
+.chip{background:var(--ink);}
+.cur-opt.on{border-color:var(--ink);background:var(--paper-deep);color:var(--ink-deep);}
+.check-line input,.cur-opt input{accent-color:var(--ink);}
+@media(hover:hover){.txn-card .t-top{padding-right:112px;}}
+.t-top .t-amt-wrap{padding-right:0;}
 </style>
 </head>
 <body>
@@ -571,11 +700,12 @@ footer .dot{margin:0 6px;}
     <button class="gear" id="gearBtn" title="设置">⚙</button>
   </header>
   <nav class="tabs">
-    <button class="tab on" data-tab="add">✏️ 记账</button>
-    <button class="tab" data-tab="list">📒 账目</button>
-    <button class="tab" data-tab="plan">🗓 预算</button>
-    <button class="tab" data-tab="stats">📊 统计</button>
-    <button class="tab" data-tab="members">👥 成员</button>
+    <button class="tab on" data-tab="add"><i>✏️</i><span>记账</span></button>
+    <button class="tab" data-tab="list"><i>📒</i><span>账目</span></button>
+    <button class="tab" data-tab="plan"><i>🗓</i><span>预算</span></button>
+    <button class="tab" data-tab="places"><i>📍</i><span>地点</span></button>
+    <button class="tab" data-tab="stats"><i>📊</i><span>统计</span></button>
+    <button class="tab" data-tab="members"><i>👥</i><span>成员</span></button>
   </nav>
 </div>
 
@@ -724,11 +854,36 @@ footer .dot{margin:0 6px;}
       <div id="planCats"></div>
     </div>
     <div class="toolbar">
-      <button class="btn" id="planAddBtn" style="flex:2;background:var(--coral);border-color:var(--coral);color:#fff">＋ 添加预算项</button>
+      <button class="btn btn-solid" id="planAddBtn" style="flex:2">＋ 添加预算项</button>
       <button class="btn" id="planGroupBtn">按类别看</button>
     </div>
+    <div class="lv-bar">
+      <input type="search" id="planQ" placeholder="🔍 搜索预算项 / 方案 / 渠道" autocomplete="off">
+      <button class="lv-btn" id="planOvBtn">⚖ 比价总览</button>
+    </div>
+    <div class="pill-group plan-filters" id="planFilters"></div>
     <div id="planList"></div>
     <div class="settle-note" style="text-align:center">💾 预算数据暂存本机浏览器，接入云端后会自动迁移</div>
+  </section>
+
+  <!-- ============ 页签：地点 ============ -->
+  <section class="view" id="view-places">
+    <div class="toolbar">
+      <button class="btn btn-solid" id="plAddBtn" style="flex:2">＋ 添加地点</button>
+      <button class="btn" id="plImportBtn">📥 导入</button>
+      <button class="btn" id="plExportBtn">📤 导出</button>
+    </div>
+    <div class="lv-bar">
+      <input type="search" id="plQ" placeholder="🔍 搜索名称 / 城市 / 标签 / 印象" autocomplete="off">
+    </div>
+    <div class="lv-bar lv-sel">
+      <label>分组<select id="plGroup"><option value="city">按城市</option><option value="kind">按类型</option><option value="trip">按行程</option><option value="pack">按来源</option><option value="none">不分组</option></select></label>
+      <label>排序<select id="plSort"><option value="new">最近添加</option><option value="rating">评分高→低</option><option value="name">名称</option></select></label>
+    </div>
+    <div class="pill-group plan-filters" id="plStatus"></div>
+    <div class="pill-group plan-filters" id="plKinds"></div>
+    <div id="plList"></div>
+    <div class="settle-note" style="text-align:center">💾 地点数据暂存本机浏览器；可随时导出资料包备份或分享</div>
   </section>
 
   <!-- ============ 页签：统计 ============ -->
@@ -763,7 +918,7 @@ footer .dot{margin:0 6px;}
 </main>
 
 <footer>
-  数据层：WorkBuddy 云数据库 · 逐条记录实时同步 · 多人共享同一份账本<span class="dot">·</span>深墨绿 × 米白 × 珊瑚橙
+  数据层：WorkBuddy 云数据库 · 逐条记录实时同步 · 多人共享同一份账本<span class="dot">·</span>预算 / 地点数据暂存本机
 </footer>
 
 <!-- ============ 初始化向导 / 设置 ============ -->
@@ -869,6 +1024,10 @@ footer .dot{margin:0 6px;}
     <label class="check-line"><input type="checkbox" id="bFixed">固定费用（车票、门票等价格明确的项目）</label>
     <div class="fitem" style="margin-bottom:6px"><label>状态</label></div>
     <div class="pill-group" id="bStatus"></div>
+    <div class="row2" id="bRouteRow">
+      <div class="fitem"><label>出发地（交通可填）</label><input type="text" id="bFrom" maxlength="40" placeholder="如：京都站"></div>
+      <div class="fitem"><label>目的地</label><input type="text" id="bTo" maxlength="40" placeholder="如：大阪站"></div>
+    </div>
     <div class="row2">
       <div class="fitem"><label>订单号（可选）</label><input type="text" id="bRef" maxlength="60"></div>
       <div class="fitem"><label>链接（可选）</label><input type="text" id="bUrl" maxlength="500" placeholder="https://"></div>
@@ -888,6 +1047,7 @@ footer .dot{margin:0 6px;}
     <div class="m-desc" id="cmpDesc"></div>
     <div class="cmp-pref" id="cmpPref"></div>
     <div class="cmp-search" id="cmpSearch"></div>
+    <div class="cmp-view" id="cmpView"></div>
     <div id="cmpList"></div>
     <button class="btn btn-ghost" id="cmpAddToggle" style="width:100%;margin-top:4px">＋ 添加方案</button>
     <div class="cmp-form" id="cmpForm" style="display:none">
@@ -919,6 +1079,87 @@ footer .dot{margin:0 6px;}
         <button class="btn btn-primary" id="oSave">保存方案</button>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ============ 地点编辑 ============ -->
+<div class="mask" id="pMask">
+  <div class="modal" style="max-width:520px">
+    <h3><span id="pTitle">添加地点</span><button class="m-close" id="pClose">✕</button></h3>
+    <div class="fitem" style="margin-bottom:12px"><label>名称 *</label><input type="text" id="pName" maxlength="80" placeholder="如：清水寺 / 一兰拉面 道顿堀店"></div>
+    <div class="fitem" style="margin-bottom:6px"><label>类型</label></div><div class="pill-group" id="pKinds"></div>
+    <div class="fitem" style="margin-bottom:6px"><label>状态</label></div><div class="pill-group" id="pStatus"></div>
+    <div class="row2">
+      <div class="fitem"><label>国家 / 地区</label><input type="text" id="pCountry" maxlength="40" placeholder="日本"></div>
+      <div class="fitem"><label>城市</label><input type="text" id="pCity" maxlength="40" placeholder="京都"></div>
+    </div>
+    <div class="fitem" style="margin-bottom:12px"><label>地址</label><input type="text" id="pAddr" maxlength="160"></div>
+    <div class="row2">
+      <div class="fitem"><label>官网</label><input type="text" id="pWeb" maxlength="300" placeholder="https://"></div>
+      <div class="fitem"><label>电话</label><input type="text" id="pPhone" maxlength="40"></div>
+    </div>
+    <div class="row2">
+      <div class="fitem"><label>营业时间</label><input type="text" id="pHours" maxlength="80" placeholder="如：9:00–17:00，周三休"></div>
+      <div class="fitem"><label>人均花费（<span class="bBase"></span>）</label><input id="pCost" inputmode="decimal" placeholder="可选"></div>
+    </div>
+    <div class="fitem" style="margin-bottom:6px"><label>评分</label></div><div class="pill-group" id="pRating"></div>
+    <div class="row2">
+      <div class="fitem"><label>关联行程</label><select id="pTrip"></select></div>
+      <div class="fitem"><label>到访日期</label><input type="date" id="pDate"></div>
+    </div>
+    <div class="fitem" style="margin-bottom:12px"><label>标签（用 / 分隔）</label><input type="text" id="pTags" maxlength="120" placeholder="如：世界遗产/适合拍照/亲子"></div>
+    <div class="fitem" style="margin-bottom:12px"><label>印象</label><textarea id="pImp" rows="2" maxlength="600" placeholder="整体感受、值不值得去"></textarea></div>
+    <div class="fitem" style="margin-bottom:12px"><label>体验项目</label><textarea id="pExp" rows="2" maxlength="600" placeholder="做了什么、推荐体验"></textarea></div>
+    <div class="fitem" style="margin-bottom:12px"><label>特色内容</label><textarea id="pHi" rows="2" maxlength="600" placeholder="招牌菜、必看点、隐藏玩法"></textarea></div>
+    <div class="fitem" style="margin-bottom:6px"><label>🚻 厕所</label></div><div class="pill-group" id="pToilet"></div>
+    <div class="fitem" style="margin-bottom:12px"><input type="text" id="pToiletNote" maxlength="160" placeholder="厕所说明（位置、是否收费等，可选）"></div>
+    <div class="fitem" style="margin-bottom:6px"><label>♿ 无障碍</label></div><div class="pill-group" id="pAccess"></div>
+    <div class="fitem" style="margin-bottom:12px"><input type="text" id="pAccessNote" maxlength="160" placeholder="无障碍说明（坡道、电梯、轮椅租借等，可选）"></div>
+    <div class="fitem"><label>备注</label><input type="text" id="pNote" maxlength="300" placeholder="可选"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="pDel" style="flex:none;color:var(--coral-deep)">删除</button>
+      <button class="btn btn-primary" id="pSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 资料包导入 ============ -->
+<div class="mask" id="piMask">
+  <div class="modal">
+    <h3><span>📥 导入资料包</span><button class="m-close" id="piClose">✕</button></h3>
+    <div class="m-desc">支持两种文件：<br>· <b>CSV</b>：按「资料包导入模板」填写（Excel / Numbers 打开即可编辑，另存为 CSV）；<br>· <b>JSON</b>：本工具「导出资料包」得到的文件，可直接分享给朋友导入。<br>同名同城的地点会合并（只补全空白字段，不覆盖你已有的内容）。</div>
+    <button class="btn btn-ghost" id="piTpl" style="width:100%;margin-bottom:12px">⬇ 下载资料包导入模板（CSV）</button>
+    <input type="file" id="piFile" accept=".csv,.json,text/csv,application/json" style="width:100%;border:1px dashed var(--line);border-radius:10px;padding:10px;font-size:13px;background:#fff;margin-bottom:12px;">
+    <div class="fitem" style="margin-bottom:12px"><label>资料包名称（用于标记来源）</label><input type="text" id="piName" maxlength="40" placeholder="如：小林的京都攻略"></div>
+    <div class="fitem" style="margin-bottom:6px"><label>未填写状态的地点默认标记为</label></div><div class="pill-group" id="piStatus"></div>
+    <div class="st-note" id="piPreview"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="piCancel">取消</button>
+      <button class="btn btn-primary" id="piGo" disabled>导入</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 资料包导出 ============ -->
+<div class="mask" id="peMask">
+  <div class="modal">
+    <h3><span>📤 导出资料包</span><button class="m-close" id="peClose">✕</button></h3>
+    <div class="m-desc" id="peDesc"></div>
+    <div class="fitem" style="margin-bottom:12px"><label>资料包名称</label><input type="text" id="peName" maxlength="40"></div>
+    <label class="check-line"><input type="checkbox" id="pePersonal" checked>包含我的评分、印象和到访日期</label>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="peCsv">导出 CSV（可用 Excel 编辑）</button>
+      <button class="btn btn-primary" id="peJson">导出 JSON（分享导入）</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 比价总览 ============ -->
+<div class="mask" id="ovMask">
+  <div class="modal" style="max-width:620px">
+    <h3><span>⚖ 比价总览</span><button class="m-close" id="ovClose">✕</button></h3>
+    <div class="m-desc" id="ovDesc"></div>
+    <div id="ovBody"></div>
   </div>
 </div>
 
@@ -985,7 +1226,7 @@ var LS = (function(){
 })();
 var CH = null;
 try{ CH = new BroadcastChannel("trip-aa-ledger"); }catch(e){}
-var KEY = { t:"aal$t$", m:"aal$m$", s:"aal$settings", x:"aal$x$", b:"aal$b$" }; /* 账目表 / 成员表 / 设置表 / 行程表 / 预算表（暂仅本机） */
+var KEY = { t:"aal$t$", m:"aal$m$", s:"aal$settings", x:"aal$x$", b:"aal$b$", p:"aal$p$" }; /* 账目表 / 成员表 / 设置表 / 行程表 / 预算表、地点表（暂仅本机） */
 
 var DB = {
   list:function(table){
@@ -1153,12 +1394,13 @@ function cloudBoot(){
 }
 
 /* ---------- 全局状态 ---------- */
-var state = { members:[], settings:null, txns:[], trips:[], budget:[], curTrip:"__all__" };
+var state = { members:[], settings:null, txns:[], trips:[], budget:[], places:[], curTrip:"__all__" };
 function loadAll(){
   state.members = DB.list("m");
   state.settings = DB.get("s","cfg");
   state.txns = DB.list("t");
   state.trips = DB.list("x").sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
+  state.places = DB.list("p").sort(function(a,b){ return (b.ts||0)-(a.ts||0); });
   state.budget = DB.list("b").sort(function(a,b){ return (a.day||"9999").localeCompare(b.day||"9999") || (a.ts||0)-(b.ts||0); });
   state.txns.sort(function(a,b){ return (b.date||"").localeCompare(a.date||"") || (b.ts||0)-(a.ts||0); });
 }
@@ -1520,6 +1762,8 @@ function switchTab(name){
   if(name==="members") renderMembers();
   if(name==="plan") renderPlan();
   if(name==="stats") renderStats();
+  if(name==="places") renderPlaces();
+  $("tripBar").style.display = name==="places" ? "none" : ""; /* 地点库跨行程，不受行程条影响 */
   if(name==="add") renderFormDynamic();
 }
 document.querySelectorAll(".tab").forEach(function(b){ b.onclick=function(){ switchTab(b.getAttribute("data-tab")); }; });
@@ -1780,7 +2024,7 @@ function renderList(){
   var scopeLbl=scopeLabel();
   $("listSummary").innerHTML=
     '<div><div class="big">'+bs+fmt(total)+'</div><div class="sub">'+esc(bc)+' · '+esc(scopeLbl)+' · 共 '+list.length+' 笔 · 已确认 '+bs+fmt(confirmed)+'</div></div>'+
-    '<div style="text-align:right"><div class="big coral" style="font-size:18px;color:#FFB48C">'+waitN+' 笔</div><div class="sub">待确认</div></div>';
+    '<div style="text-align:right"><div class="big coral" style="font-size:18px;color:#E9C6A9">'+waitN+' 笔</div><div class="sub">待确认</div></div>';
 
   if(!list.length){
     batchList=[]; renderBatchBar();
@@ -1824,7 +2068,7 @@ function renderList(){
       "</div>"+
       '<div class="t-split">'+splitHtml+"</div>"+
       (t.note?'<div class="t-note">📝 '+esc(t.note)+"</div>":"")+
-      '<div class="t-ops"><button class="op" data-edit="'+esc(t.id)+'">编辑</button><button class="op del" data-del="'+esc(t.id)+'">删除</button></div>'+
+      '<div class="t-ops"><button class="op" data-place="'+esc(t.id)+'" title="把这笔消费的地点存进地点库">📍</button><button class="op" data-edit="'+esc(t.id)+'">编辑</button><button class="op del" data-del="'+esc(t.id)+'">删除</button></div>'+
     "</div>";
   };
   if(lv.group==="none"){
@@ -1850,6 +2094,9 @@ function renderList(){
       c.classList.toggle("sel",on); c.querySelector(".t-chk").textContent=on?"✓":"";
       renderBatchBar();
     };
+  });
+  Array.prototype.forEach.call($("txnList").querySelectorAll("[data-place]"),function(b){
+    b.onclick=function(e){ e.stopPropagation(); var t=DB.get("t",b.getAttribute("data-place")); if(t) placeFromTxn(t); };
   });
   Array.prototype.forEach.call($("txnList").querySelectorAll("[data-edit]"),function(b){
     b.onclick=function(){ var t=DB.get("t",b.getAttribute("data-edit")); if(t) fillForm(t); };
@@ -2292,6 +2539,7 @@ function renderPlan(){
     ((trip.startDate||trip.endDate)?' <span style="color:var(--muted)">'+esc(trip.startDate||"…")+" ~ "+esc(trip.endDate||"…")+"</span>":"");
 
   var items=planItems(), bs=baseSym(), bc=baseCode();
+  renderPlanFilters(items);
   var tot=0, byStatus={idea:0,booked:0,paid:0}, fixedTot=0;
   items.forEach(function(b){ var v=biBase(b); tot+=v; byStatus[b.status||"idea"]=(byStatus[b.status||"idea"]||0)+v; if(b.fixed) fixedTot+=v; });
   var txns=state.txns.filter(function(t){ return (t.trip||"")===tid; });
@@ -2320,8 +2568,13 @@ function renderPlan(){
     $("planList").innerHTML='<div class="empty"><span class="emo">🗓️</span>还没有预算项<br><span style="font-size:12.5px">查攻略时把车票、门票、住宿这类确定的费用先记下来，多个方案可以用「⚖ 比价」对比</span></div>';
     return;
   }
+  var shown=items.filter(planMatch);
+  if(!shown.length){
+    $("planList").innerHTML='<div class="empty"><span class="emo">🔍</span>没有符合搜索或筛选条件的预算项</div>';
+    return;
+  }
   var groups={}, order=[];
-  items.forEach(function(b){
+  shown.forEach(function(b){
     var k = planGroup==="day" ? (b.day||"") : (b.category||"其他");
     if(!groups[k]){ groups[k]=[]; order.push(k); }
     groups[k].push(b);
@@ -2394,6 +2647,7 @@ function openBudget(id){
   $("bCur").value = b? b.currency : baseLabel();
   $("bRate").value = (b && curCode(b.currency)!==baseCode())? Number(b.rate).toFixed(6) : "";
   $("bFixed").checked = b? !!b.fixed : false;
+  $("bFrom").value = b? (b.from||"") : ""; $("bTo").value = b? (b.to||"") : "";
   $("bRef").value = b? (b.ref||"") : ""; $("bUrl").value = b? (b.url||"") : ""; $("bNote").value = b? (b.note||"") : "";
   bCat = b? b.category : "交通"; bStatus = b? (b.status||"idea") : "idea";
   $("bDel").style.display = b? "" : "none";
@@ -2431,6 +2685,7 @@ $("bSave").onclick=function(){
   var rec = old || { id:uid(), ts:Date.now(), trip:planTripId(), options:[], chosenOptionId:"", expenseId:"" };
   rec.title=title; rec.category=bCat; rec.day=$("bDay").value||""; rec.qty=Math.max(1,parseInt($("bQty").value,10)||1);
   rec.amount=Math.round(amt*100)/100; rec.currency=cur; rec.rate=rate; rec.fixed=$("bFixed").checked; rec.status=bStatus;
+  rec.from=$("bFrom").value.trim(); rec.to=$("bTo").value.trim();
   rec.ref=$("bRef").value.trim(); rec.url=$("bUrl").value.trim(); rec.note=$("bNote").value.trim();
   DB.upsert("b",rec); loadAll(); renderPlan();
   $("bMask").classList.remove("on");
@@ -2499,11 +2754,10 @@ function renderCompare(){
   $("cmpDesc").innerHTML="同一个预算项的多个方案，按偏好综合排序。价格填<b>单价</b>，总价会乘以数量 × "+q+"。选定后会自动更新预算金额。";
   $("cmpPref").innerHTML=Object.keys(PREFS).map(function(k){ return '<button type="button" class="pill'+(k===cmpPref?" on coral":"")+'" data-v="'+k+'">'+PREFS[k].n+'</button>'; }).join("");
   bindPills("cmpPref",function(v){ cmpPref=v; try{ LS.setItem("aalcmppref",v); }catch(e){} renderCompare(); });
-  var qstr=encodeURIComponent(((trip&&trip.name)?trip.name+" ":"")+b.title);
-  $("cmpSearch").innerHTML='🔍 查价：<a target="_blank" rel="noopener" href="https://www.google.com/search?q='+qstr+'%20价格">Google</a>'+
-    '<a target="_blank" rel="noopener" href="https://www.baidu.com/s?wd='+qstr+'%20价格">百度</a>'+
-    '<a target="_blank" rel="noopener" href="https://www.xiaohongshu.com/search_result?keyword='+qstr+'">小红书</a>';
+  $("cmpSearch").innerHTML='🔍 查价：'+platformLinks(b, trip);
   var opts=(b.options||[]).slice();
+  $("cmpView").innerHTML = opts.length>1 ? ['card','table'].map(function(v){ return '<button type="button" class="pill'+(cmpViewMode===v?" on":"")+'" data-v="'+v+'">'+(v==="card"?"▤ 卡片":"▦ 对比表")+'</button>'; }).join("") : "";
+  bindPills("cmpView",function(v){ cmpViewMode=v; try{ LS.setItem("aalcmpview",v); }catch(e){} renderCompare(); });
   if(!opts.length){
     $("cmpList").innerHTML='<div class="cmp-empty">还没有方案。<br>例如交通可以同时记「JR 新快速」「高速巴士」「打车」，分别填价格、耗时、便利度和购买渠道。</div>';
     return;
@@ -2517,6 +2771,9 @@ function renderCompare(){
     var c=+o.conv; if(c>maxC){ maxC=c; easyId=o.id; }
   });
   var now=Date.now();
+  if(cmpViewMode==="table" && opts.length>1){
+    $("cmpList").innerHTML=cmpTableHtml(opts, sc, b, {best:bestId, cheap:cheapId, fast:fastId});
+  }else
   $("cmpList").innerHTML=opts.map(function(o){
     var c=curCode(o.currency), isBase=c===baseCode(), chosen=o.id===b.chosenOptionId;
     var age = o.checkedAt ? Math.floor((now-o.checkedAt)/864e5) : null;
@@ -2618,6 +2875,414 @@ $("oSave").onclick=function(){
 $("cmpClose").onclick=function(){ $("cmpMask").classList.remove("on"); };
 $("cmpMask").addEventListener("click",function(e){ if(e.target===this) $("cmpMask").classList.remove("on"); });
 
+
+
+/* ---- 预算：搜索 / 筛选 ---- */
+var planQ="", planF=""; var cmpViewMode="card"; try{ cmpViewMode=LS.getItem("aalcmpview")||"card"; }catch(e){}
+var PLAN_FILTERS=[["","全部"],["idea","💭 计划"],["booked","📌 已订"],["paid","✅ 已付"],["nochoice","未选方案"],["save","💡 可省钱"]];
+function optCheapest(b){ var m=null; (b.options||[]).forEach(function(o){ if(optBase(o)>0 && (!m || optBase(o)<optBase(m))) m=o; }); return m; }
+function optChosen(b){ var c=null; (b.options||[]).forEach(function(o){ if(o.id===b.chosenOptionId) c=o; }); return c; }
+function planSaving(b){ /* 已选方案比最便宜方案贵多少（基准币，含数量） */
+  var c=optChosen(b), m=optCheapest(b); if(!c||!m||c.id===m.id) return 0;
+  return Math.max(0,(optBase(c)-optBase(m))*Math.max(1,+b.qty||1));
+}
+function planMatch(b){
+  if(planF==="nochoice" && ((b.options||[]).length<1 || b.chosenOptionId)) return false;
+  if(planF==="save" && planSaving(b)<=0) return false;
+  if(planF && PLAN_STATUS[planF] && (b.status||"idea")!==planF) return false;
+  var q=planQ.trim().toLowerCase(); if(!q) return true;
+  var hay=[b.title,b.note,b.ref,b.category,b.from,b.to].concat((b.options||[]).map(function(o){ return [o.label,o.channel,o.mode,o.note].join(" "); })).join(" ").toLowerCase();
+  return hay.indexOf(q)>=0;
+}
+function renderPlanFilters(items){
+  $("planFilters").innerHTML=PLAN_FILTERS.map(function(f){
+    var n = f[0]==="" ? items.length : items.filter(function(b){ var keep=planF; planF=f[0]; var ok=planMatch(b); planF=keep; return ok; }).length;
+    return '<button type="button" class="pill'+(planF===f[0]?" on":"")+'" data-v="'+f[0]+'">'+f[1]+' '+n+'</button>';
+  }).join("");
+  bindPills("planFilters",function(v){ planF=v; renderPlan(); });
+}
+var _planQT=null;
+$("planQ").addEventListener("input",function(){ var v=this.value; clearTimeout(_planQT); _planQT=setTimeout(function(){ planQ=v; renderPlan(); },150); });
+
+/* ---- 按类别给出查价平台（站内搜索走 Google site:，交通有起终点时给路线） ---- */
+var PLATFORMS={
+  ctrip:["携程","ctrip.com"], tripcom:["Trip.com","trip.com"], klook:["Klook","klook.com"], kkday:["KKday","kkday.com"],
+  booking:["Booking","booking.com"], agoda:["Agoda","agoda.com"], rail:["12306","12306.cn"], dianping:["大众点评","dianping.com"],
+  skyscanner:["天巡","skyscanner.com"]
+};
+var CAT_PLATFORMS={ "交通":["rail","ctrip","tripcom","skyscanner","klook"], "住宿":["booking","agoda","ctrip","tripcom"],
+  "门票":["klook","kkday","ctrip","tripcom"], "娱乐":["klook","kkday","ctrip"], "餐饮":["dianping"], "购物":[], "医疗":[], "其他":["ctrip","klook"] };
+function platformLinks(b, trip){
+  var base=((trip&&trip.name)?trip.name+" ":"")+b.title, out=[];
+  function a(label,href,main){ out.push('<a class="pf'+(main?" main":"")+'" target="_blank" rel="noopener" href="'+esc(href)+'">'+esc(label)+'</a>'); }
+  if(b.from && b.to){
+    a("🗺 路线 · Google 地图","https://www.google.com/maps/dir/?api=1&origin="+encodeURIComponent(b.from)+"&destination="+encodeURIComponent(b.to)+"&travelmode=transit",true);
+  }
+  (CAT_PLATFORMS[b.category]||[]).forEach(function(k){
+    var p=PLATFORMS[k]; a(p[0],"https://www.google.com/search?q="+encodeURIComponent("site:"+p[1]+" "+(b.from&&b.to? b.from+" "+b.to : base)));
+  });
+  a("小红书","https://www.xiaohongshu.com/search_result?keyword="+encodeURIComponent(base));
+  a("Google","https://www.google.com/search?q="+encodeURIComponent(base+" 价格"));
+  return out.join("");
+}
+var CHANNEL_BY_DOMAIN=[["klook","Klook"],["kkday","KKday"],["ctrip","携程"],["trip.com","Trip.com"],["booking.com","Booking"],["agoda","Agoda"],["12306","12306"],["fliggy","飞猪"],["skyscanner","天巡"],["tianxun","天巡"],["xiaohongshu","小红书"],["dianping","大众点评"],["meituan","美团"],["airbnb","Airbnb"],["expedia","Expedia"],["hotels.com","Hotels.com"]];
+function channelFromUrl(u){ u=String(u||"").toLowerCase(); for(var i=0;i<CHANNEL_BY_DOMAIN.length;i++){ if(u.indexOf(CHANNEL_BY_DOMAIN[i][0])>=0) return CHANNEL_BY_DOMAIN[i][1]; } return ""; }
+$("oUrl").addEventListener("change",function(){ if(!$("oChannel").value.trim()){ var c=channelFromUrl(this.value); if(c) $("oChannel").value=c; } });
+
+/* ---- 对比表：列 = 方案，行 = 维度，每行最优高亮 ---- */
+function cmpTableHtml(opts, sc, b, ids){
+  var q=Math.max(1,+b.qty||1), bs=baseSym();
+  function bestIdx(vals, lowIsBetter){
+    var bi=-1; vals.forEach(function(v,i){ if(v==null||!isFinite(v)) return; if(bi<0 || (lowIsBetter? v<vals[bi] : v>vals[bi])) bi=i; });
+    var cnt=vals.filter(function(v){ return v!=null&&isFinite(v); }).length; return cnt>1? bi : -1;
+  }
+  var price=opts.map(function(o){ return optBase(o)>0? optBase(o) : null; });
+  var dur=opts.map(function(o){ return +o.dur>0? +o.dur : null; });
+  var tr=opts.map(function(o){ return (o.transfers!==""&&o.transfers!=null&&isFinite(+o.transfers))? +o.transfers : null; });
+  var conv=opts.map(function(o){ return +o.conv>0? +o.conv : null; });
+  var score=opts.map(function(o){ return sc[o.id]; });
+  var refundRank={yes:3,partial:2,no:1};
+  var ref=opts.map(function(o){ return refundRank[o.refund]||null; });
+  var rows=[
+    ["渠道", opts.map(function(o){ return esc(o.channel||"—"); }), -1],
+    ["方式", opts.map(function(o){ return esc(o.mode||"—"); }), -1],
+    ["单价", opts.map(function(o){ var c=curCode(o.currency); return curSym(c)+fmt(o.price)+(c!==baseCode()?'<span class="sub">≈ '+bs+fmt(optBase(o))+'</span>':""); }), bestIdx(price,true)],
+    ["总价 ×"+q, opts.map(function(o){ return bs+fmt(optBase(o)*q); }), bestIdx(price,true)],
+    ["耗时", opts.map(function(o){ return o.dur? durText(o.dur) : "—"; }), bestIdx(dur,true)],
+    ["换乘", opts.map(function(o,i){ return tr[i]==null? "—" : (tr[i]? tr[i]+" 次":"直达"); }), bestIdx(tr,true)],
+    ["便利度", opts.map(function(o){ return o.conv? "★★★★★".slice(0,+o.conv)+'<span style="color:var(--line)">'+"★★★★★".slice(0,5-o.conv)+'</span>' : "—"; }), bestIdx(conv,false)],
+    ["退改", opts.map(function(o){ return o.refund==="yes"?"可退改":o.refund==="partial"?"有条件":o.refund==="no"?"不可退":"—"; }), bestIdx(ref,false)],
+    ["查询", opts.map(function(o){ if(!o.checkedAt) return "—"; var d=Math.floor((Date.now()-o.checkedAt)/864e5); return d===0?"今天":d+" 天前"+(d>14?' <span class="save-tag">需核对</span>':""); }), -1],
+    ["综合得分", opts.map(function(o){ return Math.round(sc[o.id]*100); }), bestIdx(score,false)]
+  ];
+  return '<div class="ct-scroll"><table class="ct"><thead><tr><th></th>'+opts.map(function(o){
+      return '<th class="'+(o.id===b.chosenOptionId?"chosen-h":"")+'">'+(o.id===b.chosenOptionId?"✓ ":"")+esc(o.label)+(o.id===ids.best?' <span class="op-badge">推荐</span>':"")+'</th>';
+    }).join("")+'</tr></thead><tbody>'+rows.map(function(r){
+      return '<tr><th>'+r[0]+'</th>'+r[1].map(function(v,i){ return '<td class="'+(i===r[2]?"best":"")+'">'+v+'</td>'; }).join("")+'</tr>';
+    }).join("")+'<tr><th></th>'+opts.map(function(o){
+      return '<td class="act">'+(o.id===b.chosenOptionId? '<button data-ounpick="'+esc(o.id)+'">取消选择</button>' : '<button class="pick" data-opick="'+esc(o.id)+'">选这个</button>')+'</td>';
+    }).join("")+'</tr></tbody></table></div><div class="st-note">绿色为该维度最优；综合得分按当前偏好（'+PREFS[cmpPref].n+'）计算。</div>';
+}
+
+/* ---- 比价总览：所有预算项的已选 / 最便宜 / 最快 / 可省 ---- */
+function openOverview(){
+  var items=planItems().filter(function(b){ return (b.options||[]).length; });
+  var bs=baseSym(), totalSave=0, noChoice=0;
+  items.forEach(function(b){ totalSave+=planSaving(b); if(!b.chosenOptionId) noChoice++; });
+  $("ovDesc").textContent = items.length ? "点任意一行打开该项的比价。「可省」= 已选方案比最便宜方案多花的钱。" : "";
+  if(!items.length){
+    $("ovBody").innerHTML='<div class="cmp-empty">这个行程还没有记录任何比价方案。<br>在预算项上点「⚖ 比价」添加方案后，这里会汇总对比。</div>';
+  }else{
+    $("ovBody").innerHTML='<div class="ov-sum"><div><b>'+items.length+'</b><span>项有比价</span></div><div><b>'+noChoice+'</b><span>项还没选方案</span></div><div><b>'+bs+fmt(totalSave)+'</b><span>换成最便宜方案可省</span></div></div>'+
+      '<div class="ct-scroll"><table class="ct"><thead><tr><th>预算项</th><th>已选</th><th>最便宜</th><th>最快</th><th>可省</th></tr></thead><tbody>'+
+      items.map(function(b){
+        var q=Math.max(1,+b.qty||1), c=optChosen(b), m=optCheapest(b), f=null;
+        (b.options||[]).forEach(function(o){ if(+o.dur>0 && (!f || +o.dur<+f.dur)) f=o; });
+        var sv=planSaving(b);
+        return '<tr class="ov-row" data-ov="'+esc(b.id)+'"><th style="position:static;color:var(--ink-deep)">'+(CAT_ICON[b.category]||"")+" "+esc(b.title)+'<span class="sub" style="display:block;font-weight:400;color:var(--muted)">'+(b.options||[]).length+' 个方案 · ×'+q+'</span></th>'+
+          '<td>'+(c? esc(c.label)+'<span class="sub">'+bs+fmt(optBase(c)*q)+'</span>' : '<span style="color:var(--coral-deep)">未选</span>')+'</td>'+
+          '<td>'+(m? esc(m.label)+'<span class="sub">'+bs+fmt(optBase(m)*q)+'</span>' : "—")+'</td>'+
+          '<td>'+(f? esc(f.label)+'<span class="sub">'+durText(f.dur)+'</span>' : "—")+'</td>'+
+          '<td class="'+(sv>0?"":"")+'">'+(sv>0? '<span class="save-tag" style="margin:0">'+bs+fmt(sv)+'</span>' : "—")+'</td></tr>';
+      }).join("")+'</tbody></table></div>';
+    Array.prototype.forEach.call($("ovBody").querySelectorAll("[data-ov]"),function(r){
+      r.onclick=function(){ $("ovMask").classList.remove("on"); openCompare(r.getAttribute("data-ov")); };
+    });
+  }
+  $("ovMask").classList.add("on");
+}
+$("planOvBtn").onclick=function(){ if(!tripById(planTripId())){ toast("先创建一个行程 🧳"); return; } openOverview(); };
+$("ovClose").onclick=function(){ $("ovMask").classList.remove("on"); };
+$("ovMask").addEventListener("click",function(e){ if(e.target===this) $("ovMask").classList.remove("on"); });
+
+
+/* ---------- 地点库 & 资料包 ---------- */
+/* 地点结构（与 Supabase places + visits 对应，本机先合并存一条）：
+ * {id, ts, name, kind, status: been|want, country, city, address, website, phone, hours, cost, rating, trip, date,
+ *  tags[], impression, experiences, highlights, toilet, toiletNote, access, accessNote, note, lat, lng, pack, txnIds[]} */
+var PL_KINDS=[["sight","🏛","景点"],["restaurant","🍽","餐厅"],["hotel","🏨","住宿"],["shop","🛍","购物"],["transport","🚉","交通"],["activity","🎟","活动"],["other","📍","其他"]];
+var PL_KIND_BY_LABEL={}; PL_KINDS.forEach(function(k){ PL_KIND_BY_LABEL[k[2]]=k[0]; PL_KIND_BY_LABEL[k[0]]=k[0]; });
+PL_KIND_BY_LABEL["酒店"]="hotel"; PL_KIND_BY_LABEL["美食"]="restaurant"; PL_KIND_BY_LABEL["餐饮"]="restaurant"; PL_KIND_BY_LABEL["门票"]="sight"; PL_KIND_BY_LABEL["娱乐"]="activity";
+var PL_TOILET=[["clean","干净"],["ok","一般"],["poor","较差"],["none","没有"],["","未知"]];
+var PL_ACCESS=[["yes","友好"],["limited","部分可行"],["no","不便"],["","未知"]];
+var CAT_TO_KIND={"餐饮":"restaurant","住宿":"hotel","门票":"sight","购物":"shop","交通":"transport","娱乐":"activity"};
+function plKind(k){ for(var i=0;i<PL_KINDS.length;i++){ if(PL_KINDS[i][0]===k) return PL_KINDS[i]; } return PL_KINDS[6]; }
+function labelOf(list,v){ for(var i=0;i<list.length;i++){ if(list[i][0]===v) return list[i][1]; } return ""; }
+function valueOf(list,label){ label=String(label||"").trim(); for(var i=0;i<list.length;i++){ if(list[i][1]===label||list[i][0]===label) return list[i][0]; } return ""; }
+
+var plQ="", plStatusF="", plKindF="", plGroup="city", plSort="new";
+try{ var _pv=JSON.parse(LS.getItem("aalplview")||"null"); if(_pv){ plGroup=_pv.g||plGroup; plSort=_pv.s||plSort; } }catch(e){}
+function savePlView(){ try{ LS.setItem("aalplview",JSON.stringify({g:plGroup,s:plSort})); }catch(e){} }
+function plMatch(p){
+  if(plStatusF && p.status!==plStatusF) return false;
+  if(plKindF && p.kind!==plKindF) return false;
+  var q=plQ.trim().toLowerCase(); if(!q) return true;
+  return [p.name,p.city,p.country,p.address,(p.tags||[]).join(" "),p.impression,p.experiences,p.highlights,p.note,p.pack].join(" ").toLowerCase().indexOf(q)>=0;
+}
+function mapQuery(p){ return [p.name,p.city,p.country].filter(Boolean).join(" "); }
+function renderPlaces(){
+  if(!$("view-places")) return;
+  var all=state.places;
+  $("plGroup").value=plGroup; $("plSort").value=plSort;
+  var cnt=function(f){ return all.filter(f).length; };
+  $("plStatus").innerHTML=[["","全部 "+all.length],["been","✅ 去过 "+cnt(function(p){return p.status==="been";})],["want","⭐ 想去 "+cnt(function(p){return p.status==="want";})]]
+    .map(function(x){ return '<button type="button" class="pill'+(plStatusF===x[0]?" on":"")+'" data-v="'+x[0]+'">'+x[1]+'</button>'; }).join("");
+  bindPills("plStatus",function(v){ plStatusF=v; renderPlaces(); });
+  $("plKinds").innerHTML=['<button type="button" class="pill'+(!plKindF?" on":"")+'" data-v="">全部类型</button>'].concat(PL_KINDS.filter(function(k){ return all.some(function(p){ return p.kind===k[0]; }); }).map(function(k){
+    return '<button type="button" class="pill'+(plKindF===k[0]?" on":"")+'" data-v="'+k[0]+'">'+k[1]+" "+k[2]+'</button>'; })).join("");
+  bindPills("plKinds",function(v){ plKindF=v; renderPlaces(); });
+
+  if(!all.length){
+    $("plList").innerHTML='<div class="empty"><span class="emo">📍</span>还没有地点<br><span style="font-size:12.5px">在账目卡片上点 📍 可以把消费地点存进来；也可以导入朋友分享的资料包</span></div>';
+    return;
+  }
+  var list=all.filter(plMatch);
+  list.sort(function(a,b){
+    if(plSort==="rating") return (+b.rating||0)-(+a.rating||0) || (b.ts||0)-(a.ts||0);
+    if(plSort==="name") return (a.name||"").localeCompare(b.name||"","zh-CN");
+    return (b.ts||0)-(a.ts||0);
+  });
+  if(!list.length){ $("plList").innerHTML='<div class="empty"><span class="emo">🔍</span>没有符合条件的地点</div>'; return; }
+  var keyOf=function(p){
+    if(plGroup==="city") return [p.country,p.city].filter(Boolean).join(" · ")||"未填城市";
+    if(plGroup==="kind") return plKind(p.kind)[1]+" "+plKind(p.kind)[2];
+    if(plGroup==="trip") return p.trip&&tripById(p.trip)? "🧳 "+tripName(p.trip) : "未关联行程";
+    if(plGroup==="pack") return p.pack? "📦 "+p.pack : "✍️ 自己记录";
+    return "";
+  };
+  var groups={}, order=[];
+  list.forEach(function(p){ var k=keyOf(p); if(!groups[k]){ groups[k]=[]; order.push(k); } groups[k].push(p); });
+  if(plGroup!=="none") order.sort(function(a,b){ return groups[b].length-groups[a].length || a.localeCompare(b,"zh-CN"); });
+  $("plList").innerHTML=order.map(function(k){
+    return (plGroup==="none"?"":'<div class="plan-group"><span>'+esc(k)+'</span><small>'+groups[k].length+' 个</small></div>')+groups[k].map(placeCardHtml).join("");
+  }).join("");
+  Array.prototype.forEach.call($("plList").querySelectorAll("[data-pl]"),function(c){
+    c.onclick=function(e){ if(e.target.closest("a")) return; openPlace(c.getAttribute("data-pl")); };
+  });
+}
+function placeCardHtml(p){
+  var k=plKind(p.kind), tags=[];
+  tags.push('<span class="pl-tag '+(p.status==="want"?"st-want":"st-been")+'">'+(p.status==="want"?"⭐ 想去":"✅ 去过")+'</span>');
+  if(p.toilet) tags.push('<span class="pl-tag '+(p.toilet==="clean"?"fac-good":(p.toilet==="poor"||p.toilet==="none")?"fac-bad":"")+'">🚻 '+labelOf(PL_TOILET,p.toilet)+'</span>');
+  if(p.access) tags.push('<span class="pl-tag '+(p.access==="yes"?"fac-good":p.access==="no"?"fac-bad":"")+'">♿ '+labelOf(PL_ACCESS,p.access)+'</span>');
+  if(p.cost) tags.push('<span class="pl-tag">人均 '+baseSym()+fmt(+p.cost,0)+'</span>');
+  (p.tags||[]).slice(0,4).forEach(function(t){ tags.push('<span class="pl-tag">#'+esc(t)+'</span>'); });
+  var text=p.impression||p.highlights||p.experiences||"";
+  var q=encodeURIComponent(mapQuery(p));
+  return '<div class="pl-card" data-pl="'+esc(p.id)+'">'+
+    '<div class="pl-top"><div style="min-width:0"><div class="pl-name">'+k[1]+" "+esc(p.name)+'</div>'+
+    '<div class="pl-sub">'+esc([k[2],p.city,p.trip&&tripById(p.trip)?"🧳 "+tripName(p.trip):"",p.date].filter(Boolean).join(" · "))+'</div></div>'+
+    (p.rating?'<span class="pl-rate">'+"★★★★★".slice(0,+p.rating)+'</span>':"")+'</div>'+
+    '<div class="pl-tags">'+tags.join("")+'</div>'+
+    (text?'<div class="pl-text">'+esc(text)+'</div>':"")+
+    '<div class="pl-links">'+(p.website?'<a target="_blank" rel="noopener" href="'+esc(safeUrl(p.website))+'">官网 ↗</a>':"")+
+      '<a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&query='+q+'">Google 地图</a>'+
+      '<a target="_blank" rel="noopener" href="https://uri.amap.com/search?keyword='+q+'">高德地图</a>'+
+      '<a target="_blank" rel="noopener" href="https://www.xiaohongshu.com/search_result?keyword='+q+'">小红书</a></div>'+
+  '</div>';
+}
+["plQ"].forEach(function(){ var t=null; $("plQ").addEventListener("input",function(){ var v=this.value; clearTimeout(t); t=setTimeout(function(){ plQ=v; renderPlaces(); },150); }); });
+$("plGroup").onchange=function(){ plGroup=this.value; savePlView(); renderPlaces(); };
+$("plSort").onchange=function(){ plSort=this.value; savePlView(); renderPlaces(); };
+
+/* ---- 地点编辑 ---- */
+var pEditId=null, pKind="sight", pStatus="been", pRating=0, pToilet="", pAccess="", pFromTxn=null;
+function openPlace(id, preset){
+  var p = id? DB.get("p",id) : null; preset=preset||{};
+  var v=function(k,d){ return p? (p[k]!=null? p[k] : d) : (preset[k]!=null? preset[k] : d); };
+  pEditId = p? p.id : null; pFromTxn = preset.txnId||null;
+  $("pTitle").textContent = p? "编辑地点" : "添加地点";
+  $("pName").value=v("name",""); $("pCountry").value=v("country",""); $("pCity").value=v("city",""); $("pAddr").value=v("address","");
+  $("pWeb").value=v("website",""); $("pPhone").value=v("phone",""); $("pHours").value=v("hours",""); $("pCost").value=v("cost","")||"";
+  $("pDate").value=v("date",""); $("pTags").value=(v("tags",[])||[]).join("/");
+  $("pImp").value=v("impression",""); $("pExp").value=v("experiences",""); $("pHi").value=v("highlights","");
+  $("pToiletNote").value=v("toiletNote",""); $("pAccessNote").value=v("accessNote",""); $("pNote").value=v("note","");
+  pKind=v("kind","sight"); pStatus=v("status","been"); pRating=+v("rating",0)||0; pToilet=v("toilet",""); pAccess=v("access","");
+  var tsel=v("trip","");
+  $("pTrip").innerHTML='<option value="">不关联</option>'+state.trips.map(function(t){ return '<option value="'+esc(t.id)+'"'+(t.id===tsel?" selected":"")+'>'+esc(t.name)+'</option>'; }).join("");
+  Array.prototype.forEach.call(document.querySelectorAll(".bBase"),function(e){ e.textContent=baseCode(); });
+  $("pDel").style.display = p? "" : "none";
+  renderPlacePills();
+  $("pMask").classList.add("on");
+}
+function renderPlacePills(){
+  function pills(id, list, cur, cb, fmtFn){
+    $(id).innerHTML=list.map(function(x){ return '<button type="button" class="pill'+(cur===x[0]?" on":"")+'" data-v="'+x[0]+'">'+(fmtFn?fmtFn(x):x[1])+'</button>'; }).join("");
+    bindPills(id, cb);
+  }
+  pills("pKinds",PL_KINDS,pKind,function(v){ pKind=v; renderPlacePills(); },function(x){ return x[1]+" "+x[2]; });
+  pills("pStatus",[["been","✅ 去过"],["want","⭐ 想去"]],pStatus,function(v){ pStatus=v; renderPlacePills(); });
+  pills("pRating",[["1","★"],["2","★★"],["3","★★★"],["4","★★★★"],["5","★★★★★"]],String(pRating||""),function(v){ pRating = pRating===+v? 0 : +v; renderPlacePills(); });
+  pills("pToilet",PL_TOILET,pToilet,function(v){ pToilet=v; renderPlacePills(); });
+  pills("pAccess",PL_ACCESS,pAccess,function(v){ pAccess=v; renderPlacePills(); });
+}
+function splitTags(s){ return String(s||"").split(/[\/、,，;；]/).map(function(x){ return x.trim().replace(/^#/,""); }).filter(Boolean).slice(0,12); }
+$("pSave").onclick=function(){
+  var name=$("pName").value.trim(); if(!name){ toast("请输入地点名称"); return; }
+  var old=pEditId? DB.get("p",pEditId) : null;
+  var rec=old || { id:uid(), ts:Date.now(), txnIds:[], pack:"" };
+  rec.name=name; rec.kind=pKind; rec.status=pStatus; rec.country=$("pCountry").value.trim(); rec.city=$("pCity").value.trim();
+  rec.address=$("pAddr").value.trim(); rec.website=$("pWeb").value.trim(); rec.phone=$("pPhone").value.trim(); rec.hours=$("pHours").value.trim();
+  var cost=parseFloat($("pCost").value); rec.cost=isFinite(cost)&&cost>0? Math.round(cost*100)/100 : "";
+  rec.rating=pRating||""; rec.trip=$("pTrip").value; rec.date=$("pDate").value; rec.tags=splitTags($("pTags").value);
+  rec.impression=$("pImp").value.trim(); rec.experiences=$("pExp").value.trim(); rec.highlights=$("pHi").value.trim();
+  rec.toilet=pToilet; rec.toiletNote=$("pToiletNote").value.trim(); rec.access=pAccess; rec.accessNote=$("pAccessNote").value.trim(); rec.note=$("pNote").value.trim();
+  if(pFromTxn && (rec.txnIds||[]).indexOf(pFromTxn)<0) rec.txnIds=(rec.txnIds||[]).concat([pFromTxn]);
+  DB.upsert("p",rec); loadAll(); renderPlaces();
+  $("pMask").classList.remove("on");
+  toast(old? "地点已更新 ✅" : "已存入地点库 📍");
+};
+$("pDel").onclick=function(){
+  var p=pEditId? DB.get("p",pEditId) : null; if(!p) return;
+  $("pMask").classList.remove("on");
+  confirmDialog("删除地点「"+esc(p.name)+"」？").then(function(ok){ if(!ok) return; DB.remove("p",p.id); loadAll(); renderPlaces(); toast("已删除 🗑"); });
+};
+$("pClose").onclick=function(){ $("pMask").classList.remove("on"); };
+$("pMask").addEventListener("click",function(e){ if(e.target===this) $("pMask").classList.remove("on"); });
+$("plAddBtn").onclick=function(){ openPlace(null, { trip: isVirtualScope()? "" : state.curTrip }); };
+function placeFromTxn(t){
+  var name=String(t.item||"").replace(/^(晚餐|午餐|早餐|门票|酒店|住宿)\s*[·・:：-]\s*/,"").trim()||t.item;
+  var exist=state.places.filter(function(p){ return p.name===name; })[0];
+  if(exist){ openPlace(exist.id); pFromTxn=t.id; return; }
+  openPlace(null,{ name:name, kind:CAT_TO_KIND[t.category]||"other", status:"been", trip:tripById(t.trip)? t.trip : "", date:t.date||"",
+    cost: (function(){ var n=txnParts(t).length||1; return Math.round(txnBase(t)/n); })(), txnId:t.id });
+}
+
+/* ---- 资料包：模板 / 导入 / 导出 ---- */
+var PACK_COLS=["名称","类型","状态","国家/地区","城市","地址","官网","电话","营业时间","评分","人均花费","标签","印象","体验项目","特色内容","厕所","厕所说明","无障碍","无障碍说明","到访日期","备注","纬度","经度"];
+var PACK_EXAMPLES=[
+  ["清水寺","景点","想去","日本","京都","京都府京都市东山区清水1-294","https://www.kiyomizudera.or.jp/","075-551-1234","6:00–18:00（季节性调整）","5","400","世界遗产/适合拍照/坡道多","傍晚去看夕阳最美，人比上午少","清水舞台、地主神社求签","红叶季夜间特别参拜","一般","入口附近有公厕，免费","部分可行","主殿有坡道，部分台阶路段需绕行","2025-11-20","建议从五条坂上山、二年坂下山","34.9949","135.7850"],
+  ["一兰拉面 道顿堀店","餐厅","去过","日本","大阪","大阪府大阪市中央区道顿堀1-4-16","https://ichiran.com/","","24 小时","4","1200","拉面/单人隔间","味道稳定，深夜也能吃","自选浓淡和辣度","秘制红酱","干净","店内有","不便","入口有台阶、座位窄","2025-11-22","","",""]
+];
+function csvLine(r){ return r.map(csvEsc).join(","); }
+function downloadText(name, text, type){
+  var a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([text],{type:type})); a.download=name;
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function downloadPackTemplate(){
+  downloadText("资料包导入模板.csv", "﻿"+[PACK_COLS].concat(PACK_EXAMPLES).map(csvLine).join("\r\n"), "text/csv;charset=utf-8");
+  toast("模板已下载，按示例行填写后导入 ⬇");
+}
+function placeToRow(p, personal){
+  return [p.name, plKind(p.kind)[2], p.status==="want"?"想去":"去过", p.country, p.city, p.address, p.website, p.phone, p.hours,
+    personal? (p.rating||"") : "", p.cost||"", (p.tags||[]).join("/"), personal? p.impression : "", p.experiences, p.highlights,
+    p.toilet? labelOf(PL_TOILET,p.toilet) : "", p.toiletNote, p.access? labelOf(PL_ACCESS,p.access) : "", p.accessNote,
+    personal? p.date : "", p.note, p.lat||"", p.lng||""];
+}
+function rowToPlace(r, idx){ /* idx: 列名 → 下标 */
+  function g(col){ var i=idx[col]; return i==null? "" : String(r[i]==null?"":r[i]).trim(); }
+  var name=g("名称"); if(!name) return null;
+  var st=g("状态"), rating=parseInt(g("评分"),10), cost=parseFloat(g("人均花费").replace(/[^\d.]/g,""));
+  var date=g("到访日期").replace(/\//g,"-"); if(!/^\d{4}-\d{2}-\d{2}$/.test(date)) date="";
+  return { name:name, kind:PL_KIND_BY_LABEL[g("类型")]||"other", status: st==="想去"||st==="want"? "want" : st==="去过"||st==="been"? "been" : "",
+    country:g("国家/地区")||g("国家"), city:g("城市"), address:g("地址"), website:g("官网"), phone:g("电话"), hours:g("营业时间"),
+    rating: rating>=1&&rating<=5? rating : "", cost: isFinite(cost)&&cost>0? cost : "", tags:splitTags(g("标签")),
+    impression:g("印象"), experiences:g("体验项目"), highlights:g("特色内容"),
+    toilet:valueOf(PL_TOILET,g("厕所")), toiletNote:g("厕所说明"), access:valueOf(PL_ACCESS,g("无障碍")), accessNote:g("无障碍说明"),
+    date:date, note:g("备注"), lat:g("纬度"), lng:g("经度") };
+}
+function decodeFile(buf){ /* Excel 另存 CSV 可能是 GBK：先按 UTF-8 严格解码，失败再用 GBK */
+  try{ return new TextDecoder("utf-8",{fatal:true}).decode(buf); }catch(e){}
+  try{ return new TextDecoder("gbk").decode(buf); }catch(e){ return new TextDecoder("utf-8").decode(buf); }
+}
+function parsePackText(text, fname){
+  text=String(text||""); if(text.charCodeAt(0)===0xFEFF) text=text.slice(1);
+  if(/\.json$/i.test(fname) || /^\s*[\{\[]/.test(text)){
+    var j=JSON.parse(text), arr=Array.isArray(j)? j : (j.places||[]);
+    return { name: (!Array.isArray(j)&&j.name)||"", places: arr.map(function(p){
+      if(!p || !p.name) return null;
+      return { name:String(p.name), kind:PL_KIND_BY_LABEL[p.kind]||"other", status:p.status==="want"||p.status==="been"? p.status : "",
+        country:p.country||"", city:p.city||"", address:p.address||"", website:p.website||"", phone:p.phone||"", hours:p.hours||"",
+        rating:(+p.rating>=1&&+p.rating<=5)? +p.rating : "", cost:+p.cost>0? +p.cost : "", tags:Array.isArray(p.tags)? p.tags.slice(0,12) : splitTags(p.tags),
+        impression:p.impression||"", experiences:p.experiences||"", highlights:p.highlights||"",
+        toilet:valueOf(PL_TOILET,p.toilet), toiletNote:p.toiletNote||"", access:valueOf(PL_ACCESS,p.access), accessNote:p.accessNote||"",
+        date:/^\d{4}-\d{2}-\d{2}$/.test(p.date||"")? p.date : "", note:p.note||"", lat:p.lat||"", lng:p.lng||"" };
+    }).filter(Boolean) };
+  }
+  var rows=parseCSV(text); if(!rows.length) return {name:"",places:[]};
+  var head=rows[0].map(function(h){ return String(h).trim().replace(/\s*\*$/,""); }), idx={};
+  head.forEach(function(h,i){ idx[h]=i; });
+  if(idx["名称"]==null) throw new Error("找不到「名称」列，请使用资料包导入模板");
+  return { name:"", places: rows.slice(1).map(function(r){ return rowToPlace(r,idx); }).filter(Boolean) };
+}
+var piParsed=null, piStatus="want";
+function renderPiStatus(){
+  $("piStatus").innerHTML=[["want","⭐ 想去"],["been","✅ 去过"]].map(function(x){ return '<button type="button" class="pill'+(piStatus===x[0]?" on":"")+'" data-v="'+x[0]+'">'+x[1]+'</button>'; }).join("");
+  bindPills("piStatus",function(v){ piStatus=v; renderPiStatus(); });
+}
+function placeKey(p){ return (String(p.name||"").trim()+"|"+String(p.city||"").trim()).toLowerCase(); }
+$("plImportBtn").onclick=function(){
+  piParsed=null; $("piFile").value=""; $("piName").value=""; $("piPreview").textContent=""; $("piGo").disabled=true;
+  piStatus="want"; renderPiStatus(); $("piMask").classList.add("on");
+};
+$("piTpl").onclick=downloadPackTemplate;
+$("piFile").onchange=function(){
+  var f=this.files[0]; if(!f) return;
+  var rd=new FileReader();
+  rd.onload=function(){
+    try{
+      piParsed=parsePackText(decodeFile(rd.result), f.name);
+      if(!$("piName").value) $("piName").value = piParsed.name || f.name.replace(/\.(csv|json)$/i,"");
+      var keys={}; state.places.forEach(function(p){ keys[placeKey(p)]=1; });
+      var dup=piParsed.places.filter(function(p){ return keys[placeKey(p)]; }).length;
+      $("piPreview").innerHTML="识别到 <b>"+piParsed.places.length+"</b> 个地点"+(dup?"，其中 "+dup+" 个与已有地点同名同城（将合并补全）":"")+"。";
+      $("piGo").disabled=!piParsed.places.length;
+    }catch(e){ piParsed=null; $("piGo").disabled=true; $("piPreview").innerHTML='<span style="color:var(--coral-deep)">无法解析：'+esc(e.message||"文件格式不正确")+'</span>'; }
+  };
+  rd.readAsArrayBuffer(f);
+};
+$("piGo").onclick=function(){
+  if(!piParsed) return;
+  var pack=$("piName").value.trim()||"导入的资料包", byKey={}, added=0, merged=0, now=Date.now();
+  state.places.forEach(function(p){ byKey[placeKey(p)]=p; });
+  piParsed.places.forEach(function(np,i){
+    if(!np.status) np.status=piStatus;
+    var ex=byKey[placeKey(np)];
+    if(ex){
+      Object.keys(np).forEach(function(k){
+        var v=np[k], cur=ex[k];
+        if(k==="tags"){ var t=(cur||[]).slice(); (v||[]).forEach(function(x){ if(t.indexOf(x)<0) t.push(x); }); ex.tags=t.slice(0,12); }
+        else if((cur===""||cur==null) && v!=="" && v!=null) ex[k]=v;
+      });
+      DB.upsert("p",ex); merged++;
+    }else{
+      var rec=np; rec.id=uid(); rec.ts=now+i; rec.pack=pack; rec.trip=""; rec.txnIds=[];
+      DB.upsert("p",rec); byKey[placeKey(rec)]=rec; added++;
+    }
+  });
+  loadAll(); renderPlaces(); $("piMask").classList.remove("on");
+  toast("已导入「"+pack+"」：新增 "+added+" 个"+(merged?"，合并 "+merged+" 个":"")+" 📦");
+};
+$("piCancel").onclick=$("piClose").onclick=function(){ $("piMask").classList.remove("on"); };
+$("piMask").addEventListener("click",function(e){ if(e.target===this) $("piMask").classList.remove("on"); });
+
+function exportList(){ return state.places.filter(plMatch); }
+$("plExportBtn").onclick=function(){
+  var n=exportList().length;
+  if(!n){ toast("当前没有可导出的地点"); return; }
+  $("peDesc").textContent="将导出当前筛选结果中的 "+n+" 个地点。JSON 适合发给朋友用本工具导入；CSV 适合用 Excel 查看和修改。";
+  $("peName").value = plQ.trim()? plQ.trim()+" 资料包" : "我的旅行资料包";
+  $("peMask").classList.add("on");
+};
+$("peCsv").onclick=function(){
+  var list=exportList(), personal=$("pePersonal").checked, name=$("peName").value.trim()||"资料包";
+  downloadText(name+".csv", "﻿"+[PACK_COLS].concat(list.map(function(p){ return placeToRow(p,personal); })).map(csvLine).join("\r\n"), "text/csv;charset=utf-8");
+  $("peMask").classList.remove("on"); toast("已导出 "+list.length+" 个地点 📤");
+};
+$("peJson").onclick=function(){
+  var list=exportList(), personal=$("pePersonal").checked, name=$("peName").value.trim()||"资料包";
+  var places=list.map(function(p){
+    var o={ name:p.name, kind:p.kind, status:p.status, country:p.country, city:p.city, address:p.address, website:p.website, phone:p.phone,
+      hours:p.hours, cost:p.cost, tags:p.tags||[], experiences:p.experiences, highlights:p.highlights, toilet:p.toilet, toiletNote:p.toiletNote,
+      access:p.access, accessNote:p.accessNote, note:p.note, lat:p.lat, lng:p.lng };
+    if(personal){ o.rating=p.rating; o.impression=p.impression; o.date=p.date; }
+    return o;
+  });
+  downloadText(name+".json", JSON.stringify({ format:"trip-ledger-pack", version:1, name:name, exportedAt:new Date().toISOString(), places:places }, null, 2), "application/json");
+  $("peMask").classList.remove("on"); toast("已导出 "+list.length+" 个地点 📤");
+};
+$("peClose").onclick=function(){ $("peMask").classList.remove("on"); };
+$("peMask").addEventListener("click",function(e){ if(e.target===this) $("peMask").classList.remove("on"); });
 
 /* ---------- 统计与建议 ---------- */
 var CAT_TIPS = {
@@ -2871,7 +3536,7 @@ function syncFromDB(fromRemote){
 function renderAll(preserve){
   if(!preserve){ /* 保持金额等输入，仅刷新胶囊/下拉 */ }
   renderFormDynamic(); updateRateUI(); if(customModeOn()) renderCustom();
-  renderList(); renderMembers(); renderTripBar(); renderPlan(); renderStats();
+  renderList(); renderMembers(); renderTripBar(); renderPlan(); renderStats(); renderPlaces();
 }
 
 /* ---------- 启动 ---------- */
