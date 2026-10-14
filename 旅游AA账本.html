@@ -1000,6 +1000,10 @@ header{background:var(--ink-deep);box-shadow:none;padding:12px 16px;}
     </div>
     <div class="section-title" style="margin:16px 2px 10px;font-size:14px">已有行程</div>
     <div class="trip-line" id="tripList"></div>
+    <div class="section-title" style="margin:18px 2px 8px;font-size:14px">与 Do-Travel-Plan 行程页互通</div>
+    <div class="m-desc" style="margin-bottom:10px">每个行程的「🗺 行程页」可生成 <b>trip-data.json</b>，替换 Do-Travel-Plan 仓库中的同名文件即可发布成手机行程页；也可以把行程页的 trip-data.json 导入这里，航班 / 住宿 / 门票 / 费用会变成预算项，景点和餐厅进入地点库。</div>
+    <button class="btn btn-ghost" id="dtpImportBtn" style="width:100%">📥 从行程页导入 trip-data.json</button>
+    <input type="file" id="dtpFile" accept=".json,application/json" hidden>
   </div>
 </div>
 
@@ -1831,6 +1835,7 @@ function renderTripList(){
       '<span class="tr-d">'+d+"</span>"+
       (state.curTrip===p.id?'<span class="tr-cur">当前</span>':"")+
       '<button class="btn btn-sm btn-ghost" data-tpc="'+esc(p.id)+'">认领账目</button>'+
+      '<button class="btn btn-sm btn-ghost" data-tpx="'+esc(p.id)+'">🗺 行程页</button>'+
       '<button class="btn btn-sm btn-ghost" data-tpe="'+esc(p.id)+'">编辑</button>'+
       '<button class="btn btn-sm btn-ghost" data-tpd="'+esc(p.id)+'" style="color:var(--coral-deep)">删除</button></div>';
   }).join("") : '<div style="font-size:13px;color:var(--muted);padding:6px 2px">还没有行程，先在上方创建一个</div>';
@@ -1841,6 +1846,9 @@ function renderTripList(){
       $("tpSave").textContent="💾 保存修改";
       toast("编辑中，改完点「保存修改」");
     };
+  });
+  Array.prototype.forEach.call($("tripList").querySelectorAll("[data-tpx]"),function(b){
+    b.onclick=function(){ exportTripPage(b.getAttribute("data-tpx")); };
   });
   Array.prototype.forEach.call($("tripList").querySelectorAll("[data-tpc]"),function(b){
     b.onclick=function(){ $("tripMask").classList.remove("on"); startClaim(b.getAttribute("data-tpc")); };
@@ -3283,6 +3291,188 @@ $("peJson").onclick=function(){
 };
 $("peClose").onclick=function(){ $("peMask").classList.remove("on"); };
 $("peMask").addEventListener("click",function(e){ if(e.target===this) $("peMask").classList.remove("on"); });
+
+
+/* ---------- 与 Do-Travel-Plan 行程页互通（trip-data.json，schemaVersion 2.0-lite） ---------- */
+function addDays(dateStr, n){ var d=new Date(dateStr+"T12:00:00"); d.setDate(d.getDate()+n); return d.toISOString().slice(0,10); }
+function dayDiff(a,b){ return Math.round((new Date(b+"T12:00:00")-new Date(a+"T12:00:00"))/864e5); }
+var TP_COUNTRIES={ JP:["日本","Japan"], KR:["韩国","Korea"], TH:["泰国","Thailand"], CN:["中国","China"], SG:["新加坡","Singapore"], MY:["马来西亚","Malaysia"],
+  VN:["越南","Vietnam"], ID:["印度尼西亚","Indonesia"], US:["美国","United States"], GB:["英国","United Kingdom"], FR:["法国","France"], IT:["意大利","Italy"],
+  DE:["德国","Germany"], ES:["西班牙","Spain"], PT:["葡萄牙","Portugal"], CH:["瑞士","Switzerland"], AU:["澳大利亚","Australia"], NZ:["新西兰","New Zealand"], CA:["加拿大","Canada"] };
+var TP_CUR_COUNTRY={ JPY:"JP", KRW:"KR", THB:"TH", SGD:"SG", MYR:"MY", VND:"VN", IDR:"ID", USD:"US", GBP:"GB", CHF:"CH", AUD:"AU", NZD:"NZ", CAD:"CA" };
+function tripCountries(places, budget){
+  var codes=[];
+  var add=function(c){ if(c && TP_COUNTRIES[c] && codes.indexOf(c)<0) codes.push(c); };
+  places.forEach(function(p){ var n=String(p.country||"").trim(); Object.keys(TP_COUNTRIES).forEach(function(c){ if(n && (n===TP_COUNTRIES[c][0]||n.toLowerCase()===TP_COUNTRIES[c][1].toLowerCase()||n.toUpperCase()===c)) add(c); }); });
+  if(!codes.length) budget.forEach(function(b){ add(TP_CUR_COUNTRY[curCode(b.currency)]); });
+  return codes;
+}
+var TP_KIND_TYPE={ sight:"attraction", restaurant:"restaurant", hotel:"check-in", shop:"attraction", transport:"transfer", activity:"attraction", other:"note" };
+function tripPageData(tripId){
+  var trip=tripById(tripId); if(!trip) throw new Error("找不到行程");
+  var budget=state.budget.filter(function(b){ return b.trip===tripId; });
+  var places=state.places.filter(function(p){ return p.trip===tripId; });
+  var txns=state.txns.filter(function(t){ return (t.trip||"")===tripId; });
+  /* 起止日期：优先用行程设置，否则用预算 / 地点 / 账目里出现的日期 */
+  var dates=[]; budget.forEach(function(b){ if(b.day) dates.push(b.day); }); places.forEach(function(p){ if(p.date) dates.push(p.date); }); txns.forEach(function(t){ if(t.date) dates.push(t.date); });
+  dates.sort();
+  var start=trip.startDate||dates[0], end=trip.endDate||dates[dates.length-1];
+  if(!start||!end) throw new Error("请先在行程里填写开始和结束日期（或至少有一个带日期的预算项）");
+  if(end<start){ var tmp=start; start=end; end=tmp; }
+  var dayCount=dayDiff(start,end)+1;
+  if(dayCount>60) throw new Error("行程超过 60 天，请检查起止日期");
+  var dayOf=function(date){ return date && date>=start && date<=end ? dayDiff(start,date)+1 : 0; };
+  var placeRec=places.map(function(p){
+    return { id:"place-"+p.id, name:p.name, nameZh:p.name, category:p.kind||"other", cityOrArea:p.city||"", address:p.address||"",
+      officialUrl:p.website||"", navigation:{ query: p.address || [p.name,p.city,p.country].filter(Boolean).join(", ") } };
+  });
+  var restaurants=places.filter(function(p){ return p.kind==="restaurant"; }).map(function(p){
+    return { name:p.name, city:p.city||"", cuisine:(p.tags||[]).join(" / "), note:p.highlights||p.impression||"" };
+  });
+  var days=[], tickets=[], undated=[];
+  for(var i=1;i<=dayCount;i++){ days.push({ id:"day-"+i, day:i, date:addDays(start,i-1), title:"", locations:[], schedule:[], costReferences:[], notes:[] }); }
+  budget.forEach(function(b){
+    var n=dayOf(b.day), c=curCode(b.currency), chosen=null;
+    (b.options||[]).forEach(function(o){ if(o.id===b.chosenOptionId) chosen=o; });
+    var text=(CAT_ICON[b.category]||"")+" "+b.title+(chosen? " · "+chosen.label+(chosen.channel?"（"+chosen.channel+"）":"") : "")+(b.from&&b.to&&b.title.indexOf(b.to)<0? " · "+b.from+" → "+b.to : "");
+    var cost={ item:b.title, currency:c, amount:Math.round(biTotal(b)*100)/100 };
+    if(!n){ undated.push(b.title+" "+c+" "+fmt(biTotal(b))); return; }
+    var d=days[n-1], itemId="item-"+b.id;
+    d.schedule.push({ id:itemId, time:"", type: b.category==="交通"?"transfer": b.category==="住宿"?"check-in": b.category==="餐饮"?"restaurant":"attraction", text:text.trim() });
+    d.costReferences.push(cost);
+    if(b.note) d.notes.push(b.title+"："+b.note);
+    if(b.category==="门票" || (chosen && chosen.mode==="门票")){
+      var paid=b.status==="paid"||b.status==="booked";
+      tickets.push({ id:"ticket-"+b.id, day:n, name:b.title, requirement: paid? "advance-required" : "advance-recommended",
+        purchaseStatus: paid? "purchased" : "pending", guidance:[chosen&&chosen.channel? "渠道："+chosen.channel : "", b.ref? "订单号："+b.ref : ""].filter(Boolean),
+        officialUrl: safeUrl(b.url||(chosen&&chosen.url)||""), scheduleItemIds:[itemId] });
+    }
+  });
+  places.forEach(function(p){
+    var n=dayOf(p.date); if(!n) return;
+    days[n-1].schedule.push({ id:"item-place-"+p.id, time:"", type:TP_KIND_TYPE[p.kind]||"attraction", text:(plKind(p.kind)[1])+" "+p.name+(p.highlights? " · "+p.highlights : ""), placeIds:["place-"+p.id] });
+    if(p.city && days[n-1].locations.indexOf(p.city)<0) days[n-1].locations.push(p.city);
+  });
+  days.forEach(function(d){
+    d.title = d.schedule.length ? d.schedule.slice(0,2).map(function(x){ return x.text.replace(/^\S+\s/,"").split(" · ")[0]; }).join(" · ") : "自由安排";
+  });
+  if(undated.length) days[0].notes.push("未定日期的预算：" + undated.join("；"));
+  var cities=[]; places.forEach(function(p){ if(p.city && cities.indexOf(p.city)<0) cities.push(p.city); });
+  var ccodes=tripCountries(places, budget);
+  var todos=budget.filter(function(b){ return (b.status||"idea")==="idea"; }).map(function(b,i){ return { id:"todo-"+b.id, text:"预订 / 确认："+b.title, completed:false }; });
+  return {
+    "$schema":"./schemas/trip-data.schema.json",
+    schemaVersion:"2.0-lite",
+    config:{ schemaVersion:"1.0.0", modules:{ flights:false, overview:false, itinerary:true, todo:todos.length>0, driving:false, ledger:false }, language:"zh-CN", persistence:{ mode:"local" } },
+    metadata:{ tripId:"tl-"+trip.id, title:trip.name, language:"zh-CN", assets:{}, source:{ app:"旅游AA账本", exportedAt:new Date().toISOString() } },
+    trip:{ status:"planned", startDate:start, endDate:end, dayCount:dayCount, nightCountAway:Math.max(0,dayCount-1), countries:ccodes.map(function(c){ return { code:c, name:TP_COUNTRIES[c][1], nameZh:TP_COUNTRIES[c][0], nameEn:TP_COUNTRIES[c][1] }; }), primaryDestinationCountries:ccodes,
+      citiesAndAreas:cities, routeSummary:cities.join(" → "), groupSize: state.members.length||null, heroTitle:trip.name, heroEyebrow:(cities.join(" · ")||"TRIP PLAN") },
+    flightJourneys:[], flights:[],
+    accommodations: budget.filter(function(b){ return b.category==="住宿"; }).map(function(b){ return { name:b.title, checkIn:b.day||"", nights:Math.max(1,+b.qty||1), note:b.note||"", bookingRef:b.ref||"" }; }),
+    groundTransport:{ rentalCar:null, rentalChecklist:[], drivingNotes:[], drivingReferenceLinks:[], plannedRoadLegs:[], publicTransitAndRail:[] },
+    days:days, places:placeRec, restaurants:restaurants, bookingsAndTickets:[],
+    ticketPlanning:{ statusStorage:"local", statusStorageNote:"门票状态默认只保存在当前浏览器。", items:tickets },
+    preTrip:{ packingItems:todos, preparationsExplicitlyMentioned:[], missingNote:"" },
+    mapLinks:{ providedGoogleMapsLinks:[], note:"", cityLevelNavigationDisabled:false,
+      navigationPolicy:{ noNavigationTypes:["flight","note","rest"], selfNavigationTypes:["drive","return","transfer","check-in","check-out","restaurant","attraction","walk","hike"] }, navigationPlaces:[] },
+    issuesAndUncertainties:[],
+    map:{ schemaVersion:"1.0-lite", mapMode:"template-auto", templateId:"auto", disclaimer:"本图仅表达地点的相对方位与路线顺序，不代表真实比例或精确地理边界。", places:[], routes:[], dailyRoutes:[] }
+  };
+}
+function exportTripPage(tripId){
+  try{
+    var data=tripPageData(tripId);
+    downloadText("trip-data.json", JSON.stringify(data,null,2)+"\n", "application/json");
+    toast("已生成 trip-data.json（"+data.trip.dayCount+" 天）🗺");
+  }catch(e){ toast(e.message||"生成失败"); }
+}
+
+/* 导入：行程页 trip-data.json → 新行程 + 预算项 + 地点 */
+var DTP_CAT_RULES=[[/机票|航班|flight|火车|高铁|新干线|特急|快速|机场|巴士|大巴|地铁|电车|租车|打车|交通|车票|周游券|JR|rail|bus|train|taxi|express|pass/i,"交通"],[/酒店|住宿|民宿|hotel|旅馆|inn/i,"住宿"],[/门票|ticket|入场|乐园|博物馆|展/i,"门票"],[/餐|饭|料理|食|restaurant|dinner|lunch/i,"餐饮"]];
+function guessCat(text){ for(var i=0;i<DTP_CAT_RULES.length;i++){ if(DTP_CAT_RULES[i][0].test(text)) return DTP_CAT_RULES[i][1]; } return "其他"; }
+function importTripPage(data){
+  if(!data || data.schemaVersion!=="2.0-lite" || !data.trip) throw new Error("不是 Do-Travel-Plan 的 trip-data.json（需要 schemaVersion 2.0-lite）");
+  if(data.trip.status==="uninitialized") throw new Error("这个 trip-data.json 还是空白模板，没有行程内容");
+  var now=Date.now(), title=(data.trip.heroTitle||data.metadata&&data.metadata.title||"导入的行程").slice(0,20);
+  if(state.trips.some(function(t){ return t.name===title; })) title=title+"（导入）";
+  var start=data.trip.startDate||"", end=data.trip.endDate||"";
+  var trip={ id:uid(), name:title, startDate:start, endDate:end, note:"由行程页导入", ts:now };
+  DB.upsert("x",trip);
+  var dateOfDay=function(n){ var d=(data.days||[]).filter(function(x){ return x.day===n; })[0]; return d? d.date : (start&&n? addDays(start,n-1) : ""); };
+  var curLbl=function(code){ code=String(code||baseCode()).toUpperCase(); return code===baseCode()? baseLabel() : curLabel(code); };
+  var rateOf=function(code){ code=String(code||baseCode()).toUpperCase(); if(code===baseCode()) return 1; var r=lastRate(code); return isFinite(r)? r : 1; };
+  var nb=0, np=0, noRate={};
+  function addBudget(o){
+    var code=String(o.currency||baseCode()).toUpperCase();
+    if(code!==baseCode() && !isFinite(lastRate(code))) noRate[code]=1;
+    var id=uid();
+    DB.upsert("b",{ id:id, ts:now+nb, trip:trip.id, title:String(o.title||"未命名").slice(0,60), category:o.category||"其他", day:o.day||"",
+      amount:Math.round((+o.amount||0)*100)/100, qty:1, currency:curLbl(code), rate:rateOf(code), fixed:!!o.fixed, status:o.status||"idea",
+      ref:o.ref||"", url:o.url||"", note:o.note||"", from:o.from||"", to:o.to||"", options:[], chosenOptionId:"", expenseId:"" });
+    nb++; return id;
+  }
+  (data.flights||[]).forEach(function(f){
+    if(f.placeholder) return;
+    var dep=f.departure||{}, arr=f.arrival||{};
+    addBudget({ title:"航班 "+(f.flightNumber||"")+" "+(dep.airportCode||"")+"→"+(arr.airportCode||""), category:"交通", day:dep.date||"", fixed:true, status:"booked",
+      from:dep.airportCode||"", to:arr.airportCode||"", note:[f.airline&&(f.airline.nameZh||f.airline.name), dep.time&&("起飞 "+dep.time)].filter(Boolean).join(" · ") });
+  });
+  (data.accommodations||[]).forEach(function(a){
+    var name=a.nameZh||a.name||a.title; if(!name) return;
+    addBudget({ title:name, category:"住宿", day:a.checkIn||a.checkInDate||a.startDate||"", fixed:true, status:"booked", ref:a.bookingRef||a.confirmationNumber||"", note:a.address||a.note||"" });
+  });
+  var ticketNames={};
+  ((data.ticketPlanning&&data.ticketPlanning.items)||[]).forEach(function(t){
+    var name=t.name||(t.attraction&&(t.attraction.nameZh||t.attraction.name)); if(!name) return;
+    ticketNames[name]=addBudget({ title:name, category:"门票", day: t.date || dateOfDay(t.day), fixed:true, status: t.purchaseStatus==="purchased"? "paid":"idea",
+      url:t.officialUrl||(t.booking&&(t.booking.officialUrl||t.booking.purchaseUrl))||"", note:[].concat(t.guidance||t.notes||[]).join("；") });
+  });
+  (data.days||[]).forEach(function(d){
+    (d.costReferences||[]).forEach(function(c){
+      if(!c.item) return;
+      var amt = c.amount!=null? c.amount : c.standard!=null? c.standard : c.discounted!=null? c.discounted : (c.amountOptions&&c.amountOptions[0]);
+      if(ticketNames[c.item]){ /* 门票与费用是同一项：把金额补进门票预算 */
+        var tb=DB.get("b",ticketNames[c.item]), code=String(c.currency||baseCode()).toUpperCase();
+        if(tb && !(+tb.amount) && parseFloat(amt)>0){ tb.amount=Math.round(parseFloat(amt)*100)/100; tb.currency=curLbl(code); tb.rate=rateOf(code); if(code!==baseCode() && !isFinite(lastRate(code))) noRate[code]=1; DB.upsert("b",tb); }
+        return;
+      }
+      addBudget({ title:c.item, category:guessCat(c.item), day:d.date, amount:parseFloat(amt)||0, currency:c.currency, note:amt==null?"金额待补充":"" });
+    });
+  });
+  var existing={}; state.places.forEach(function(p){ existing[placeKey(p)]=1; });
+  function addPlace(o){
+    if(!o.name || existing[placeKey(o)]) return; existing[placeKey(o)]=1;
+    DB.upsert("p",Object.assign({ id:uid(), ts:now+np, status:"want", country:"", address:"", website:"", phone:"", hours:"", cost:"", rating:"", date:"",
+      tags:[], impression:"", experiences:"", highlights:"", toilet:"", toiletNote:"", access:"", accessNote:"", note:"", lat:"", lng:"", txnIds:[] }, o));
+    np++;
+  }
+  (data.places||[]).forEach(function(p){
+    addPlace({ name:p.nameZh||p.name, kind: /restaurant/.test(p.category||"")? "restaurant" : /hotel|stay/.test(p.category||"")? "hotel" : /city|area|region/.test(p.category||"")? "other" : "sight",
+      city:p.cityOrArea||"", address:p.address||"", website:p.officialUrl||"", trip:trip.id, pack:"行程页 · "+title,
+      lat:p.geo&&p.geo.lat||"", lng:p.geo&&p.geo.lng||"" });
+  });
+  (data.restaurants||[]).forEach(function(r){
+    addPlace({ name:r.name, kind:"restaurant", city:r.city||"", highlights:r.note||r.cuisine||"", trip:trip.id, pack:"行程页 · "+title });
+  });
+  state.curTrip=trip.id; saveTripSel();
+  loadAll(); renderAll();
+  var codes=Object.keys(noRate);
+  return { trip:trip, budget:nb, places:np, missingRates:codes };
+}
+$("dtpImportBtn").onclick=function(){ $("dtpFile").value=""; $("dtpFile").click(); };
+$("dtpFile").onchange=function(){
+  var f=this.files[0]; if(!f) return;
+  var rd=new FileReader();
+  rd.onload=function(){
+    try{
+      var r=importTripPage(JSON.parse(decodeFile(rd.result)));
+      $("tripMask").classList.remove("on");
+      toast("已导入「"+r.trip.name+"」：预算项 "+r.budget+" 个、地点 "+r.places+" 个"+(r.missingRates.length? "；"+r.missingRates.join("/")+" 汇率暂按 1，请在预算里核对":"")+" 📥");
+      switchTab("plan");
+    }catch(e){ toast(e.message||"导入失败"); }
+  };
+  rd.readAsArrayBuffer(f);
+};
 
 /* ---------- 统计与建议 ---------- */
 var CAT_TIPS = {
