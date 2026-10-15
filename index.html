@@ -3398,6 +3398,7 @@ function importTripPage(data){
   var start=data.trip.startDate||"", end=data.trip.endDate||"";
   var trip={ id:uid(), name:title, startDate:start, endDate:end, note:"由行程页导入", ts:now };
   DB.upsert("x",trip);
+  if(data.metadata && data.metadata.tripId){ try{ LS.setItem("aaltripsrc$"+data.metadata.tripId, trip.id); }catch(e){} }
   var dateOfDay=function(n){ var d=(data.days||[]).filter(function(x){ return x.day===n; })[0]; return d? d.date : (start&&n? addDays(start,n-1) : ""); };
   var curLbl=function(code){ code=String(code||baseCode()).toUpperCase(); return code===baseCode()? baseLabel() : curLabel(code); };
   var rateOf=function(code){ code=String(code||baseCode()).toUpperCase(); if(code===baseCode()) return 1; var r=lastRate(code); return isFinite(r)? r : 1; };
@@ -3459,6 +3460,33 @@ function importTripPage(data){
   var codes=Object.keys(noRate);
   return { trip:trip, budget:nb, places:np, missingRates:codes };
 }
+/* 从行程页一键打开记账：?tripPage=<trip-data.json 地址>。已导入过则直接切换到该行程，否则自动导入 */
+function tripFromSource(srcId){
+  var id=null; try{ id=LS.getItem("aaltripsrc$"+srcId); }catch(e){}
+  return id && tripById(id) ? tripById(id) : null;
+}
+function openFromTripPage(){
+  var url=null;
+  try{ url=new URLSearchParams(location.search).get("tripPage"); }catch(e){}
+  if(!url) return;
+  try{ var clean=location.pathname+location.hash; history.replaceState(null,"",clean); }catch(e){}
+  var u; try{ u=new URL(url, location.href); }catch(e){ toast("行程页链接无效"); return; }
+  if(u.protocol!=="https:" && u.origin!==location.origin && !/^(localhost|127\.0\.0\.1)$/.test(u.hostname)){ toast("只支持 https 的行程页链接"); return; }
+  toast("正在读取行程页…");
+  fetch(u.href,{cache:"no-store"}).then(function(r){ if(!r.ok) throw new Error("读取失败（HTTP "+r.status+"）"); return r.json(); }).then(function(data){
+    var srcId=data && data.metadata && data.metadata.tripId;
+    var exist=srcId? tripFromSource(srcId) : null;
+    if(exist){
+      state.curTrip=exist.id; saveTripSel(); loadAll(); renderAll(); switchTab("add");
+      toast("已打开「"+exist.name+"」，可以开始记账 💰");
+      return;
+    }
+    var res=importTripPage(data);
+    switchTab("add");
+    toast("已从行程页建好「"+res.trip.name+"」（预算项 "+res.budget+" 个），可以开始记账 💰");
+  }).catch(function(e){ toast("无法从行程页导入："+(e.message||"网络错误")); });
+}
+
 $("dtpImportBtn").onclick=function(){ $("dtpFile").value=""; $("dtpFile").click(); };
 $("dtpFile").onchange=function(){
   var f=this.files[0]; if(!f) return;
@@ -3737,6 +3765,7 @@ renderAll();
 renderTripBar();
 if(!state.settings || !state.settings.initialized) openWizard(true);
 cloudBoot();
+openFromTripPage();
 </script>
 </body>
 </html>
