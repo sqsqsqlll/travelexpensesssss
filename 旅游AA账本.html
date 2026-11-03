@@ -1004,6 +1004,10 @@ header{background:var(--ink-deep);box-shadow:none;padding:12px 16px;}
     <div class="m-desc" style="margin-bottom:10px">每个行程的「🗺 行程页」可生成 <b>trip-data.json</b>，替换 Do-Travel-Plan 仓库中的同名文件即可发布成手机行程页；也可以把行程页的 trip-data.json 导入这里，航班 / 住宿 / 门票 / 费用会变成预算项，景点和餐厅进入地点库。</div>
     <button class="btn btn-ghost" id="dtpImportBtn" style="width:100%">📥 从行程页导入 trip-data.json</button>
     <input type="file" id="dtpFile" accept=".json,application/json" hidden>
+    <div class="section-title" style="margin:18px 2px 8px;font-size:14px">云同步</div>
+    <div class="m-desc" style="margin-bottom:10px">账目、成员、行程、设置会同步到云端；预算项和地点库目前只保存在本机浏览器。</div>
+    <button class="btn btn-ghost" id="cloudDiagBtn" style="width:100%">☁️ 云同步诊断</button>
+    <div id="cloudDiag" class="m-desc" style="margin-top:10px;white-space:pre-wrap;word-break:break-all" hidden></div>
   </div>
 </div>
 
@@ -1187,7 +1191,7 @@ header{background:var(--ink-deep);box-shadow:none;padding:12px 16px;}
 <div id="toast"></div>
 <div id="vizTip" role="tooltip"></div>
 
-<script src="https://cdn.jsdelivr.net/npm/@tencent-ai/workbuddy-cloud-sdk@dev/lib/index.global.js"></script>
+<script src="vendor/workbuddy-cloud-sdk-0.1.4-dev.global.js"></script>
 <script>
 "use strict";
 /* =========================================================
@@ -1249,12 +1253,42 @@ window.addEventListener("storage",function(ev){ if(ev.key && ev.key.indexOf("aal
 /* ---------- 云端同步层（WorkBuddy 云数据库，多人共享同一份账本） ---------- */
 var PCFG = { endpoint:"https://travel-aa-ledger-72643.app.workbuddy.host", publishableKey:"wbpk_YJcVmZlUG3znJj9nOFk9S3_vHR7ltzABdag8QTpPL3v4VqNezynFa21" };
 var cloud=null, CLOUD_ON=false;
-try{
-  if(window.WorkBuddyCloud && window.WorkBuddyCloud.createWorkBuddyCloud){
-    cloud = window.WorkBuddyCloud.createWorkBuddyCloud({ endpoint: PCFG.endpoint, publishableKey: PCFG.publishableKey });
-    CLOUD_ON = true;
-  }
-}catch(e){ CLOUD_ON=false; }
+/* 云端状态：供「云同步诊断」显示。mode: direct=直连 WorkBuddy；proxy=经本站 /.cloud 同域转发 */
+var CLOUD_STATE = { sdk:!!(window.WorkBuddyCloud && window.WorkBuddyCloud.createWorkBuddyCloud), endpoint:"", mode:"", lastError:"", lastErrorAt:0, lastOkAt:0, pending:0 };
+var CLOUD_PENDING = CLOUD_STATE.sdk; /* 端点确定前也记录待上传，避免启动期间的修改被云端快照覆盖 */
+function makeCloud(endpoint, mode){
+  try{
+    cloud = window.WorkBuddyCloud.createWorkBuddyCloud({ endpoint: endpoint, publishableKey: PCFG.publishableKey });
+    CLOUD_ON = true; CLOUD_STATE.endpoint = endpoint; CLOUD_STATE.mode = mode;
+  }catch(e){ CLOUD_ON=false; noteCloudError(e); }
+  CLOUD_PENDING = false;
+}
+function errText(e){
+  if(!e) return "未知错误";
+  var m = e.message || e.msg || e.error_description || e.hint || (typeof e==="string"?e:"");
+  var code = e.status || e.code || e.statusCode || "";
+  if(!m){ try{ m=JSON.stringify(e); }catch(x){ m=String(e); } }
+  return (code? "["+code+"] " : "") + m;
+}
+function noteCloudError(e){ CLOUD_STATE.lastError = errText(e); CLOUD_STATE.lastErrorAt = Date.now(); }
+/* 页面不在 WorkBuddy 自己的域名上时，浏览器跨域请求可能被拦截（CORS）。
+ * 若本站把 /.cloud/* 转发到 WorkBuddy（见 docs/cloud-sync-troubleshooting-zh.md），则改走同域，彻底绕开跨域。 */
+function resolveCloudEndpoint(done){
+  var origin = "";
+  try{ origin = location.origin; }catch(e){}
+  var direct = PCFG.endpoint;
+  var onWB = !origin || origin === direct || /\.workbuddy\.host$/.test(location.hostname);
+  var local = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname);
+  if(onWB || local || !/^https?:/.test(origin) || !window.fetch){ done(onWB && origin ? origin : direct, "direct"); return; }
+  var finished=false, timer=setTimeout(function(){ if(!finished){ finished=true; done(direct,"direct"); } }, 4000);
+  fetch(origin + "/.cloud/database/rest/" + CTAB.s + "?select=id&limit=1", { headers:{ "x-wb-webapp-access-key": PCFG.publishableKey }, cache:"no-store" })
+    .then(function(r){
+      var ct = (r.headers.get("content-type")||"").toLowerCase();
+      var viaProxy = r.headers.get("x-ledger-cloud-proxy") === "1" || (ct.indexOf("json")>=0 && r.status!==404);
+      if(!finished){ finished=true; clearTimeout(timer); done(viaProxy ? origin : direct, viaProxy ? "proxy" : "direct"); }
+    })
+    .catch(function(){ if(!finished){ finished=true; clearTimeout(timer); done(direct,"direct"); } });
+}
 
 var CTAB = { t:"ledger_transactions", m:"ledger_members", s:"ledger_settings", x:"ledger_trips" };
 function txnToRow(t){ return { id:t.id, item:t.item||"", date:t.date||"", category:t.category||"", payer:t.payer||"", participants:t.participants||"", amount:(t.amount==null?0:+t.amount), split_mode:t.splitMode||"平均分摊", custom_split:t.customSplit||"", status:t.status||"已确认", note:t.note||"", currency:t.currency||"", rate:(t.rate==null?1:+t.rate), trip:(t.trip||""), ts:(t.ts||0) }; }
@@ -1270,31 +1304,45 @@ function lsDel(table,id){ LS.removeItem(KEY[table]+id); DB._ping(); }
 
 /* 写穿队列：本地先落，云端异步补 */
 var dirty={}, flushing=false, cloudErrToasted=false;
+var failedRound={}; /* 本轮已失败的记录：跳过它们继续上传其他记录，避免一条坏记录卡住整个队列 */
+var retryTimer=null;
 function cloudWrite(table,id){
-  if(!CLOUD_ON || !CTAB[table]) return; /* 预算表暂未上云 */
-  dirty[table+"$"+id]={ table:table, id:id };
+  if((!CLOUD_ON && !CLOUD_PENDING) || !CTAB[table]) return; /* 预算表、地点表暂未上云 */
+  var k=table+"$"+id;
+  delete dirty[k]; dirty[k]={ table:table, id:id }; /* 重新排到队尾 */
+  delete failedRound[k];
+  CLOUD_STATE.pending = Object.keys(dirty).length;
   setTimeout(flushDirty, 200);
 }
 function flushDirty(){
   if(!CLOUD_ON || flushing) return;
-  var keys=Object.keys(dirty); if(!keys.length) return;
+  var keys=Object.keys(dirty).filter(function(x){ return !failedRound[x]; });
+  CLOUD_STATE.pending = Object.keys(dirty).length;
+  if(!keys.length){
+    if(Object.keys(dirty).length && !retryTimer){ retryTimer=setTimeout(function(){ retryTimer=null; failedRound={}; flushDirty(); }, 5000); }
+    return;
+  }
   flushing=true;
   var k=keys[0], job=dirty[k]; delete dirty[k];
-  var rec = DB.get(job.table, job.id), p;
-  if(!rec){ p = cloud.database.from(CTAB[job.table]).delete().eq("id", job.id); }
-  else{
-    var row = job.table==="t" ? txnToRow(rec) : job.table==="m" ? memToRow(rec) : job.table==="x" ? tripToRow(rec) : cfgToRow(rec);
-    p = cloud.database.from(CTAB[job.table]).upsert(row);
-  }
-  p.then(function(res){
+  var p;
+  try{
+    var rec = DB.get(job.table, job.id);
+    if(!rec){ p = cloud.database.from(CTAB[job.table]).delete().eq("id", job.id); }
+    else{
+      var row = job.table==="t" ? txnToRow(rec) : job.table==="m" ? memToRow(rec) : job.table==="x" ? tripToRow(rec) : cfgToRow(rec);
+      p = cloud.database.from(CTAB[job.table]).upsert(row);
+    }
+  }catch(e){ p = Promise.reject(e); }
+  Promise.resolve(p).then(function(res){
     if(res && res.error) throw res.error;
-    flushing=false; cloudErrToasted=false;
+    flushing=false; cloudErrToasted=false; CLOUD_STATE.lastOkAt=Date.now();
     flushDirty(); /* 链式清空队列 */
-  }).catch(function(){
+  }).catch(function(e){
     flushing=false;
-    dirty[k]=job; /* 放回队列，稍后重试 */
-    if(!cloudErrToasted){ cloudErrToasted=true; toast("云端保存失败，稍后自动重试 ⚠"); }
-    setTimeout(flushDirty, 5000);
+    noteCloudError(e);
+    if(!dirty[k]){ dirty[k]=job; failedRound[k]=1; } /* 放回队列，本轮跳过，稍后重试 */
+    if(!cloudErrToasted){ cloudErrToasted=true; toast("云端保存失败，稍后自动重试 ⚠ 可在「⚙ 管理 → 云同步诊断」查看原因"); }
+    flushDirty();
   });
 }
 
@@ -1310,9 +1358,10 @@ function cloudPullRaw(done){
     cloud.database.from(CTAB.x).select("*")
   ]).then(function(rs){
     pulling=false;
-    for(var i=0;i<rs.length;i++){ if(rs[i] && rs[i].error){ if(done) done(null); return; } }
+    for(var i=0;i<rs.length;i++){ if(rs[i] && rs[i].error){ noteCloudError(rs[i].error); if(done) done(null); return; } }
+    CLOUD_STATE.lastOkAt=Date.now();
     if(done) done({ tx:rs[0].data||[], mem:rs[1].data||[], cfg:(rs[2].data||[])[0]||null, trips:rs[3].data||[] });
-  }).catch(function(){ pulling=false; if(done) done(null); });
+  }).catch(function(e){ pulling=false; noteCloudError(e); if(done) done(null); });
 }
 function applyCloudDiff(boxes){
   if(!boxes) return;
@@ -1364,7 +1413,9 @@ function applyCloudDiff(boxes){
   }
   return changed;
 }
+var migrating=false;
 function migrateLocalUp(){
+  if(migrating) return;
   var rows = DB.list("t").map(txnToRow);
   var mrows = DB.list("m").map(memToRow);
   var xrows = DB.list("x").map(tripToRow);
@@ -1374,27 +1425,48 @@ function migrateLocalUp(){
   if(mrows.length) jobs.push(cloud.database.from(CTAB.m).upsert(mrows));
   if(xrows.length) jobs.push(cloud.database.from(CTAB.x).upsert(xrows));
   if(cfg) jobs.push(cloud.database.from(CTAB.s).upsert(cfgToRow(cfg)));
-  if(!jobs.length) return;
+  if(!jobs.length){ cloudBooted=true; return; }
+  migrating=true;
   Promise.all(jobs).then(function(rs){
     for(var i=0;i<rs.length;i++){ if(rs[i] && rs[i].error) throw rs[i].error; }
+    migrating=false; cloudBooted=true; CLOUD_STATE.lastOkAt=Date.now();
     toast("本地账本已上云，多人共享已开启 ☁");
-  }).catch(function(){
-    toast("云端初始化同步失败，稍后重试 ⚠");
-    setTimeout(function(){ cloudPullRaw(function(boxes){ if(!boxes) migrateLocalUp(); else applyCloudDiff(boxes); }); }, 6000);
+  }).catch(function(e){
+    migrating=false;
+    noteCloudError(e);
+    /* 部分表可能已经写入成功：把本机所有记录逐条放进上传队列（队列中的记录不会被云端快照删除），再进入正常同步 */
+    DB.list("t").forEach(function(r){ cloudWrite("t",r.id); });
+    DB.list("m").forEach(function(r){ cloudWrite("m",r.id); });
+    DB.list("x").forEach(function(r){ cloudWrite("x",r.id); });
+    if(DB.get("s","cfg")) cloudWrite("s","cfg");
+    cloudBooted=true;
+    if(!cloudErrToasted){ cloudErrToasted=true; toast("云端初始化同步失败，稍后重试 ⚠ 可在「⚙ 管理 → 云同步诊断」查看原因"); }
   });
 }
 function cloudBoot(){
-  if(!CLOUD_ON){ toast("云端未连接，当前仅本机记录 ⚠"); return; }
-  cloudPullRaw(function(boxes){
-    if(!boxes){ return; }
-    var hasCloud = boxes.tx.length || boxes.mem.length || boxes.cfg || (boxes.trips||[]).length;
-    var hasLocal = DB.list("t").length || DB.list("m").length || DB.get("s","cfg") || DB.list("x").length;
-    if(!hasCloud && hasLocal){ migrateLocalUp(); }
-    else{ applyCloudDiff(boxes); }
+  if(!CLOUD_STATE.sdk){ CLOUD_PENDING=false; dirty={}; noteCloudError("云同步组件未加载（vendor/workbuddy-cloud-sdk-*.js）"); toast("云端未连接，当前仅本机记录 ⚠"); return; }
+  resolveCloudEndpoint(function(endpoint, mode){
+    makeCloud(endpoint, mode);
+    if(!CLOUD_ON){ dirty={}; toast("云端未连接，当前仅本机记录 ⚠"); return; }
+    cloudStart();
   });
-  setInterval(function(){ cloudPullRaw(applyCloudDiff); }, 5000);
-  document.addEventListener("visibilitychange", function(){ if(!document.hidden) cloudPullRaw(applyCloudDiff); });
-  window.addEventListener("focus", function(){ cloudPullRaw(applyCloudDiff); });
+}
+var cloudBooted=false; /* 首次拉取成功前不做差量合并，否则「云端为空」会误删本机记录 */
+function cloudFirstSync(boxes){
+  if(!boxes || migrating) return;
+  var hasCloud = boxes.tx.length || boxes.mem.length || boxes.cfg || (boxes.trips||[]).length;
+  var hasLocal = DB.list("t").length || DB.list("m").length || DB.get("s","cfg") || DB.list("x").length;
+  if(!hasCloud && hasLocal){ migrateLocalUp(); return; }
+  cloudBooted=true;
+  applyCloudDiff(boxes);
+  flushDirty();
+}
+function cloudTick(){ cloudPullRaw(cloudBooted ? applyCloudDiff : cloudFirstSync); }
+function cloudStart(){
+  cloudPullRaw(cloudFirstSync);
+  setInterval(cloudTick, 5000);
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden) cloudTick(); });
+  window.addEventListener("focus", cloudTick);
 }
 
 /* ---------- 全局状态 ---------- */
@@ -3398,6 +3470,7 @@ function importTripPage(data){
   var start=data.trip.startDate||"", end=data.trip.endDate||"";
   var trip={ id:uid(), name:title, startDate:start, endDate:end, note:"由行程页导入", ts:now };
   DB.upsert("x",trip);
+  if(data.metadata && data.metadata.tripId){ try{ LS.setItem("aaltripsrc$"+data.metadata.tripId, trip.id); }catch(e){} }
   var dateOfDay=function(n){ var d=(data.days||[]).filter(function(x){ return x.day===n; })[0]; return d? d.date : (start&&n? addDays(start,n-1) : ""); };
   var curLbl=function(code){ code=String(code||baseCode()).toUpperCase(); return code===baseCode()? baseLabel() : curLabel(code); };
   var rateOf=function(code){ code=String(code||baseCode()).toUpperCase(); if(code===baseCode()) return 1; var r=lastRate(code); return isFinite(r)? r : 1; };
@@ -3459,6 +3532,72 @@ function importTripPage(data){
   var codes=Object.keys(noRate);
   return { trip:trip, budget:nb, places:np, missingRates:codes };
 }
+/* 从行程页一键打开记账：?tripPage=<trip-data.json 地址>。已导入过则直接切换到该行程，否则自动导入 */
+function tripFromSource(srcId){
+  var id=null; try{ id=LS.getItem("aaltripsrc$"+srcId); }catch(e){}
+  return id && tripById(id) ? tripById(id) : null;
+}
+function openFromTripPage(){
+  var url=null;
+  try{ url=new URLSearchParams(location.search).get("tripPage"); }catch(e){}
+  if(!url) return;
+  try{ var clean=location.pathname+location.hash; history.replaceState(null,"",clean); }catch(e){}
+  var u; try{ u=new URL(url, location.href); }catch(e){ toast("行程页链接无效"); return; }
+  if(u.protocol!=="https:" && u.origin!==location.origin && !/^(localhost|127\.0\.0\.1)$/.test(u.hostname)){ toast("只支持 https 的行程页链接"); return; }
+  toast("正在读取行程页…");
+  fetch(u.href,{cache:"no-store"}).then(function(r){ if(!r.ok) throw new Error("读取失败（HTTP "+r.status+"）"); return r.json(); }).then(function(data){
+    var srcId=data && data.metadata && data.metadata.tripId;
+    var exist=srcId? tripFromSource(srcId) : null;
+    if(exist){
+      state.curTrip=exist.id; saveTripSel(); loadAll(); renderAll(); switchTab("add");
+      toast("已打开「"+exist.name+"」，可以开始记账 💰");
+      return;
+    }
+    var res=importTripPage(data);
+    switchTab("add");
+    toast("已从行程页建好「"+res.trip.name+"」（预算项 "+res.budget+" 个），可以开始记账 💰");
+  }).catch(function(e){ toast("无法从行程页导入："+(e.message||"网络错误")); });
+}
+
+/* ---------- 云同步诊断 ---------- */
+function cloudHint(msg){
+  var m=String(msg||"");
+  if(/failed to fetch|networkerror|load failed|network request failed|cors|fetch/i.test(m)) return "浏览器拦截了跨域请求或网络不通：本站（"+location.host+"）不在 WorkBuddy 允许的来源里。需要在本站把 /.cloud/* 同域转发到 WorkBuddy，或把本站域名加入 WorkBuddy 允许来源（见 docs/cloud-sync-troubleshooting-zh.md）。";
+  if(/\b40[13]\b|unauthor|forbidden|permission|denied|access key|jwt/i.test(m)) return "云端拒绝访问：访问密钥无效或该表没有开放匿名读写权限，请在 WorkBuddy 应用的数据库设置里检查。";
+  if(/\b404\b|does not exist|not found|relation/i.test(m)) return "云端缺少这张表，需要在 WorkBuddy 数据库里建表。";
+  if(/column|schema/i.test(m)) return "云端表缺少字段（例如账目表的 trip 字段），需要在 WorkBuddy 数据库里补字段。";
+  return "";
+}
+function runCloudDiag(){
+  var box=$("cloudDiag"); box.hidden=false;
+  var lines=["页面地址："+location.origin,
+    "同步组件："+(CLOUD_STATE.sdk?"已加载":"未加载"),
+    "云端地址："+(CLOUD_STATE.endpoint||"（未连接）")+(CLOUD_STATE.mode==="proxy"?"（同域转发）":CLOUD_STATE.mode==="direct"?"（直连）":""),
+    "待上传："+Object.keys(dirty).length+" 条",
+    "最近成功："+(CLOUD_STATE.lastOkAt?new Date(CLOUD_STATE.lastOkAt).toLocaleString("zh-CN"):"无"),
+    "最近错误："+(CLOUD_STATE.lastError?CLOUD_STATE.lastError+"（"+new Date(CLOUD_STATE.lastErrorAt).toLocaleTimeString("zh-CN")+"）":"无")];
+  box.textContent=lines.join("\n")+"\n\n正在逐表检测…";
+  if(!CLOUD_ON){ box.textContent=lines.join("\n")+"\n\n"+(cloudHint(CLOUD_STATE.lastError)||"云端未连接。"); return; }
+  var names={t:"账目表",m:"成员表",s:"设置表",x:"行程表"};
+  var keys=["t","m","s","x"], hints={};
+  Promise.all(keys.map(function(k){
+    var q;
+    try{ q=cloud.database.from(CTAB[k]).select("id").limit(1); }catch(e){ q=Promise.reject(e); }
+    var timeout=new Promise(function(_,rej){ setTimeout(function(){ rej(new Error("请求超时（8 秒无响应）："+(CLOUD_STATE.lastError||"网络不通"))); }, 8000); });
+    return Promise.race([Promise.resolve(q), timeout]).then(function(r){
+      if(r && r.error) throw r.error;
+      return "✅ "+names[k]+"（"+CTAB[k]+"）可读取";
+    }).catch(function(e){
+      var t=errText(e), h=cloudHint(t); if(h) hints[h]=1;
+      return "❌ "+names[k]+"（"+CTAB[k]+"）："+t;
+    });
+  })).then(function(res){
+    var h=cloudHint(CLOUD_STATE.lastError); if(h) hints[h]=1;
+    var hs=Object.keys(hints);
+    box.textContent=lines.join("\n")+"\n\n"+res.join("\n")+(hs.length?"\n\n💡 "+hs.join("\n💡 "):"")+"\n\n截图发给维护者即可定位问题。";
+  });
+}
+$("cloudDiagBtn").onclick=runCloudDiag;
 $("dtpImportBtn").onclick=function(){ $("dtpFile").value=""; $("dtpFile").click(); };
 $("dtpFile").onchange=function(){
   var f=this.files[0]; if(!f) return;
@@ -3467,7 +3606,7 @@ $("dtpFile").onchange=function(){
     try{
       var r=importTripPage(JSON.parse(decodeFile(rd.result)));
       $("tripMask").classList.remove("on");
-      toast("已导入「"+r.trip.name+"」：预算项 "+r.budget+" 个、地点 "+r.places+" 个"+(r.missingRates.length? "；"+r.missingRates.join("/")+" 汇率暂按 1，请在预算里核对":"")+" 📥");
+      toast("已导入「"+r.trip.name+"」：预算项 "+r.budget+" 个、地点 "+r.places+" 个"+(r.missingRates.length? "；"+r.missingRates.join("/")+" 汇率暂按 1，请在预算里核对":"")+"；行程已上云，预算项与地点仅存本机 📥");
       switchTab("plan");
     }catch(e){ toast(e.message||"导入失败"); }
   };
@@ -3737,6 +3876,7 @@ renderAll();
 renderTripBar();
 if(!state.settings || !state.settings.initialized) openWizard(true);
 cloudBoot();
+openFromTripPage();
 </script>
 </body>
 </html>
