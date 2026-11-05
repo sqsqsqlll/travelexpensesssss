@@ -564,6 +564,13 @@ footer .dot{margin:0 6px;}
 .bi-st.paid{border-style:solid;border-color:#8FC3A8;color:var(--green);background:var(--green-soft);}
 .bi-chosen{margin-top:8px;font-size:12.5px;color:var(--green);background:var(--green-soft);border-radius:8px;padding:6px 9px;overflow-wrap:anywhere;}
 .bi-note{margin-top:6px;font-size:12.5px;color:#9A8F72;overflow-wrap:anywhere;}
+.bi-ticket{margin-top:8px;font-size:12.5px;color:var(--ink-soft);background:#FFF8E8;border-radius:8px;padding:7px 9px;line-height:1.7;overflow-wrap:anywhere;}
+.bi-ticket b{color:var(--ink);}
+.bi-ticket small{color:var(--muted);}
+.bi-ticket a{color:var(--ink-soft);}
+.bi-useprice{margin-left:4px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:1px 8px;font-size:11.5px;color:var(--ink);cursor:pointer;}
+.bi-planlink{color:var(--ink-soft);text-decoration:none;font-weight:600;}
+.bi-card.bi-focus{outline:2px solid #E3A33A;outline-offset:2px;}
 .bi-ops{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;padding-top:9px;border-top:1.5px dashed var(--line-soft);}
 .bi-ops .op{border:1px solid var(--line-soft);background:var(--paper);}
 .bi-ops .op.main{border-color:#EFA98A;color:var(--coral-deep);background:var(--coral-soft);}
@@ -2673,7 +2680,7 @@ function biCardHtml(b){
   var opts=b.options||[], chosen=null;
   opts.forEach(function(o){ if(o.id===b.chosenOptionId) chosen=o; });
   var linked = b.expenseId && state.txns.some(function(t){ return t.id===b.expenseId; });
-  return '<div class="bi-card st-'+st+'">'+
+  return '<div class="bi-card st-'+st+'" data-bid="'+esc(b.id)+'">'+
     '<div class="bi-top"><div class="bi-name">'+(CAT_ICON[b.category]||"🧾")+" "+esc(b.title)+'</div>'+
     '<div class="bi-amt"><div class="v">'+curSym(c)+fmt(biTotal(b))+'</div><div class="s">'+
       (q>1? curSym(c)+fmt(+b.amount||0)+" × "+q : "")+(isBase?"":(q>1?" · ":"")+"≈ "+baseSym()+fmt(biBase(b)))+'</div></div></div>'+
@@ -2683,7 +2690,9 @@ function biCardHtml(b){
       (b.ref?'<span>🧾 '+esc(b.ref)+'</span>':"")+
       (linked?'<span style="color:var(--green);font-weight:600">✓ 已记账</span>':"")+
       (b.url?'<a href="'+esc(safeUrl(b.url))+'" target="_blank" rel="noopener" style="color:var(--ink-soft)">🔗 链接</a>':"")+
+      (planItemUrl(b)?'<a href="'+esc(planItemUrl(b))+'" class="bi-planlink">🗺 行程'+(b.planDay?" D"+esc(b.planDay):"")+'</a>':"")+
     '</div>'+
+    biTicketHtml(b)+
     (chosen?'<div class="bi-chosen">✓ 已选方案：'+esc(chosen.label)+(chosen.channel?" · "+esc(chosen.channel):"")+(chosen.dur?" · "+durText(chosen.dur):"")+'</div>':"")+
     (b.note?'<div class="bi-note">📝 '+esc(b.note)+'</div>':"")+
     '<div class="bi-ops">'+
@@ -2692,9 +2701,53 @@ function biCardHtml(b){
       '<button class="op" data-bedit="'+esc(b.id)+'">编辑</button>'+
     '</div></div>';
 }
+/* 行程页地址：导入时记下的 trip-data.json 所在目录 + #item-<行程项目 id> */
+function planPageUrlForTrip(tripId){
+  for(var i=0;i<LS.length;i++){
+    var k=LS.key(i);
+    if(k && k.indexOf("aaltripsrc$")===0 && LS.getItem(k)===tripId){
+      var src=planSrcUrl(k.slice("aaltripsrc$".length));
+      if(src){ try{ return new URL("./", src).href; }catch(e){} }
+    }
+  }
+  return "";
+}
+function planItemUrl(b){
+  if(!b.planRef) return "";
+  var base=planPageUrlForTrip(b.trip); if(!base) return "";
+  return base+(b.planItemId?"#item-"+encodeURIComponent(b.planItemId):"");
+}
+function biTicketHtml(b){
+  var t=b.ticket; if(!t) return "";
+  var parts=[], p=t.price;
+  if(p && (p.amount!=null || p.label)){
+    var latest = p.amount!=null ? (p.currency||"")+" "+fmt(+p.amount, (+p.amount%1)?2:0) : "";
+    var unitCode=curCode(b.currency), same=p.amount!=null && String(p.currency||"").toUpperCase()===unitCode;
+    var diff = same && Math.abs((+b.amount||0)-(+p.amount))>0.005;
+    parts.push('<div>🎫 最新票价 <b>'+esc([latest.trim(), p.label].filter(Boolean).join(" · "))+'</b>'+(t.checkedAt?' <small>核对于 '+esc(t.checkedAt)+'</small>':"")+
+      (diff?' <button class="bi-useprice" data-bprice="'+esc(b.id)+'">按最新票价更新预算</button>':"")+'</div>');
+  }
+  var w=t.saleWindow;
+  if(w && (w.opens||w.closes||w.note)){
+    var soon="";
+    if(w.opens){ var dd=Math.round((new Date(w.opens+"T00:00:00")-new Date(todayStr()+"T00:00:00"))/864e5); if(isFinite(dd)) soon = dd>0? "（还有 "+dd+" 天开售）" : dd===0? "（今天开售）" : "（已开售）"; }
+    parts.push('<div>🗓 购票窗口：'+esc([w.opens&&("开售 "+w.opens+soon), w.closes&&("截止 "+w.closes), w.note].filter(Boolean).join(" · "))+'</div>');
+  }
+  var ch=(t.channels||[]).filter(function(c){ return c && c.url; });
+  if(!ch.length && t.officialUrl) ch=[{ name:"官网", url:t.officialUrl }];
+  if(ch.length) parts.push('<div>🛒 '+ch.map(function(c){ return '<a href="'+esc(safeUrl(c.url))+'" target="_blank" rel="noopener">'+esc(c.name||"购票")+'</a>'; }).join(" · ")+'</div>');
+  if(!parts.length && t.requirement) parts.push('<div>🎫 '+esc({"advance-required":"需提前购票","advance-recommended":"建议预约","needs-confirmation":"购票方式待确认"}[t.requirement]||"门票信息")+'</div>');
+  return parts.length? '<div class="bi-ticket">'+parts.join("")+'</div>' : "";
+}
 function safeUrl(u){ u=String(u||"").trim(); return /^https?:\/\//i.test(u)? u : (u? "https://"+u : ""); }
 function bindPlanList(){
   var L=$("planList");
+  Array.prototype.forEach.call(L.querySelectorAll("[data-bprice]"),function(el){
+    el.onclick=function(){
+      var b=DB.get("b",el.getAttribute("data-bprice")); if(!b||!b.ticket||!b.ticket.price) return;
+      b.amount=Math.round(+b.ticket.price.amount*100)/100; DB.upsert("b",b); loadAll(); renderPlan(); toast("已按最新票价更新预算 🎫");
+    };
+  });
   Array.prototype.forEach.call(L.querySelectorAll("[data-bst]"),function(el){
     el.onclick=function(){
       var b=DB.get("b",el.getAttribute("data-bst")); if(!b) return;
@@ -3462,7 +3515,74 @@ function exportTripPage(tripId){
 /* 导入：行程页 trip-data.json → 新行程 + 预算项 + 地点 */
 var DTP_CAT_RULES=[[/机票|航班|flight|火车|高铁|新干线|特急|快速|机场|巴士|大巴|地铁|电车|租车|打车|交通|车票|周游券|JR|rail|bus|train|taxi|express|pass/i,"交通"],[/酒店|住宿|民宿|hotel|旅馆|inn/i,"住宿"],[/门票|ticket|入场|乐园|博物馆|展/i,"门票"],[/餐|饭|料理|食|restaurant|dinner|lunch/i,"餐饮"]];
 function guessCat(text){ for(var i=0;i<DTP_CAT_RULES.length;i++){ if(DTP_CAT_RULES[i][0].test(text)) return DTP_CAT_RULES[i][1]; } return "其他"; }
-function importTripPage(data){
+/* 行程页 → 预算项规格：每项带 planRef（稳定对应关系）、planItemId（行程页里的项目，用于来回跳转）、planDay，门票带最新票价与购票窗口 */
+function planTicketInfo(t){
+  var info={ price:t.price||null, checkedAt:t.priceCheckedAt||"", saleWindow:t.saleWindow||null, channels:(t.buyChannels||[]).filter(function(c){ return c && c.url; }),
+    officialUrl:t.officialUrl||(t.booking&&(t.booking.officialUrl||t.booking.purchaseUrl))||"", requirement:t.requirement||"" };
+  return (info.price||info.saleWindow||info.channels.length||info.officialUrl||info.requirement)? info : null;
+}
+function planSpecs(data){
+  var start=data.trip.startDate||"";
+  var dayByDate={}; (data.days||[]).forEach(function(d){ if(d.date) dayByDate[d.date]=d.day; });
+  var dateOfDay=function(n){ var d=(data.days||[]).filter(function(x){ return x.day===n; })[0]; return d? d.date : (start&&n? addDays(start,n-1) : ""); };
+  var specs=[], ticketByName={};
+  (data.flights||[]).forEach(function(f,i){
+    if(f.placeholder) return;
+    var dep=f.departure||{}, arr=f.arrival||{};
+    specs.push({ planRef:"flight:"+(f.id||f.flightNumber||i), planDay:dayByDate[dep.date]||"", title:"航班 "+(f.flightNumber||"")+" "+(dep.airportCode||"")+"→"+(arr.airportCode||""),
+      category:"交通", day:dep.date||"", fixed:true, status:"booked", from:dep.airportCode||"", to:arr.airportCode||"",
+      note:[f.airline&&(f.airline.nameZh||f.airline.name), dep.time&&("起飞 "+dep.time)].filter(Boolean).join(" · ") });
+  });
+  (data.accommodations||[]).forEach(function(a,i){
+    var name=a.nameZh||a.name||a.title; if(!name) return;
+    var d=a.checkIn||a.checkInDate||a.startDate||"";
+    specs.push({ planRef:"stay:"+(a.id||(d+":"+name)), planDay:dayByDate[d]||"", title:name, category:"住宿", day:d, fixed:true, status:"booked",
+      ref:a.bookingRef||a.confirmationNumber||"", note:a.address||a.note||"" });
+  });
+  ((data.ticketPlanning&&data.ticketPlanning.items)||[]).forEach(function(t,i){
+    var name=t.name||(t.attraction&&(t.attraction.nameZh||t.attraction.name)); if(!name) return;
+    var info=planTicketInfo(t);
+    var sp={ planRef:"ticket:"+(t.id||name), planItemId:(t.scheduleItemIds||t.itemIds||[])[0]||"", planDay:t.day||dayByDate[t.date]||"",
+      title:name, category:"门票", day:t.date||dateOfDay(t.day), fixed:true, status:t.purchaseStatus==="purchased"?"paid":"idea",
+      url:info&&(info.officialUrl||(info.channels[0]&&info.channels[0].url))||"", note:[].concat(t.guidance||t.notes||[]).join("；"), ticket:info };
+    if(info && info.price && +info.price.amount>0){ sp.amount=+info.price.amount; sp.currency=info.price.currency; }
+    ticketByName[name]=sp; specs.push(sp);
+  });
+  (data.days||[]).forEach(function(d){
+    (d.costReferences||[]).forEach(function(c,idx){
+      if(!c.item) return;
+      var amt = c.amount!=null? c.amount : c.standard!=null? c.standard : c.discounted!=null? c.discounted : (c.amountOptions&&c.amountOptions[0]);
+      var tk=ticketByName[c.item];
+      if(tk){ /* 门票与费用是同一项：把金额补进门票预算 */
+        if(!(+tk.amount>0) && parseFloat(amt)>0){ tk.amount=parseFloat(amt); tk.currency=c.currency; }
+        return;
+      }
+      specs.push({ planRef:"cost:"+(d.id||d.day)+":"+(c.id||c.item), planItemId:c.scheduleItemId||"", planDay:d.day, title:c.item, category:guessCat(c.item),
+        day:d.date, amount:parseFloat(amt)||0, currency:c.currency, note:amt==null?"金额待补充":"" });
+    });
+  });
+  return specs;
+}
+function planSrcUrl(tripId){ try{ return LS.getItem("aaltripsrcurl$"+tripId)||""; }catch(e){ return ""; } }
+function rememberPlanSource(data, trip, url){
+  var src=data.metadata&&data.metadata.tripId; if(!src) return;
+  try{ LS.setItem("aaltripsrc$"+src, trip.id); if(url) LS.setItem("aaltripsrcurl$"+src, url); }catch(e){}
+}
+function addPlanBudget(trip, sp, now, n, noRate){
+  var code=String(sp.currency||baseCode()).toUpperCase();
+  if(code!==baseCode() && !isFinite(lastRate(code))) noRate[code]=1;
+  var rec={ id:uid(), ts:now+n, trip:trip.id, title:String(sp.title||"未命名").slice(0,60), category:sp.category||"其他", day:sp.day||"",
+    amount:Math.round((+sp.amount||0)*100)/100, qty:1, currency:planCurLabel(code), rate:planRateOf(code), fixed:!!sp.fixed, status:sp.status||"idea",
+    ref:sp.ref||"", url:sp.url||"", note:sp.note||"", from:sp.from||"", to:sp.to||"", options:[], chosenOptionId:"", expenseId:"",
+    planRef:sp.planRef, planItemId:sp.planItemId||"", planDay:sp.planDay||"" };
+  if(sp.ticket) rec.ticket=sp.ticket;
+  DB.upsert("b",rec);
+  return rec;
+}
+function planCurLabel(code){ code=String(code||baseCode()).toUpperCase(); return code===baseCode()? baseLabel() : curLabel(code); }
+function planRateOf(code){ code=String(code||baseCode()).toUpperCase(); if(code===baseCode()) return 1; var r=lastRate(code); return isFinite(r)? r : 1; }
+
+function importTripPage(data, srcUrl){
   if(!data || data.schemaVersion!=="2.0-lite" || !data.trip) throw new Error("不是 Do-Travel-Plan 的 trip-data.json（需要 schemaVersion 2.0-lite）");
   if(data.trip.status==="uninitialized") throw new Error("这个 trip-data.json 还是空白模板，没有行程内容");
   var now=Date.now(), title=(data.trip.heroTitle||data.metadata&&data.metadata.title||"导入的行程").slice(0,20);
@@ -3470,48 +3590,9 @@ function importTripPage(data){
   var start=data.trip.startDate||"", end=data.trip.endDate||"";
   var trip={ id:uid(), name:title, startDate:start, endDate:end, note:"由行程页导入", ts:now };
   DB.upsert("x",trip);
-  if(data.metadata && data.metadata.tripId){ try{ LS.setItem("aaltripsrc$"+data.metadata.tripId, trip.id); }catch(e){} }
-  var dateOfDay=function(n){ var d=(data.days||[]).filter(function(x){ return x.day===n; })[0]; return d? d.date : (start&&n? addDays(start,n-1) : ""); };
-  var curLbl=function(code){ code=String(code||baseCode()).toUpperCase(); return code===baseCode()? baseLabel() : curLabel(code); };
-  var rateOf=function(code){ code=String(code||baseCode()).toUpperCase(); if(code===baseCode()) return 1; var r=lastRate(code); return isFinite(r)? r : 1; };
+  rememberPlanSource(data, trip, srcUrl);
   var nb=0, np=0, noRate={};
-  function addBudget(o){
-    var code=String(o.currency||baseCode()).toUpperCase();
-    if(code!==baseCode() && !isFinite(lastRate(code))) noRate[code]=1;
-    var id=uid();
-    DB.upsert("b",{ id:id, ts:now+nb, trip:trip.id, title:String(o.title||"未命名").slice(0,60), category:o.category||"其他", day:o.day||"",
-      amount:Math.round((+o.amount||0)*100)/100, qty:1, currency:curLbl(code), rate:rateOf(code), fixed:!!o.fixed, status:o.status||"idea",
-      ref:o.ref||"", url:o.url||"", note:o.note||"", from:o.from||"", to:o.to||"", options:[], chosenOptionId:"", expenseId:"" });
-    nb++; return id;
-  }
-  (data.flights||[]).forEach(function(f){
-    if(f.placeholder) return;
-    var dep=f.departure||{}, arr=f.arrival||{};
-    addBudget({ title:"航班 "+(f.flightNumber||"")+" "+(dep.airportCode||"")+"→"+(arr.airportCode||""), category:"交通", day:dep.date||"", fixed:true, status:"booked",
-      from:dep.airportCode||"", to:arr.airportCode||"", note:[f.airline&&(f.airline.nameZh||f.airline.name), dep.time&&("起飞 "+dep.time)].filter(Boolean).join(" · ") });
-  });
-  (data.accommodations||[]).forEach(function(a){
-    var name=a.nameZh||a.name||a.title; if(!name) return;
-    addBudget({ title:name, category:"住宿", day:a.checkIn||a.checkInDate||a.startDate||"", fixed:true, status:"booked", ref:a.bookingRef||a.confirmationNumber||"", note:a.address||a.note||"" });
-  });
-  var ticketNames={};
-  ((data.ticketPlanning&&data.ticketPlanning.items)||[]).forEach(function(t){
-    var name=t.name||(t.attraction&&(t.attraction.nameZh||t.attraction.name)); if(!name) return;
-    ticketNames[name]=addBudget({ title:name, category:"门票", day: t.date || dateOfDay(t.day), fixed:true, status: t.purchaseStatus==="purchased"? "paid":"idea",
-      url:t.officialUrl||(t.booking&&(t.booking.officialUrl||t.booking.purchaseUrl))||"", note:[].concat(t.guidance||t.notes||[]).join("；") });
-  });
-  (data.days||[]).forEach(function(d){
-    (d.costReferences||[]).forEach(function(c){
-      if(!c.item) return;
-      var amt = c.amount!=null? c.amount : c.standard!=null? c.standard : c.discounted!=null? c.discounted : (c.amountOptions&&c.amountOptions[0]);
-      if(ticketNames[c.item]){ /* 门票与费用是同一项：把金额补进门票预算 */
-        var tb=DB.get("b",ticketNames[c.item]), code=String(c.currency||baseCode()).toUpperCase();
-        if(tb && !(+tb.amount) && parseFloat(amt)>0){ tb.amount=Math.round(parseFloat(amt)*100)/100; tb.currency=curLbl(code); tb.rate=rateOf(code); if(code!==baseCode() && !isFinite(lastRate(code))) noRate[code]=1; DB.upsert("b",tb); }
-        return;
-      }
-      addBudget({ title:c.item, category:guessCat(c.item), day:d.date, amount:parseFloat(amt)||0, currency:c.currency, note:amt==null?"金额待补充":"" });
-    });
-  });
+  planSpecs(data).forEach(function(sp){ addPlanBudget(trip, sp, now, nb, noRate); nb++; });
   var existing={}; state.places.forEach(function(p){ existing[placeKey(p)]=1; });
   function addPlace(o){
     if(!o.name || existing[placeKey(o)]) return; existing[placeKey(o)]=1;
@@ -3520,8 +3601,10 @@ function importTripPage(data){
     np++;
   }
   (data.places||[]).forEach(function(p){
+    var m=p.maps||{};
     addPlace({ name:p.nameZh||p.name, kind: /restaurant/.test(p.category||"")? "restaurant" : /hotel|stay/.test(p.category||"")? "hotel" : /city|area|region/.test(p.category||"")? "other" : "sight",
-      city:p.cityOrArea||"", address:p.address||"", website:p.officialUrl||"", trip:trip.id, pack:"行程页 · "+title,
+      city:p.cityOrArea||"", address:p.address||"", website:p.officialUrl||m.website||"", trip:trip.id, pack:"行程页 · "+title,
+      rating:m.rating!=null?String(m.rating):"", hours:Array.isArray(m.hours)?m.hours.join("；"):(m.hoursNote||""),
       lat:p.geo&&p.geo.lat||"", lng:p.geo&&p.geo.lng||"" });
   });
   (data.restaurants||[]).forEach(function(r){
@@ -3532,31 +3615,100 @@ function importTripPage(data){
   var codes=Object.keys(noRate);
   return { trip:trip, budget:nb, places:np, missingRates:codes };
 }
+/* 行程页更新后（例如重新查了票价），把变化同步进已导入的行程：只补充、不删除，不覆盖你改过的金额 */
+function syncTripPage(data, trip, srcUrl){
+  rememberPlanSource(data, trip, srcUrl);
+  var mine=state.budget.filter(function(b){ return b.trip===trip.id; });
+  var byRef={}, byTitle={};
+  mine.forEach(function(b){ if(b.planRef) byRef[b.planRef]=b; else byTitle[b.category+"|"+b.title]=b; });
+  var now=Date.now(), added=0, updated=0, priceChanged=[], noRate={};
+  planSpecs(data).forEach(function(sp){
+    var b=byRef[sp.planRef] || byTitle[sp.category+"|"+String(sp.title).slice(0,60)];
+    if(!b){ addPlanBudget(trip, sp, now, added, noRate); added++; return; }
+    var before=JSON.stringify(b);
+    var oldPrice=b.ticket&&b.ticket.price&&b.ticket.price.amount;
+    b.planRef=sp.planRef; b.planItemId=sp.planItemId||b.planItemId||""; b.planDay=sp.planDay||b.planDay||"";
+    if(sp.ticket) b.ticket=sp.ticket;
+    if(!b.url && sp.url) b.url=sp.url;
+    if(!b.day && sp.day) b.day=sp.day;
+    if(!(+b.amount>0) && +sp.amount>0 && b.status!=="paid"){ b.amount=Math.round(+sp.amount*100)/100; b.currency=planCurLabel(sp.currency); b.rate=planRateOf(sp.currency); }
+    var newPrice=sp.ticket&&sp.ticket.price&&sp.ticket.price.amount;
+    if(oldPrice!=null && newPrice!=null && +oldPrice!==+newPrice) priceChanged.push(b.title);
+    if(JSON.stringify(b)!==before){ DB.upsert("b",b); updated++; }
+  });
+  if(added||updated){ loadAll(); renderAll(); }
+  return { added:added, updated:updated, priceChanged:priceChanged };
+}
+/* 打开账本时，自动从已关联的行程页拉取最新信息（同域的 plan/trip-data.json 或导入时记下的地址） */
+function autoSyncPlans(){
+  if(!window.fetch) return;
+  var urls={};
+  try{ urls[new URL("plan/trip-data.json", location.href).href]=1; }catch(e){}
+  for(var i=0;i<LS.length;i++){ var k=LS.key(i); if(k && k.indexOf("aaltripsrcurl$")===0){ var v=LS.getItem(k); if(v) urls[v]=1; } }
+  Object.keys(urls).forEach(function(u){
+    fetch(u,{cache:"no-store"}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(data){
+      var src=data && data.metadata && data.metadata.tripId; if(!src) return;
+      var trip=tripFromSource(src); if(!trip) return;
+      var res=syncTripPage(data, trip, u);
+      if(res.priceChanged.length) toast("🎫 票价有更新："+res.priceChanged.slice(0,3).join("、")+(res.priceChanged.length>3?" 等":""));
+      else if(res.added) toast("已从行程页补充 "+res.added+" 个预算项");
+    }).catch(function(){});
+  });
+}
 /* 从行程页一键打开记账：?tripPage=<trip-data.json 地址>。已导入过则直接切换到该行程，否则自动导入 */
 function tripFromSource(srcId){
   var id=null; try{ id=LS.getItem("aaltripsrc$"+srcId); }catch(e){}
   return id && tripById(id) ? tripById(id) : null;
 }
 function openFromTripPage(){
-  var url=null;
-  try{ url=new URLSearchParams(location.search).get("tripPage"); }catch(e){}
-  if(!url) return;
+  var q=null, url=null;
+  try{ q=new URLSearchParams(location.search); url=q.get("tripPage"); }catch(e){}
+  if(!url) return false;
+  var focus={ planRef:q.get("planRef")||"", planItem:q.get("planItem")||"", planDay:q.get("planDay")||"" };
   try{ var clean=location.pathname+location.hash; history.replaceState(null,"",clean); }catch(e){}
-  var u; try{ u=new URL(url, location.href); }catch(e){ toast("行程页链接无效"); return; }
-  if(u.protocol!=="https:" && u.origin!==location.origin && !/^(localhost|127\.0\.0\.1)$/.test(u.hostname)){ toast("只支持 https 的行程页链接"); return; }
-  toast("正在读取行程页…");
+  var u; try{ u=new URL(url, location.href); }catch(e){ toast("行程页链接无效"); return true; }
+  if(u.protocol!=="https:" && u.origin!==location.origin && !/^(localhost|127\.0\.0\.1)$/.test(u.hostname)){ toast("只支持 https 的行程页链接"); return true; }
   fetch(u.href,{cache:"no-store"}).then(function(r){ if(!r.ok) throw new Error("读取失败（HTTP "+r.status+"）"); return r.json(); }).then(function(data){
     var srcId=data && data.metadata && data.metadata.tripId;
     var exist=srcId? tripFromSource(srcId) : null;
+    var wantFocus=focus.planRef||focus.planItem||focus.planDay;
     if(exist){
-      state.curTrip=exist.id; saveTripSel(); loadAll(); renderAll(); switchTab("add");
-      toast("已打开「"+exist.name+"」，可以开始记账 💰");
+      state.curTrip=exist.id; saveTripSel(); loadAll();
+      var res=syncTripPage(data, exist, u.href);
+      renderAll();
+      if(wantFocus){ focusPlanBudget(exist, focus); return; }
+      switchTab("add");
+      toast("已打开「"+exist.name+"」"+(res.added?"，补充了 "+res.added+" 个预算项":"")+(res.priceChanged.length?"，票价有更新":"")+" 💰");
       return;
     }
-    var res=importTripPage(data);
+    var created=importTripPage(data, u.href);
+    if(wantFocus){ focusPlanBudget(created.trip, focus); return; }
     switchTab("add");
-    toast("已从行程页建好「"+res.trip.name+"」（预算项 "+res.budget+" 个），可以开始记账 💰");
+    toast("已从行程页建好「"+created.trip.name+"」（预算项 "+created.budget+" 个），可以开始记账 💰");
   }).catch(function(e){ toast("无法从行程页导入："+(e.message||"网络错误")); });
+  return true;
+}
+/* 从行程页某个项目跳过来：切到预算页签，滚动并高亮对应预算项 */
+function focusPlanBudget(trip, focus){
+  state.curTrip=trip.id; saveTripSel();
+  planGroup="day";
+  switchTab("plan");
+  var hits=state.budget.filter(function(b){
+    if(b.trip!==trip.id) return false;
+    if(focus.planRef && b.planRef===focus.planRef) return true;
+    if(focus.planItem && b.planItemId===focus.planItem) return true;
+    if(!focus.planRef && !focus.planItem && focus.planDay && String(b.planDay)===String(focus.planDay)) return true;
+    return false;
+  });
+  if(!hits.length){ toast("账本里还没有这个项目的预算，可以在预算页点「＋」添加"); return; }
+  setTimeout(function(){
+    var first=null;
+    hits.forEach(function(b){
+      var el=document.querySelector('[data-bid="'+(window.CSS&&CSS.escape?CSS.escape(b.id):b.id)+'"]');
+      if(el){ el.classList.add("bi-focus"); if(!first) first=el; setTimeout(function(){ el.classList.remove("bi-focus"); }, 4000); }
+    });
+    if(first) first.scrollIntoView({ behavior:"smooth", block:"center" });
+  }, 80);
 }
 
 /* ---------- 云同步诊断 ---------- */
@@ -3876,7 +4028,7 @@ renderAll();
 renderTripBar();
 if(!state.settings || !state.settings.initialized) openWizard(true);
 cloudBoot();
-openFromTripPage();
+if(!openFromTripPage()) autoSyncPlans();
 </script>
 </body>
 </html>
