@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "google-maps": {
+      "command": "npx",
+      "args": ["-y", "@cablate/mcp-google-map@0.0.69", "--stdio"],
+      "env": {
+        "GOOGLE_MAPS_API_KEY": "${GOOGLE_MAPS_API_KEY}",
+        "GOOGLE_MAPS_ENABLED_TOOLS": "maps_search_places,maps_search_nearby,maps_place_details,maps_explore_area,maps_compare_places,maps_search_along_route,maps_geocode,maps_reverse_geocode,maps_directions,maps_distance_matrix,maps_plan_route,maps_batch_geocode,maps_timezone,maps_weather,maps_static_map"
+      }
+    }
+  }
+}
