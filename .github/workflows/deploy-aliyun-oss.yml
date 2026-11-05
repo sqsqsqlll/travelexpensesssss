@@ -1,9 +1,13 @@
 name: Deploy to Aliyun OSS
 
+# 账本发布到 OSS 根目录，行程规划（Do-Travel-Plan-Page）发布到 plan/。
+# 行程规划仓库的改动不会触发这里，所以每小时自动检查一次（没变化的文件会跳过），也可以手动运行。
 on:
   push:
     branches: [main]
   workflow_dispatch:
+  schedule:
+    - cron: "23 * * * *"
 
 concurrency:
   group: deploy-aliyun-oss
@@ -18,7 +22,6 @@ jobs:
       OSS_BUCKET: ${{ vars.OSS_BUCKET }}
       OSS_ENDPOINT: ${{ vars.OSS_ENDPOINT }}
     steps:
-      - uses: actions/checkout@v4
       - name: Check configuration
         id: cfg
         run: |
@@ -28,12 +31,23 @@ jobs:
           else
             echo "ready=true" >> "$GITHUB_OUTPUT"
           fi
+      - uses: actions/checkout@v4
+        if: steps.cfg.outputs.ready == 'true'
+      - name: Checkout trip planner
+        if: steps.cfg.outputs.ready == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: sqsqsqlll/Do-Travel-Plan-Page
+          ref: main
+          path: _plan
       - uses: actions/setup-python@v5
         if: steps.cfg.outputs.ready == 'true'
         with:
           python-version: "3.12"
       - name: Upload to OSS
         if: steps.cfg.outputs.ready == 'true'
+        env:
+          PLAN_DIR: _plan
         run: |
           python -m pip install --quiet --upgrade pip setuptools wheel
           pip install --quiet "oss2==2.19.1"
