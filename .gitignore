@@ -1,2 +1,6 @@
 .workbuddy/
 .DS_Store
+dist/
+_plan/
+.wrangler/
+__pycache__/
