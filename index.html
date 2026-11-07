@@ -1251,7 +1251,7 @@ var DB = {
   },
   get:function(table,id){ try{ return JSON.parse(LS.getItem(KEY[table]+id)); }catch(e){ return null; } },
   upsert:function(table,record){ LS.setItem(KEY[table]+record.id, JSON.stringify(record)); DB._ping(); cloudWrite(table,record.id); },   /* 按记录逐条保存 + 云端写穿 */
-  remove:function(table,id){ LS.removeItem(KEY[table]+id); DB._ping(); cloudWrite(table,id); },
+  remove:function(table,id){ LS.removeItem(KEY[table]+id); if(CTAB[table]) markGone(table,id); DB._ping(); cloudWrite(table,id); },
   _ping:function(){ if(CH){ try{ CH.postMessage({src:CLIENT_ID}); }catch(e){} } }
 };
 if(CH){ CH.onmessage=function(ev){ if(!ev.data || ev.data.src===CLIENT_ID) return; syncFromDB(true); }; }
@@ -1370,41 +1370,44 @@ function cloudPullRaw(done){
     if(done) done({ tx:rs[0].data||[], mem:rs[1].data||[], cfg:(rs[2].data||[])[0]||null, trips:rs[3].data||[] });
   }).catch(function(e){ pulling=false; noteCloudError(e); if(done) done(null); });
 }
+/* 差量合并的判断依据（保存在 localStorage，多个标签页共享）：
+ *  seen：在云端出现过的记录 id。本机有、云端没有的记录，只有「在云端出现过」才说明被别处删了，才删本机；
+ *        从没在云端出现过的（刚新增、上传还没完成、或拉取结果比上传早）一律重新上传，不删。
+ *  gone：本机刚删除的记录（墓碑）。比删除更早发出的拉取结果里还带着它时，不把它加回来。 */
+var GONE_TTL=10*60*1000;
+function syncMeta(kind,table){ try{ return JSON.parse(LS.getItem("aal"+kind+"$"+table)||"{}")||{}; }catch(e){ return {}; } }
+function saveSyncMeta(kind,table,obj){ try{ LS.setItem("aal"+kind+"$"+table, JSON.stringify(obj)); }catch(e){} }
+function markGone(table,id){ var g=syncMeta("gone",table); g[id]=Date.now(); saveSyncMeta("gone",table,g); }
+function diffTable(table, rows, toLocal){
+  var seen=syncMeta("seen",table), gone=syncMeta("gone",table), inCloud={}, changed=false, now=Date.now();
+  rows.forEach(function(row){
+    var r=toLocal(row); inCloud[r.id]=1; seen[r.id]=1;
+    if(dirty[table+"$"+r.id] || gone[r.id]) return;
+    var loc=DB.get(table,r.id);
+    if(!loc){ lsPut(table,r); changed=true; }
+    else if(JSON.stringify(loc)!==JSON.stringify(r) && (+r.ts||0) >= (+loc.ts||0)){ lsPut(table,r); changed=true; }
+  });
+  Object.keys(gone).forEach(function(id){
+    if(dirty[table+"$"+id]) return;
+    if(!inCloud[id] || now-gone[id]>GONE_TTL) delete gone[id]; /* 云端已确认删除，或墓碑过期 */
+  });
+  var local=DB.list(table), localIds={};
+  local.forEach(function(loc){
+    localIds[loc.id]=1;
+    if(inCloud[loc.id] || dirty[table+"$"+loc.id]) return;
+    if(seen[loc.id]){ lsDel(table,loc.id); delete seen[loc.id]; changed=true; } /* 别处删除了 */
+    else cloudWrite(table,loc.id);                                            /* 还没上云：补传，不删除 */
+  });
+  Object.keys(seen).forEach(function(id){ if(!inCloud[id] && !localIds[id]) delete seen[id]; });
+  saveSyncMeta("seen",table,seen); saveSyncMeta("gone",table,gone);
+  return changed;
+}
 function applyCloudDiff(boxes){
   if(!boxes) return;
-  var changed=false, i, r, loc;
-  var bxT=boxes.tx||[], bxM=boxes.mem||[], bxX=boxes.trips||[];
-  var cloudT={}, cloudM={}, cloudX={};
-  for(i=0;i<bxT.length;i++){ cloudT[bxT[i].id]=1; }
-  for(i=0;i<bxM.length;i++){ cloudM[bxM[i].id]=1; }
-  for(i=0;i<bxX.length;i++){ cloudX[bxX[i].id]=1; }
-  for(i=0;i<bxT.length;i++){
-    r=rowToTxn(bxT[i]);
-    if(dirty["t$"+r.id]) continue;
-    loc=DB.get("t",r.id);
-    if(!loc){ lsPut("t",r); changed=true; }
-    else if(JSON.stringify(loc)!==JSON.stringify(r) && (+r.ts||0) >= (+loc.ts||0)){ lsPut("t",r); changed=true; }
-  }
-  var localT=DB.list("t");
-  for(i=0;i<localT.length;i++){ if(!cloudT[localT[i].id] && !dirty["t$"+localT[i].id]){ lsDel("t",localT[i].id); changed=true; } }
-  for(i=0;i<bxM.length;i++){
-    r=rowToMem(bxM[i]);
-    if(dirty["m$"+r.id]) continue;
-    loc=DB.get("m",r.id);
-    if(!loc){ lsPut("m",r); changed=true; }
-    else if(JSON.stringify(loc)!==JSON.stringify(r) && (+r.ts||0) >= (+loc.ts||0)){ lsPut("m",r); changed=true; }
-  }
-  var localM=DB.list("m");
-  for(i=0;i<localM.length;i++){ if(!cloudM[localM[i].id] && !dirty["m$"+localM[i].id]){ lsDel("m",localM[i].id); changed=true; } }
-  for(i=0;i<bxX.length;i++){
-    r=rowToTrip(bxX[i]);
-    if(dirty["x$"+r.id]) continue;
-    loc=DB.get("x",r.id);
-    if(!loc){ lsPut("x",r); changed=true; }
-    else if(JSON.stringify(loc)!==JSON.stringify(r) && (+r.ts||0) >= (+loc.ts||0)){ lsPut("x",r); changed=true; }
-  }
-  var localX=DB.list("x");
-  for(i=0;i<localX.length;i++){ if(!cloudX[localX[i].id] && !dirty["x$"+localX[i].id]){ lsDel("x",localX[i].id); changed=true; } }
+  var changed=false, loc;
+  if(diffTable("t", boxes.tx||[], rowToTxn)) changed=true;
+  if(diffTable("m", boxes.mem||[], rowToMem)) changed=true;
+  if(diffTable("x", boxes.trips||[], rowToTrip)) changed=true;
   if(boxes.cfg && !dirty["s$cfg"]){
     var c=rowToCfg(boxes.cfg);
     loc=DB.get("s","cfg");
