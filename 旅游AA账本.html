@@ -1251,7 +1251,7 @@ var DB = {
   },
   get:function(table,id){ try{ return JSON.parse(LS.getItem(KEY[table]+id)); }catch(e){ return null; } },
   upsert:function(table,record){ LS.setItem(KEY[table]+record.id, JSON.stringify(record)); DB._ping(); cloudWrite(table,record.id); },   /* 按记录逐条保存 + 云端写穿 */
-  remove:function(table,id){ LS.removeItem(KEY[table]+id); if(CTAB[table]) markGone(table,id); DB._ping(); cloudWrite(table,id); },
+  remove:function(table,id){ var old=DB.get(table,id); LS.removeItem(KEY[table]+id); if(CTAB[table]) markGone(table,id,old); DB._ping(); cloudWrite(table,id); },
   _ping:function(){ if(CH){ try{ CH.postMessage({src:CLIENT_ID}); }catch(e){} } }
 };
 if(CH){ CH.onmessage=function(ev){ if(!ev.data || ev.data.src===CLIENT_ID) return; syncFromDB(true); }; }
@@ -1334,11 +1334,11 @@ function flushDirty(){
   var p;
   try{
     var rec = DB.get(job.table, job.id);
-    if(!rec){ p = cloud.database.from(CTAB[job.table]).delete().eq("id", job.id); }
-    else{
-      var row = job.table==="t" ? txnToRow(rec) : job.table==="m" ? memToRow(rec) : job.table==="x" ? tripToRow(rec) : cfgToRow(rec);
-      p = cloud.database.from(CTAB[job.table]).upsert(row);
+    if(!rec){
+      var tomb=tombstoneRow(job.table, job.id);
+      p = tomb ? cloud.database.from(CTAB[job.table]).upsert(tomb) : cloud.database.from(CTAB[job.table]).delete().eq("id", job.id);
     }
+    else p = cloud.database.from(CTAB[job.table]).upsert(localToRow(job.table, rec));
   }catch(e){ p = Promise.reject(e); }
   Promise.resolve(p).then(function(res){
     if(res && res.error) throw res.error;
@@ -1375,34 +1375,62 @@ function cloudPullRaw(done){
 /* 差量合并的判断依据（保存在 localStorage，多个标签页共享）：
  *  seen：在云端出现过的记录 id。本机有、云端没有的记录，只有「在云端出现过」才说明被别处删了，才删本机；
  *        从没在云端出现过的（刚新增、上传还没完成、或拉取结果比上传早）一律重新上传，不删。
- *  gone：本机刚删除的记录（墓碑）。比删除更早发出的拉取结果里还带着它时，不把它加回来。 */
+ *  gone：本机刚删除的记录（墓碑），删除上传完成前，旧的拉取结果不会把它加回来。
+ *  云端墓碑：删除不是直接删掉云端那一行，而是把它的 ts 改成负数（-删除时间）。所有设备都能看到「这条已删除」，
+ *        还留着旧副本的设备会跟着删除，不会再把它传回去。 */
 var GONE_TTL=10*60*1000;
 function syncMeta(kind,table){ try{ return JSON.parse(LS.getItem("aal"+kind+"$"+table)||"{}")||{}; }catch(e){ return {}; } }
 function saveSyncMeta(kind,table,obj){ try{ LS.setItem("aal"+kind+"$"+table, JSON.stringify(obj)); }catch(e){} }
-function markGone(table,id){ var g=syncMeta("gone",table); g[id]=Date.now(); saveSyncMeta("gone",table,g); }
+function markGone(table,id,rec){ var g=syncMeta("gone",table); g[id]={ at:Date.now(), rec:rec||null }; saveSyncMeta("gone",table,g); }
+function goneAt(v){ return typeof v==="number"? v : (v&&v.at)||0; }
+function rowToLocal(table,row){ return table==="t"? rowToTxn(row) : table==="m"? rowToMem(row) : table==="x"? rowToTrip(row) : rowToCfg(row); }
+function localToRow(table,rec){ return table==="t"? txnToRow(rec) : table==="m"? memToRow(rec) : table==="x"? tripToRow(rec) : cfgToRow(rec); }
+/* 删除要上传的内容：最后一版记录 + 负的 ts（云端墓碑）；没有最后一版时只能真删 */
+function tombstoneRow(table,id){
+  var g=syncMeta("gone",table)[id]; if(!g || !g.rec) return null;
+  var row=localToRow(table,g.rec); row.ts=-Math.max(1,goneAt(g)); return row;
+}
 function diffTable(table, rows, toLocal){
-  var seen=syncMeta("seen",table), gone=syncMeta("gone",table), inCloud={}, changed=false, now=Date.now();
+  var seen=syncMeta("seen",table), gone=syncMeta("gone",table), inCloud={}, tomb={}, changed=false, now=Date.now();
   rows.forEach(function(row){
-    var r=toLocal(row); inCloud[r.id]=1; seen[r.id]=1;
-    if(dirty[table+"$"+r.id] || gone[r.id]) return;
-    var loc=DB.get(table,r.id);
+    var id=row.id; inCloud[id]=1; seen[id]=1;
+    if(+row.ts<0){ tomb[id]=-row.ts; return; } /* 云端墓碑 */
+    if(dirty[table+"$"+id] || gone[id]) return;
+    var r=toLocal(row), loc=DB.get(table,id);
     if(!loc){ lsPut(table,r); changed=true; }
     else if(JSON.stringify(loc)!==JSON.stringify(r) && (+r.ts||0) >= (+loc.ts||0)){ lsPut(table,r); changed=true; }
   });
   Object.keys(gone).forEach(function(id){
     if(dirty[table+"$"+id]) return;
-    if(!inCloud[id] || now-gone[id]>GONE_TTL) delete gone[id]; /* 云端已确认删除，或墓碑过期 */
+    if(!inCloud[id] || tomb[id] || now-goneAt(gone[id])>GONE_TTL) delete gone[id]; /* 云端已确认删除，或墓碑过期 */
   });
   var local=DB.list(table), localIds={};
+  var cloudNames={}; if(table==="m") rows.forEach(function(row){ if(!(+row.ts<0)) cloudNames[row.name]=1; });
   local.forEach(function(loc){
     localIds[loc.id]=1;
-    if(inCloud[loc.id] || dirty[table+"$"+loc.id]) return;
-    if(seen[loc.id]){ lsDel(table,loc.id); delete seen[loc.id]; changed=true; } /* 别处删除了 */
-    else cloudWrite(table,loc.id);                                            /* 还没上云：补传，不删除 */
+    if(dirty[table+"$"+loc.id]) return;
+    if(tomb[loc.id]){ /* 别处删除了；本机在删除之后又改过的保留并重新上传 */
+      if((+loc.ts||0) > tomb[loc.id]) cloudWrite(table,loc.id); else { lsDel(table,loc.id); changed=true; }
+      return;
+    }
+    if(inCloud[loc.id]) return;
+    if(seen[loc.id]){ lsDel(table,loc.id); delete seen[loc.id]; changed=true; return; } /* 旧方式删除（云端那行已不在） */
+    if(table==="m" && cloudNames[loc.name]){ lsDel(table,loc.id); changed=true; return; } /* 同名成员已在云端：是重复的，不上传 */
+    cloudWrite(table,loc.id); /* 还没上云：补传，不删除 */
   });
   Object.keys(seen).forEach(function(id){ if(!inCloud[id] && !localIds[id]) delete seen[id]; });
   saveSyncMeta("seen",table,seen); saveSyncMeta("gone",table,gone);
+  if(table==="m" && dedupeMembers()) changed=true;
   return changed;
+}
+/* 成员按姓名去重（账目里按姓名记付款人和参与人，删掉重复的不影响账目）；每台设备都保留同一个（id 最小的），结果一致 */
+function dedupeMembers(){
+  var byName={}, removed=false;
+  DB.list("m").sort(function(a,b){ return String(a.id)<String(b.id)?-1:1; }).forEach(function(m){
+    var k=String(m.name||"").trim(); if(!k) return;
+    if(byName[k]){ DB.remove("m",m.id); removed=true; } else byName[k]=1;
+  });
+  return removed;
 }
 function applyCloudDiff(boxes){
   if(!boxes) return;
@@ -1460,19 +1488,20 @@ function cloudBoot(){
   if(!CLOUD_STATE.sdk){ CLOUD_PENDING=false; dirty={}; noteCloudError("云同步组件未加载（vendor/workbuddy-cloud-sdk-*.js）"); toast("云端未连接，当前仅本机记录 ⚠"); return; }
   resolveCloudEndpoint(function(endpoint, mode){
     makeCloud(endpoint, mode);
-    if(!CLOUD_ON){ dirty={}; toast("云端未连接，当前仅本机记录 ⚠"); return; }
+    if(!CLOUD_ON){ dirty={}; toast("云端未连接，当前仅本机记录 ⚠"); maybeFirstWizard(); return; }
     cloudStart();
   });
 }
 var cloudBooted=false; /* 首次拉取成功前不做差量合并，否则「云端为空」会误删本机记录 */
 function cloudFirstSync(boxes){
   if(!boxes || migrating) return;
-  var hasCloud = boxes.tx.length || boxes.mem.length || boxes.cfg || (boxes.trips||[]).length;
+  var hasCloud = boxes.tx.length || boxes.mem.length || boxes.cfg || (boxes.trips||[]).length; /* 墓碑也算云端已有数据 */
   var hasLocal = DB.list("t").length || DB.list("m").length || DB.get("s","cfg") || DB.list("x").length;
   if(!hasCloud && hasLocal){ migrateLocalUp(); return; }
   cloudBooted=true;
   applyCloudDiff(boxes);
   flushDirty();
+  maybeFirstWizard();
 }
 function cloudTick(){ cloudPullRaw(cloudBooted ? applyCloudDiff : cloudFirstSync); }
 function cloudStart(){
@@ -3597,7 +3626,8 @@ function importTripPage(data, srcUrl){
   var now=Date.now(), title=(data.trip.heroTitle||data.metadata&&data.metadata.title||"导入的行程").slice(0,20);
   if(state.trips.some(function(t){ return t.name===title; })) title=title+"（导入）";
   var start=data.trip.startDate||"", end=data.trip.endDate||"";
-  var trip={ id:uid(), name:title, startDate:start, endDate:end, note:"由行程页导入", ts:now };
+  var srcTag=data.metadata&&data.metadata.tripId? " #"+data.metadata.tripId : "";
+  var trip={ id:uid(), name:title, startDate:start, endDate:end, note:"由行程页导入"+srcTag, ts:now };
   DB.upsert("x",trip);
   rememberPlanSource(data, trip, srcUrl);
   var nb=0, np=0, noRate={};
@@ -3657,7 +3687,7 @@ function autoSyncPlans(){
   Object.keys(urls).forEach(function(u){
     fetch(u,{cache:"no-store"}).then(function(r){ if(!r.ok) throw 0; return r.json(); }).then(function(data){
       var src=data && data.metadata && data.metadata.tripId; if(!src) return;
-      var trip=tripFromSource(src); if(!trip) return;
+      var trip=tripFromSource(src, data); if(!trip) return;
       var res=syncTripPage(data, trip, u);
       if(res.priceChanged.length) toast("🎫 票价有更新："+res.priceChanged.slice(0,3).join("、")+(res.priceChanged.length>3?" 等":""));
       else if(res.added) toast("已从行程页补充 "+res.added+" 个预算项");
@@ -3665,9 +3695,21 @@ function autoSyncPlans(){
   });
 }
 /* 从行程页一键打开记账：?tripPage=<trip-data.json 地址>。已导入过则直接切换到该行程，否则自动导入 */
-function tripFromSource(srcId){
+/* 找到行程页对应的账本行程。对应关系写在行程备注里（「由行程页导入 #<行程页 id>」，随云端同步到所有设备），
+ * 本机另存一份加速；旧版本导入的行程（备注里没有 id）按「由行程页导入 + 起止日期」认领账目最多的那个，并补上 id */
+function tripFromSource(srcId, data){
   var id=null; try{ id=LS.getItem("aaltripsrc$"+srcId); }catch(e){}
-  return id && tripById(id) ? tripById(id) : null;
+  if(id && tripById(id)) return tripById(id);
+  var tag="#"+srcId, txnN=function(t){ return state.txns.filter(function(x){ return x.trip===t.id; }).length; };
+  var best=function(list){ return list.sort(function(a,b){ return txnN(b)-txnN(a) || (a.ts||0)-(b.ts||0); })[0]||null; };
+  var hit=best(state.trips.filter(function(t){ return String(t.note||"").indexOf(tag)>=0; }));
+  if(!hit && data && data.trip){
+    hit=best(state.trips.filter(function(t){ return /^由行程页导入/.test(t.note||"") && String(t.note).indexOf("#")<0 &&
+      (t.startDate||"")===(data.trip.startDate||"") && (t.endDate||"")===(data.trip.endDate||""); }));
+    if(hit){ hit.note="由行程页导入 "+tag; hit.ts=Date.now(); DB.upsert("x",hit); }
+  }
+  if(hit){ try{ LS.setItem("aaltripsrc$"+srcId, hit.id); }catch(e){} }
+  return hit;
 }
 function openFromTripPage(){
   var q=null, url=null;
@@ -3679,7 +3721,7 @@ function openFromTripPage(){
   if(u.protocol!=="https:" && u.origin!==location.origin && !/^(localhost|127\.0\.0\.1)$/.test(u.hostname)){ toast("只支持 https 的行程页链接"); return true; }
   fetch(u.href,{cache:"no-store"}).then(function(r){ if(!r.ok) throw new Error("读取失败（HTTP "+r.status+"）"); return r.json(); }).then(function(data){
     var srcId=data && data.metadata && data.metadata.tripId;
-    var exist=srcId? tripFromSource(srcId) : null;
+    var exist=srcId? tripFromSource(srcId, data) : null;
     var wantFocus=focus.planRef||focus.planItem||focus.planDay;
     if(exist){
       state.curTrip=exist.id; saveTripSel(); loadAll();
@@ -4035,7 +4077,14 @@ loadAll();
 clearForm();
 renderAll();
 renderTripBar();
-if(!state.settings || !state.settings.initialized) openWizard(true);
+/* 第一次打开：等云端第一次同步完（最多 6 秒）再决定要不要弹初始化向导，避免新设备上重复建成员 */
+var wizChecked=false;
+function maybeFirstWizard(){
+  if(wizChecked) return; wizChecked=true;
+  loadAll();
+  if(!state.settings || !state.settings.initialized) openWizard(true);
+}
+if(!CLOUD_STATE.sdk) maybeFirstWizard(); else setTimeout(maybeFirstWizard, 6000);
 cloudBoot();
 if(!openFromTripPage()) autoSyncPlans();
 </script>
