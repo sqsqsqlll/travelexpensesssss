@@ -1343,6 +1343,7 @@ function flushDirty(){
   Promise.resolve(p).then(function(res){
     if(res && res.error) throw res.error;
     flushing=false; cloudErrToasted=false; CLOUD_STATE.lastOkAt=Date.now();
+    if(job.table==="s"){ try{ LS.setItem("aalcfgsaved", String(Date.now())); }catch(e){} } /* 早于这个时间发出的拉取结果，不再覆盖设置 */
     flushDirty(); /* 链式清空队列 */
   }).catch(function(e){
     flushing=false;
@@ -1358,6 +1359,7 @@ var pulling=false;
 function cloudPullRaw(done){
   if(!CLOUD_ON || pulling){ if(done) done(null); return; }
   pulling=true;
+  var startedAt=Date.now();
   Promise.all([
     cloud.database.from(CTAB.t).select("*"),
     cloud.database.from(CTAB.m).select("*"),
@@ -1367,7 +1369,7 @@ function cloudPullRaw(done){
     pulling=false;
     for(var i=0;i<rs.length;i++){ if(rs[i] && rs[i].error){ noteCloudError(rs[i].error); if(done) done(null); return; } }
     CLOUD_STATE.lastOkAt=Date.now();
-    if(done) done({ tx:rs[0].data||[], mem:rs[1].data||[], cfg:(rs[2].data||[])[0]||null, trips:rs[3].data||[] });
+    if(done) done({ tx:rs[0].data||[], mem:rs[1].data||[], cfg:(rs[2].data||[])[0]||null, trips:rs[3].data||[], startedAt:startedAt });
   }).catch(function(e){ pulling=false; noteCloudError(e); if(done) done(null); });
 }
 /* 差量合并的判断依据（保存在 localStorage，多个标签页共享）：
@@ -1408,7 +1410,8 @@ function applyCloudDiff(boxes){
   if(diffTable("t", boxes.tx||[], rowToTxn)) changed=true;
   if(diffTable("m", boxes.mem||[], rowToMem)) changed=true;
   if(diffTable("x", boxes.trips||[], rowToTrip)) changed=true;
-  if(boxes.cfg && !dirty["s$cfg"]){
+  var cfgSavedAt=0; try{ cfgSavedAt=+LS.getItem("aalcfgsaved")||0; }catch(e){}
+  if(boxes.cfg && !dirty["s$cfg"] && !((boxes.startedAt||0) < cfgSavedAt)){
     var c=rowToCfg(boxes.cfg);
     loc=DB.get("s","cfg");
     if(JSON.stringify(loc)!==JSON.stringify(c)){ lsPut("s",c); changed=true; }
@@ -2510,7 +2513,10 @@ function renderWizard(){
       return '<label class="cur-opt '+(isB?"on dis":on?"on":"")+'" data-c="'+c[0]+'"><input type="checkbox" '+(on||isB?"checked":"")+(isB?" disabled":"")+'> '+c[0]+" "+c[1]+"</label>";
     }).join("");
     Array.prototype.forEach.call($("wizCurs").querySelectorAll(".cur-opt"),function(el){
-      el.onclick=function(){
+      el.onclick=function(e){
+        /* 阻止 label 把点击再转发给里面的 checkbox：否则点文字会触发两次，选上又立刻取消 */
+        e.preventDefault();
+        if(el.classList.contains("dis")) return;
         var c=el.getAttribute("data-c");
         var i=wiz.common.indexOf(c);
         if(i>=0) wiz.common.splice(i,1); else wiz.common.push(c);
