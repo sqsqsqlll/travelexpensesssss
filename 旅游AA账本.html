@@ -328,6 +328,7 @@ main{max-width:780px;margin:0 auto;padding:16px 14px 60px;}
 }
 @media(min-width:520px){.mask{align-items:center;padding:20px;}}
 .mask.on{display:flex;animation:fade .2s;}
+#cfmMask{z-index:150;} /* 确认框可能从任何弹窗里打开（例如行程管理里的「删除」），必须盖在所有弹窗上面 */
 .modal{
   background:var(--card);width:100%;max-width:460px;border-radius:20px 20px 0 0;
   padding:22px 20px calc(20px + env(safe-area-inset-bottom));max-height:86vh;overflow-y:auto;
@@ -1945,8 +1946,8 @@ function renderTripList(){
   $("tripList").innerHTML = state.trips.length ? state.trips.map(function(p){
     var n=state.txns.filter(function(t){ return (t.trip||"")===p.id; }).length;
     var d=(p.startDate||p.endDate)? (esc(p.startDate||"…")+" ~ "+esc(p.endDate||"…")) : "日期未设置";
-    return '<div class="trip-row"><span class="tr-n">'+esc(p.name)+'<small style="color:var(--muted);font-weight:400"> · '+n+' 笔</small></span>'+
-      '<span class="tr-d">'+d+"</span>"+
+    return '<div class="trip-row"><span class="tr-n" title="'+esc(p.name)+'">'+esc(p.name)+'</span>'+
+      '<span class="tr-d"><b style="color:var(--ink);font-weight:600">'+n+' 笔</b> · '+d+"</span>"+
       (state.curTrip===p.id?'<span class="tr-cur">当前</span>':"")+
       '<button class="btn btn-sm btn-ghost" data-tpc="'+esc(p.id)+'">认领账目</button>'+
       '<button class="btn btn-sm btn-ghost" data-tpx="'+esc(p.id)+'">🗺 行程页</button>'+
