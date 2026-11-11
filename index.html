@@ -580,8 +580,7 @@ footer .dot{margin:0 6px;}
 .plan-group{font-family:var(--serif);font-size:14px;font-weight:700;color:var(--ink);margin:18px 2px 9px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
 .plan-group small{font-family:inherit;font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap;}
 .bi-card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;box-shadow:var(--shadow);}
-.bi-card.st-booked{border-left-color:#C2853B;}
-.bi-card.st-paid{border-left-color:var(--green);}
+
 .bi-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start;}
 .bi-name{font-weight:700;font-size:15px;color:var(--ink-deep);overflow-wrap:anywhere;min-width:0;}
 .bi-amt{text-align:right;flex:none;}
@@ -701,7 +700,7 @@ header{background:var(--ink-deep);box-shadow:none;padding:12px 16px;}
 .bi-st{border-style:solid;border-width:1px;border-radius:999px;}
 .bi-ops,.st-note,.cmp-form{border-top-style:solid;border-top-width:1px;}
 .bi-ops{border-top:1px solid var(--line-soft);}
-.bi-card{border-left-width:3px;}
+.bi-card{border-left:4px solid var(--cat,var(--line));} /* 左侧色条按类别上色（与账目、统计同色）；状态看卡片里的状态标签 */
 .bi-amt .v,.op-price .v{color:var(--ink-deep);}
 .bi-ops .op.main{border-color:var(--ink);color:#fff;background:var(--ink);}
 .empty{border:1px dashed var(--line);border-radius:var(--radius);background:transparent;}
@@ -957,7 +956,7 @@ header{background:var(--ink-deep);box-shadow:none;padding:12px 16px;}
 </main>
 
 <footer>
-  数据层：WorkBuddy 云数据库 · 逐条记录实时同步 · 多人共享同一份账本<span class="dot">·</span>预算 / 地点数据暂存本机
+  数据层：WorkBuddy 云数据库 · 逐条记录实时同步 · 多人共享同一份账本<span class="dot">·</span>预算云端同步（Cloudflare D1）<span class="dot">·</span>地点数据暂存本机
 </footer>
 
 <!-- ============ 初始化向导 / 设置 ============ -->
@@ -2909,7 +2908,7 @@ function biCardHtml(b){
   var opts=b.options||[], chosen=null;
   opts.forEach(function(o){ if(o.id===b.chosenOptionId) chosen=o; });
   var linked = b.expenseId && state.txns.some(function(t){ return t.id===b.expenseId; });
-  return '<div class="bi-card st-'+st+'" data-bid="'+esc(b.id)+'">'+
+  return '<div class="bi-card st-'+st+'" style="--cat:'+(CAT_COLOR[b.category]||CAT_COLOR["其他"])+'" title="'+esc(b.category||"其他")+'" data-bid="'+esc(b.id)+'">'+
     '<div class="bi-top"><div class="bi-name">'+(CAT_ICON[b.category]||"🧾")+" "+esc(b.title)+'</div>'+
     '<div class="bi-amt"><div class="v">'+curSym(c)+fmt(biTotal(b))+'</div><div class="s">'+
       (q>1? curSym(c)+fmt(+b.amount||0)+" × "+q : "")+(isBase?"":(q>1?" · ":"")+"≈ "+baseSym()+fmt(biBase(b)))+'</div></div></div>'+
