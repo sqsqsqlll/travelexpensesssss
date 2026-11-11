@@ -690,7 +690,7 @@ header{background:var(--ink-deep);box-shadow:none;padding:12px 16px;}
 .summary-card,.stats-band{background:var(--ink-deep);border-radius:var(--radius);box-shadow:none;}
 .summary-card .big,.stats-band .sb-num,.st-tile .v,.bi-amt .v,.op-price .v,.txn-card .t-amt,.est-total,.m-bal .num{font-family:var(--sans);letter-spacing:-.2px;}
 /* 账目卡片：左侧色条变细；金额用正文墨色 */
-.txn-card{border-left:3px solid var(--ink);}
+.txn-card{border-left:4px solid var(--cat,var(--ink));} /* 左侧色条按类别上色（与统计图表同色） */
 .txn-card .t-item{font-family:var(--sans);font-size:15px;font-weight:700;}
 .txn-card .t-amt{color:var(--ink-deep);font-size:17px;}
 .txn-card .t-split{border-top:1px solid var(--line-soft);}
@@ -2324,7 +2324,7 @@ function renderList(){
       splitHtml="平均分摊 · 每人 "+curSym(c)+fmt(each)+(isBase?"":"（≈"+bs+fmt(each*(+t.rate||0))+"）");
     }
     var picked=batchOn && !!batchSel[t.id];
-    return '<div class="txn-card'+(batchOn?" pick":"")+(picked?" sel":"")+'"'+(batchOn?' data-pick="'+esc(t.id)+'"':"")+'>'+
+    return '<div class="txn-card'+(batchOn?" pick":"")+(picked?" sel":"")+'" style="--cat:'+(CAT_COLOR[t.category]||CAT_COLOR["其他"])+'" title="'+esc(t.category||"其他")+'"'+(batchOn?' data-pick="'+esc(t.id)+'"':"")+'>'+
       (batchOn?'<span class="t-chk">'+(picked?"✓":"")+"</span>":"")+
       '<div class="t-top"><div style="min-width:0"><div class="t-item">'+esc(t.item)+'</div>'+
       '<div class="t-sub">'+(isBase? esc(c) : "折算 "+bs+fmt(txnBase(t))+" · 汇率 "+Number(t.rate).toFixed(6))+'</div></div>'+
