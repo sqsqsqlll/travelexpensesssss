@@ -902,7 +902,7 @@ header{background:var(--ink-deep);box-shadow:none;padding:12px 16px;}
     </div>
     <div class="pill-group plan-filters" id="planFilters"></div>
     <div id="planList"></div>
-    <div class="settle-note" style="text-align:center">💾 预算数据暂存本机浏览器，接入云端后会自动迁移</div>
+    <div class="settle-note" style="text-align:center" id="planSyncNote">💾 预算数据暂存本机浏览器</div>
   </section>
 
   <!-- ============ 页签：地点 ============ -->
@@ -1304,8 +1304,8 @@ var DB = {
     return out;
   },
   get:function(table,id){ try{ return JSON.parse(LS.getItem(KEY[table]+id)); }catch(e){ return null; } },
-  upsert:function(table,record){ LS.setItem(KEY[table]+record.id, JSON.stringify(record)); DB._ping(); cloudWrite(table,record.id); },   /* 按记录逐条保存 + 云端写穿 */
-  remove:function(table,id){ var old=DB.get(table,id); LS.removeItem(KEY[table]+id); if(CTAB[table]) markGone(table,id,old); DB._ping(); cloudWrite(table,id); },
+  upsert:function(table,record){ if(BTAB[table]) record._mt=Date.now(); LS.setItem(KEY[table]+record.id, JSON.stringify(record)); DB._ping(); cloudWrite(table,record.id); },   /* 按记录逐条保存 + 云端写穿；预算记录带修改时间 _mt */
+  remove:function(table,id){ var old=DB.get(table,id); LS.removeItem(KEY[table]+id); if(CTAB[table]||BTAB[table]) markGone(table,id,old); DB._ping(); cloudWrite(table,id); },
   _ping:function(){ if(CH){ try{ CH.postMessage({src:CLIENT_ID}); }catch(e){} } }
 };
 if(CH){ CH.onmessage=function(ev){ if(!ev.data || ev.data.src===CLIENT_ID) return; syncFromDB(true); }; }
@@ -1368,6 +1368,7 @@ var dirty={}, flushing=false, cloudErrToasted=false;
 var failedRound={}; /* 本轮已失败的记录：跳过它们继续上传其他记录，避免一条坏记录卡住整个队列 */
 var retryTimer=null;
 function cloudWrite(table,id){
+  if(BTAB[table]){ budgetQueue(table,id); return; } /* 预算走 /api/budget */
   if((!CLOUD_ON && !CLOUD_PENDING) || !CTAB[table]) return; /* 预算表、地点表暂未上云 */
   var k=table+"$"+id;
   delete dirty[k]; dirty[k]={ table:table, id:id }; /* 重新排到队尾 */
@@ -1377,10 +1378,10 @@ function cloudWrite(table,id){
 }
 function flushDirty(){
   if(!CLOUD_ON || flushing) return;
-  var keys=Object.keys(dirty).filter(function(x){ return !failedRound[x]; });
+  var keys=Object.keys(dirty).filter(function(x){ return !failedRound[x] && !BTAB[dirty[x].table]; });
   CLOUD_STATE.pending = Object.keys(dirty).length;
   if(!keys.length){
-    if(Object.keys(dirty).length && !retryTimer){ retryTimer=setTimeout(function(){ retryTimer=null; failedRound={}; flushDirty(); }, 5000); }
+    if(Object.keys(dirty).some(function(x){ return !BTAB[dirty[x].table]; }) && !retryTimer){ retryTimer=setTimeout(function(){ retryTimer=null; failedRound={}; flushDirty(); }, 5000); }
     return;
   }
   flushing=true;
@@ -1558,6 +1559,100 @@ function cloudFirstSync(boxes){
   maybeFirstWizard();
 }
 function cloudTick(){ cloudPullRaw(cloudBooted ? applyCloudDiff : cloudFirstSync); }
+/* ---------- 预算云端同步（/api/budget，Cloudflare D1） ----------
+ * 预算项（b）和预算设定（g）每条带修改时间 _mt；服务器只接受比已有版本更新的写入，删除写成负的修改时间（墓碑）。
+ * 合并规则与账目同步一致：只删「在云端出现过、后来被删除」的记录；从没上过云的记录补传，不删除。 */
+var BTAB={ b:"item", g:"plan" }, BKIND={ item:"b", plan:"g" };
+var BUDGET={ on:false, checked:false, flushing:false, pulling:false, timer:null, lastError:"", lastOkAt:0 };
+function budgetQueue(table,id){
+  var k=table+"$"+id; delete dirty[k]; dirty[k]={ table:table, id:id }; delete failedRound[k];
+  if(BUDGET.on){ clearTimeout(BUDGET.timer); BUDGET.timer=setTimeout(budgetFlush, 300); }
+}
+function budgetPending(){ return Object.keys(dirty).filter(function(k){ return BTAB[dirty[k].table]; }); }
+function budgetFlush(){
+  if(!BUDGET.on || BUDGET.flushing) return;
+  var keys=budgetPending(); if(!keys.length) return;
+  var changes=[], sent={};
+  keys.slice(0,200).forEach(function(k){
+    var job=dirty[k], rec=DB.get(job.table, job.id), kind=BTAB[job.table];
+    if(rec){ changes.push({ kind:kind, id:job.id, trip:rec.trip||rec.id||"", mt:+rec._mt||Date.now(), payload:JSON.stringify(rec) }); }
+    else {
+      var g=syncMeta("gone",job.table)[job.id];
+      changes.push({ kind:kind, id:job.id, trip:(g&&g.rec&&(g.rec.trip||g.rec.id))||"", mt:-Math.max(1,goneAt(g)||Date.now()), payload:null });
+    }
+    sent[k]=job;
+  });
+  BUDGET.flushing=true;
+  fetch("/api/budget",{ method:"POST", headers:{ "Content-Type":"application/json" }, body:JSON.stringify({ changes:changes }) })
+    .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+    .then(function(){
+      BUDGET.flushing=false; BUDGET.lastOkAt=Date.now(); BUDGET.lastError="";
+      Object.keys(sent).forEach(function(k){ if(dirty[k]===sent[k]) delete dirty[k]; }); /* 期间又改过的保留，下一轮再传 */
+      if(budgetPending().length) setTimeout(budgetFlush, 100);
+      renderBudgetSyncNote();
+    })
+    .catch(function(e){ BUDGET.flushing=false; BUDGET.lastError=String(e&&e.message||e); renderBudgetSyncNote(); setTimeout(budgetFlush, 8000); });
+}
+function budgetMerge(rows){
+  var changed=false, now=Date.now();
+  ["b","g"].forEach(function(table){
+    var kind=BTAB[table], seen=syncMeta("seen",table), gone=syncMeta("gone",table), inCloud={};
+    rows.forEach(function(row){
+      if(row.kind!==kind) return;
+      var id=row.id, mt=+row.mt||0; inCloud[id]=1; seen[id]=1;
+      if(dirty[table+"$"+id]) return;
+      var loc=DB.get(table,id);
+      if(mt<0){ if(loc && (+loc._mt||0) <= -mt){ lsDel(table,id); changed=true; } else if(loc) budgetQueue(table,id); return; }
+      if(gone[id]) return;
+      if(!loc || mt > (+loc._mt||0)){ try{ lsPut(table, JSON.parse(row.payload)); changed=true; }catch(e){} }
+      else if((+loc._mt||0) > mt) budgetQueue(table,id); /* 本机更新但没传上去（例如队列被清空过）：补传 */
+    });
+    Object.keys(gone).forEach(function(id){ if(!dirty[table+"$"+id] && (!inCloud[id] || now-goneAt(gone[id])>GONE_TTL)) delete gone[id]; });
+    var localIds={};
+    DB.list(table).forEach(function(loc){
+      localIds[loc.id]=1;
+      if(inCloud[loc.id] || dirty[table+"$"+loc.id]) return;
+      if(seen[loc.id]){ lsDel(table,loc.id); delete seen[loc.id]; changed=true; return; }
+      if(!loc._mt){ loc._mt=+loc.ts||now; LS.setItem(KEY[table]+loc.id, JSON.stringify(loc)); } /* 旧数据第一次上云 */
+      budgetQueue(table,loc.id);
+    });
+    Object.keys(seen).forEach(function(id){ if(!inCloud[id] && !localIds[id]) delete seen[id]; });
+    saveSyncMeta("seen",table,seen); saveSyncMeta("gone",table,gone);
+  });
+  if(changed){ loadAll(); renderPlan(); }
+  if(budgetPending().length) budgetFlush();
+}
+function budgetPull(){
+  if(BUDGET.pulling || !window.fetch) return;
+  BUDGET.pulling=true;
+  fetch("/api/budget",{ cache:"no-store" }).then(function(r){
+    var ct=(r.headers.get("content-type")||"").toLowerCase();
+    if(!r.ok || ct.indexOf("json")<0) throw new Error(r.status===503? "未配置" : "HTTP "+r.status);
+    return r.json();
+  }).then(function(d){
+    BUDGET.pulling=false;
+    var first=!BUDGET.on; BUDGET.on=true; BUDGET.checked=true; BUDGET.lastOkAt=Date.now(); BUDGET.lastError="";
+    budgetMerge(d.rows||[]);
+    if(first) renderBudgetSyncNote();
+  }).catch(function(e){
+    BUDGET.pulling=false; BUDGET.checked=true; BUDGET.lastError=String(e&&e.message||e);
+    renderBudgetSyncNote();
+  });
+}
+function renderBudgetSyncNote(){
+  var el=$("planSyncNote"); if(!el) return;
+  if(BUDGET.on){
+    var n=budgetPending().length;
+    el.textContent = n ? "☁️ 预算云端同步中（"+n+" 条待上传）" : "☁️ 预算已云端同步，所有设备共用";
+  } else el.textContent = "💾 预算数据暂存本机浏览器"+(BUDGET.checked && BUDGET.lastError ? "（云端未连接）" : "");
+}
+function budgetBoot(){
+  if(!/^https?:/.test(location.protocol)) return;
+  budgetPull();
+  setInterval(budgetPull, 8000);
+  document.addEventListener("visibilitychange", function(){ if(!document.hidden) budgetPull(); });
+}
+
 function cloudStart(){
   cloudPullRaw(cloudFirstSync);
   setInterval(cloudTick, 5000);
@@ -4301,6 +4396,7 @@ function maybeFirstWizard(){
 }
 if(!CLOUD_STATE.sdk) maybeFirstWizard(); else setTimeout(maybeFirstWizard, 6000);
 cloudBoot();
+budgetBoot();
 if(!openFromTripPage()) autoSyncPlans();
 </script>
 </body>
