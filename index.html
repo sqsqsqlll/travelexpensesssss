@@ -547,6 +547,36 @@ footer .dot{margin:0 6px;}
 .pc-act.over{background:var(--coral-deep);}
 .pc-legend{display:flex;gap:14px;font-size:11.5px;color:var(--muted);margin-top:10px;}
 .pc-legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px;}
+.plan-sec{justify-content:flex-start;}
+.plan-sec .lv-btn{flex:none;margin-left:auto;}
+.g-range{font-size:12.5px;color:var(--ink-soft);margin:6px 2px 0;min-height:18px;}
+.g-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line-soft);}
+.g-row:last-child{border-bottom:none;}
+.g-row .nm{flex:1;font-size:13.5px;font-weight:600;color:var(--ink-deep);min-width:0;}
+.g-row .nm small{display:block;font-weight:400;color:var(--muted);font-size:11.5px;}
+.g-row input{width:110px;border:1.5px solid var(--line);border-radius:10px;padding:7px 9px;font-size:15px;background:#FFFDF8;text-align:right;}
+.g-row .pct{width:42px;text-align:right;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;}
+.b-room{margin:-2px 0 12px;padding:8px 10px;border-radius:10px;background:var(--paper-deep);font-size:12.5px;line-height:1.65;color:var(--ink-soft);}
+.b-room b{color:var(--ink-deep);}
+.b-room .ok{color:var(--green);font-weight:600;} .b-room .warn{color:#9A6A12;font-weight:600;} .b-room .over{color:var(--coral-deep);font-weight:700;}
+.g-row .nm small.cap{color:var(--ink-soft);}
+.g-row .nm small.cap.over{color:var(--coral-deep);font-weight:600;}
+.g-remain small{display:block;font-weight:400;font-size:12px;margin-top:3px;opacity:.85;}
+.g-remain{margin-top:10px;padding:8px 10px;border-radius:10px;background:var(--paper-deep);font-size:13px;font-weight:600;color:var(--ink);}
+.g-remain.over{background:var(--coral-soft);color:var(--coral-deep);}
+.g-remain.ok{background:var(--green-soft);color:var(--green);}
+.plan-cta{display:flex;flex-direction:column;gap:10px;}
+.plan-cta .t{font-family:var(--serif);font-size:18px;font-weight:700;}
+.plan-cta .d{font-size:12.5px;line-height:1.6;opacity:.85;}
+.plan-cta button{align-self:flex-start;border:none;border-radius:999px;padding:8px 16px;font-weight:700;background:#F6EFDD;color:var(--ink-deep);cursor:pointer;}
+.plan-chip{display:inline-block;font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:999px;margin-top:6px;}
+.plan-chip.ok{background:#BFE0CF;color:#1E4D35;} .plan-chip.warn{background:#F2DDB5;color:#7A5410;} .plan-chip.over{background:#E9C6A9;color:#7A2E12;}
+.pc-row.click{cursor:pointer;}
+.pc-flag{font-size:11.5px;margin-top:4px;color:var(--muted);}
+.pc-flag.warn{color:#9A6A12;} .pc-flag.over{color:var(--coral-deep);font-weight:600;}
+.pc-items{position:absolute;left:0;top:0;bottom:0;background:#A9CDB7;border-radius:99px;}
+.pc-cap{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--ink-soft);opacity:.55;}
+.plan-group .add{margin-left:6px;border:1px solid var(--line);background:var(--card);border-radius:999px;font-size:12px;font-weight:700;padding:1px 9px;color:var(--ink);cursor:pointer;}
 .plan-group{font-family:var(--serif);font-size:14px;font-weight:700;color:var(--ink);margin:18px 2px 9px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
 .plan-group small{font-family:inherit;font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap;}
 .bi-card{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--line);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px;box-shadow:var(--shadow);}
@@ -858,9 +888,10 @@ header{background:var(--ink-deep);box-shadow:none;padding:12px 16px;}
     <div id="planTrip" class="form-trip">📁 行程：<b>—</b></div>
     <div class="summary-card" id="planSummary"></div>
     <div class="card" id="planCatCard">
-      <div class="section-title">预算 vs 实际</div>
+      <div class="section-title plan-sec"><span id="planCatTitle">预算 vs 实际</span><button class="lv-btn" id="planAllocBtn" hidden>调整分配</button></div>
       <div id="planCats"></div>
     </div>
+    <div class="section-title plan-sec" id="planItemsTitle" hidden><span>③ 细项预算</span></div>
     <div class="toolbar">
       <button class="btn btn-solid" id="planAddBtn" style="flex:2">＋ 添加预算项</button>
       <button class="btn" id="planGroupBtn">按类别看</button>
@@ -1020,6 +1051,27 @@ header{background:var(--ink-deep);box-shadow:none;padding:12px 16px;}
 </div>
 
 <!-- ============ 预算项编辑 ============ -->
+<!-- ============ 预算设定：总预算 → 分类 ============ -->
+<div class="mask" id="gMask">
+  <div class="modal">
+    <h3>预算设定<button class="m-close" id="gClose">✕</button></h3>
+    <div class="m-desc" id="gHint">从大到小：先定这趟总共打算花多少、能接受多少浮动，再分到各个类别，最后在类别下面列具体项目。</div>
+    <div class="row2">
+      <div class="fitem"><label>① 总预算（<span id="gCur">CNY</span>）</label><input inputmode="decimal" id="gTotal" placeholder="如：40000" autocomplete="off"></div>
+      <div class="fitem"><label>可接受浮动 ±%</label><input inputmode="decimal" id="gTol" placeholder="10" autocomplete="off"></div>
+    </div>
+    <div class="g-range" id="gRange"></div>
+    <div class="section-title plan-sec" style="margin:16px 2px 8px;font-size:14px"><span>② 分到各类别</span><button class="lv-btn" id="gAuto">按比例自动分配</button></div>
+    <div class="m-desc" id="gAutoHint" style="margin-bottom:8px"></div>
+    <div id="gCats"></div>
+    <div class="g-remain" id="gRemain"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="gCancel">取消</button>
+      <button class="btn btn-primary" id="gSave">保存</button>
+    </div>
+  </div>
+</div>
+
 <div class="mask" id="bMask">
   <div class="modal">
     <h3><span id="bTitle">添加预算项</span><button class="m-close" id="bClose">✕</button></h3>
@@ -1027,6 +1079,7 @@ header{background:var(--ink-deep);box-shadow:none;padding:12px 16px;}
     <div class="fitem" style="margin-bottom:12px"><label>项目</label><input type="text" id="bName" maxlength="60" placeholder="如：京都 → 大阪 JR 新快速"></div>
     <div class="fitem" style="margin-bottom:6px"><label>类别</label></div>
     <div class="pill-group" id="bCats"></div>
+    <div class="b-room" id="bRoom" hidden></div>
     <div class="row2">
       <div class="fitem"><label>日期（可选）</label><input type="date" id="bDay"></div>
       <div class="fitem"><label>数量（人数 / 份数）</label><input id="bQty" inputmode="numeric" placeholder="1"></div>
@@ -1242,7 +1295,7 @@ var LS = (function(){
 })();
 var CH = null;
 try{ CH = new BroadcastChannel("trip-aa-ledger"); }catch(e){}
-var KEY = { t:"aal$t$", m:"aal$m$", s:"aal$settings", x:"aal$x$", b:"aal$b$", p:"aal$p$" }; /* 账目表 / 成员表 / 设置表 / 行程表 / 预算表、地点表（暂仅本机） */
+var KEY = { t:"aal$t$", m:"aal$m$", s:"aal$settings", x:"aal$x$", b:"aal$b$", p:"aal$p$", g:"aal$g$" }; /* g：每个行程的总预算与分类分配 */ /* 账目表 / 成员表 / 设置表 / 行程表 / 预算表、地点表（暂仅本机） */
 
 var DB = {
   list:function(table){
@@ -2617,7 +2670,7 @@ var PLAN_STATUS_ORDER = ["idea","booked","paid"];
 var OPT_MODES = ["火车","高铁/新干线","地铁","巴士","飞机","出租/网约车","自驾","轮渡","步行","门票","酒店","套餐","其他"];
 var PREFS = { balanced:{n:"⚖ 均衡",p:.4,t:.3,c:.3}, cheap:{n:"💰 省钱",p:.7,t:.15,c:.15}, fast:{n:"⚡ 省时",p:.2,t:.6,c:.2}, easy:{n:"😌 省心",p:.2,t:.2,c:.6} };
 var planPending=null;           /* 正在「记为账目」的预算项 id */
-var planGroup="day"; try{ planGroup=LS.getItem("aalplangroup")||"day"; }catch(e){}
+var planGroup="cat"; try{ planGroup=LS.getItem("aalplangroup")||"cat"; }catch(e){}
 var cmpPref="balanced"; try{ cmpPref=LS.getItem("aalcmppref")||"balanced"; if(!PREFS[cmpPref]) cmpPref="balanced"; }catch(e){}
 var bEditId=null, bCat="交通", bStatus="idea";
 var cmpItemId=null, oEditId=null, oConv=0, oRefund="";
@@ -2671,22 +2724,60 @@ function renderPlan(){
   var txns=state.txns.filter(function(t){ return (t.trip||"")===tid; });
   var actual=0; txns.forEach(function(t){ actual+=txnBase(t); });
   var left=tot-actual;
-  $("planSummary").innerHTML=
-    '<div><div class="big">'+bs+fmt(tot)+'</div><div class="sub">'+esc(bc)+' 预算 · '+items.length+' 项 · 固定 '+bs+fmt(fixedTot)+'<br>已付 '+bs+fmt(byStatus.paid)+' · 已订 '+bs+fmt(byStatus.booked)+' · 计划 '+bs+fmt(byStatus.idea)+'</div></div>'+
-    '<div class="plan-sum-r"><div class="big '+(left<0?"over":"ok")+'" style="font-size:18px">'+(left<0?"超支 ":"剩余 ")+bs+fmt(Math.abs(left))+'</div><div class="sub">实际已花 '+bs+fmt(actual)+'（'+txns.length+' 笔）</div></div>';
-
-  /* 预算 vs 实际（按类别） */
-  var plan={}, act={};
-  items.forEach(function(b){ plan[b.category]=(plan[b.category]||0)+biBase(b); });
+  var gp=budgetPlan(tid);
+  var itemsBy={}, act={};
+  items.forEach(function(b){ itemsBy[b.category]=(itemsBy[b.category]||0)+biBase(b); });
   txns.forEach(function(t){ act[t.category]=(act[t.category]||0)+txnBase(t); });
-  var cats=CATS.filter(function(c){ return plan[c]||act[c]; });
-  $("planCatCard").style.display=cats.length?"":"none";
-  var mx=0; cats.forEach(function(c){ mx=Math.max(mx,plan[c]||0,act[c]||0); });
-  $("planCats").innerHTML=cats.map(function(c){
-    var p=plan[c]||0, a=act[c]||0, over=a>p && p>0 || (p===0 && a>0);
-    return '<div class="pc-row"><div class="pc-head"><span class="nm">'+CAT_ICON[c]+" "+esc(c)+'</span><span class="nums'+(a>p?" over":"")+'">'+bs+fmt(a)+" / "+bs+fmt(p)+'</span></div>'+
-      '<div class="pc-track"><i class="pc-plan" style="width:'+(mx?p/mx*100:0)+'%"></i><i class="pc-act'+(over?" over":"")+'" style="width:'+(mx?a/mx*100:0)+'%"></i></div></div>';
-  }).join("")+'<div class="pc-legend"><span><i style="background:#D8E7DD"></i>预算</span><span><i style="background:var(--green)"></i>实际</span><span><i style="background:var(--coral-deep)"></i>超出预算</span></div>';
+  $("planAllocBtn").hidden=!gp; $("planItemsTitle").hidden=!gp;
+  if(!gp){
+    /* ① 还没有总预算：先引导设定 */
+    $("planSummary").innerHTML='<div class="plan-cta"><div class="t">① 先定总预算</div>'+
+      '<div class="d">从大到小规划：先定这趟总共打算花多少、能接受多少浮动，再分到交通、住宿、餐饮等类别，最后在每个类别下列具体项目。'+
+      (tot||actual? '<br>目前已列细项 '+bs+fmt(tot)+'，实际已花 '+bs+fmt(actual)+'。' : '')+'</div>'+
+      '<button id="planSetupBtn">设定总预算</button></div>';
+    $("planSetupBtn").onclick=function(){ openBudgetPlan(); };
+    $("planCatTitle").textContent="预算 vs 实际";
+    var cats0=CATS.filter(function(c){ return itemsBy[c]||act[c]; });
+    $("planCatCard").style.display=cats0.length?"":"none";
+    var mx0=0; cats0.forEach(function(c){ mx0=Math.max(mx0,itemsBy[c]||0,act[c]||0); });
+    $("planCats").innerHTML=cats0.map(function(c){
+      var p=itemsBy[c]||0, a=act[c]||0, over=a>p && p>0 || (p===0 && a>0);
+      return '<div class="pc-row"><div class="pc-head"><span class="nm">'+CAT_ICON[c]+" "+esc(c)+'</span><span class="nums'+(a>p?" over":"")+'">'+bs+fmt(a)+" / "+bs+fmt(p)+'</span></div>'+
+        '<div class="pc-track"><i class="pc-plan" style="width:'+(mx0?p/mx0*100:0)+'%"></i><i class="pc-act'+(over?" over":"")+'" style="width:'+(mx0?a/mx0*100:0)+'%"></i></div></div>';
+    }).join("")+'<div class="pc-legend"><span><i style="background:#D8E7DD"></i>预算</span><span><i style="background:var(--green)"></i>实际</span><span><i style="background:var(--coral-deep)"></i>超出预算</span></div>';
+  } else {
+    /* ① 总预算与浮动范围 */
+    var T=+gp.total||0, tol=(+gp.tolerance||0)/100, cap=T*(1+tol), floor=T*(1-tol);
+    var alloc=0; CATS.forEach(function(c){ alloc+=(+((gp.cats||{})[c])||0); });
+    var worst=Math.max(tot,actual);
+    var st = worst<=T? ["ok","在预算内"] : worst<=cap? ["warn","超出总预算，但在可接受范围内"] : ["over","超出可接受范围 "+bs+fmt(worst-cap)];
+    $("planSummary").innerHTML=
+      '<div><div class="big">'+bs+fmt(T)+'</div><div class="sub">① 总预算'+(tol? ' · 可接受 '+bs+fmt(floor)+' ~ '+bs+fmt(cap)+'（±'+fmt(tol*100,0)+'%）' : '')+
+        '<br>② 已分配到类别 '+bs+fmt(alloc)+(Math.abs(T-alloc)>0.5? (T>alloc? '，还有 '+bs+fmt(T-alloc)+' 未分配' : '，超出总预算 '+bs+fmt(alloc-T)) : '，已分完')+
+        '<br>③ 细项合计 '+bs+fmt(tot)+' · '+items.length+' 项</div>'+
+        '<span class="plan-chip '+st[0]+'">'+esc(st[1])+'</span></div>'+
+      '<div class="plan-sum-r"><div class="big '+(actual>cap?"over":"ok")+'" style="font-size:18px">'+(T-actual<0?"超支 ":"剩余 ")+bs+fmt(Math.abs(T-actual))+'</div><div class="sub">实际已花 '+bs+fmt(actual)+'（'+txns.length+' 笔）</div></div>';
+    /* ② 分类预算：分配 / 细项 / 实际 */
+    $("planCatTitle").textContent="② 分类预算";
+    var cats=CATS.filter(function(c){ return (+((gp.cats||{})[c])||0) || itemsBy[c] || act[c]; });
+    $("planCatCard").style.display="";
+    var mx=0; cats.forEach(function(c){ var a=+((gp.cats||{})[c])||0; mx=Math.max(mx,a*(1+tol),itemsBy[c]||0,act[c]||0); });
+    $("planCats").innerHTML=(cats.length? cats.map(function(c){
+      var a=+((gp.cats||{})[c])||0, it=itemsBy[c]||0, sp=act[c]||0, flag="", cls="";
+      if(!a){ flag="还没给这个类别分配预算"; cls="warn"; }
+      else if(sp>a*(1+tol)){ flag="实际已超出可接受范围 "+bs+fmt(sp-a*(1+tol)); cls="over"; }
+      else if(it>a*(1+tol)){ flag="细项比分配多 "+bs+fmt(it-a)+"，超出可接受范围"; cls="over"; }
+      else if(it>a || sp>a){ flag="比分配多 "+bs+fmt(Math.max(it,sp)-a)+"，仍在浮动范围内"; cls="warn"; }
+      else if(it<a) flag="还可以列 "+bs+fmt(a-it)+" 的细项"+(tol? "，含浮动最多 "+bs+fmt(a*(1+tol)-it) : "");
+      return '<div class="pc-row click" data-gcat="'+esc(c)+'"><div class="pc-head"><span class="nm">'+CAT_ICON[c]+" "+esc(c)+(T&&a? ' <small style="color:var(--muted);font-weight:400">'+fmt(a/T*100,0)+'%</small>':'')+'</span>'+
+        '<span class="nums">细项 '+bs+fmt(it)+' / 分配 '+bs+fmt(a)+'</span></div>'+
+        '<div class="pc-track"><i class="pc-plan" style="width:'+(mx?a/mx*100:0)+'%"></i><i class="pc-items" style="width:'+(mx?Math.min(it,mx)/mx*100:0)+'%"></i>'+
+          '<i class="pc-act'+(sp>a*(1+tol)?" over":"")+'" style="width:'+(mx?Math.min(sp,mx)/mx*100:0)+'%"></i>'+(a&&tol? '<i class="pc-cap" style="left:'+(a*(1+tol)/mx*100)+'%"></i>':'')+'</div>'+
+        '<div class="pc-flag '+cls+'">'+(sp? '已花 '+bs+fmt(sp)+(flag?" · ":"") : '')+esc(flag)+'</div></div>';
+    }).join("") : '<div class="empty" style="padding:10px 0">还没有分到类别，点「调整分配」把总预算分到各个类别</div>')+
+      '<div class="pc-legend"><span><i style="background:#D8E7DD"></i>分配</span><span><i style="background:#A9CDB7"></i>细项</span><span><i style="background:var(--green)"></i>实际</span><span><i style="background:var(--ink-soft);width:2px"></i>可接受上限</span></div>';
+    Array.prototype.forEach.call($("planCats").querySelectorAll("[data-gcat]"),function(el){ el.onclick=function(){ openBudgetPlan(el.getAttribute("data-gcat")); }; });
+  }
 
   $("planGroupBtn").textContent = planGroup==="day" ? "按类别看" : "按日期看";
 
@@ -2710,8 +2801,12 @@ function renderPlan(){
   $("planList").innerHTML=order.map(function(k){
     var sum=0; groups[k].forEach(function(b){ sum+=biBase(b); });
     var head = planGroup==="day" ? dayLabel(k,trip) : (CAT_ICON[k]||"🧾")+" "+k;
-    return '<div class="plan-group"><span>'+esc(head)+'</span><small>'+bs+fmt(sum)+'</small></div>'+groups[k].map(biCardHtml).join("");
+    var ga = gp && planGroup!=="day" ? (+((gp.cats||{})[k])||0) : 0;
+    var right = ga ? bs+fmt(sum)+' / 分配 '+bs+fmt(ga) : bs+fmt(sum);
+    var add = planGroup!=="day" ? '<button class="add" data-badd="'+esc(k)+'">＋</button>' : '';
+    return '<div class="plan-group"><span>'+esc(head)+add+'</span><small'+(ga&&sum>ga?' style="color:var(--coral-deep)"':'')+'>'+right+'</small></div>'+groups[k].map(biCardHtml).join("");
   }).join("");
+  Array.prototype.forEach.call($("planList").querySelectorAll("[data-badd]"),function(el){ el.onclick=function(){ openBudget(null, el.getAttribute("data-badd")); }; });
   bindPlanList();
 }
 function biCardHtml(b){
@@ -2799,13 +2894,130 @@ function bindPlanList(){
   Array.prototype.forEach.call(L.querySelectorAll("[data-bpay]"),function(el){ el.onclick=function(){ budgetToExpense(el.getAttribute("data-bpay")); }; });
 }
 $("planGroupBtn").onclick=function(){ planGroup = planGroup==="day"?"cat":"day"; try{ LS.setItem("aalplangroup",planGroup); }catch(e){} renderPlan(); };
+/* 添加 / 编辑细项时，提示这个类别还有多少空间（含浮动），输入金额时实时检查 */
+function bRoomUI(){
+  var box=$("bRoom"); if(!box) return;
+  var rec=bEditId? DB.get("b",bEditId) : null, tid=rec? rec.trip : planTripId(), gp=budgetPlan(tid);
+  if(!gp){ box.hidden=true; return; }
+  var bs=baseSym(), t=(+gp.tolerance||0)/100, a=+((gp.cats||{})[bCat])||0, it=0, alloc=0;
+  state.budget.forEach(function(b){ if(b.trip===tid && b.category===bCat && b.id!==bEditId) it+=biBase(b); });
+  CATS.forEach(function(c){ alloc+=(+((gp.cats||{})[c])||0); });
+  var amt=parseFloat($("bAmt").value), q=Math.max(1,parseInt($("bQty").value,10)||1), rate=readRate($("bCur").value,$("bRate"));
+  var cur=(isFinite(amt)&&amt>0&&isFinite(rate))? amt*q*rate : 0, html;
+  if(!a){
+    var free=(+gp.total||0)-alloc;
+    html=CAT_ICON[bCat]+" <b>"+esc(bCat)+"</b> 还没有分配预算"+(free>0.5? "，总预算还有 "+bs+fmt(free)+" 未分配，可以先到「调整分配」里分一些" : "");
+    if(cur) html+='<br><span class="warn">这一项 '+bs+fmt(cur)+' 将不在任何类别预算内</span>';
+  } else {
+    var cap=a*(1+t);
+    html=CAT_ICON[bCat]+" <b>"+esc(bCat)+"</b>：分配 "+bs+fmt(a)+(t? "（可浮动到 "+bs+fmt(cap)+"）" : "")+"，已列 "+bs+fmt(it)+
+      "<br>还可以列 <b>"+bs+fmt(Math.max(0,a-it))+"</b>"+(t? "，含浮动最多 <b>"+bs+fmt(Math.max(0,cap-it))+"</b>" : "");
+    if(cur){
+      var after=it+cur;
+      html+= after>cap+0.005 ? '<br><span class="over">加上这一项共 '+bs+fmt(after)+'，超出可接受上限 '+bs+fmt(after-cap)+'</span>'
+           : after>a+0.005 ? '<br><span class="warn">加上这一项共 '+bs+fmt(after)+'，超过分配 '+bs+fmt(after-a)+'，仍在浮动范围内</span>'
+           : '<br><span class="ok">加上这一项后，这个类别还剩 '+bs+fmt(a-after)+'</span>';
+    }
+  }
+  box.innerHTML=html; box.hidden=false;
+}
+/* ---------- 预算设定：① 总预算 + 浮动 → ② 分类 ---------- */
+function budgetPlan(tid){ var g=DB.get("g",tid); return g && +g.total>0 ? g : null; }
+var DEFAULT_SHARE={"住宿":35,"交通":25,"餐饮":20,"门票":8,"购物":6,"娱乐":3,"医疗":1,"其他":2};
+/* 自动分配的比例：有过往行程（每趟至少 3 笔）就用它们的实际花费比例，否则用常见比例 */
+function allocShares(tid){
+  var by={}, sum=0, n={};
+  state.txns.forEach(function(t){ if(!t.trip || t.trip===tid) return; n[t.trip]=(n[t.trip]||0)+1; });
+  state.txns.forEach(function(t){ if(!t.trip || t.trip===tid || n[t.trip]<3) return; var v=txnBase(t); by[t.category]=(by[t.category]||0)+v; sum+=v; });
+  if(sum>0){ var out={}; CATS.forEach(function(c){ out[c]=(by[c]||0)/sum*100; }); return { shares:out, from:"history", trips:Object.keys(n).filter(function(k){ return n[k]>=3; }).length }; }
+  return { shares:DEFAULT_SHARE, from:"default" };
+}
+function gRead(){
+  var total=parseFloat($("gTotal").value), tol=parseFloat($("gTol").value), cats={};
+  Array.prototype.forEach.call($("gCats").querySelectorAll("input[data-c]"),function(el){ var v=parseFloat(el.value); if(isFinite(v)&&v>0) cats[el.getAttribute("data-c")]=Math.round(v*100)/100; });
+  return { total:isFinite(total)?total:0, tol:isFinite(tol)?Math.max(0,Math.min(100,tol)):10, cats:cats };
+}
+function gRefresh(){
+  var r=gRead(), bs=baseSym(), alloc=0;
+  Object.keys(r.cats).forEach(function(c){ alloc+=r.cats[c]; });
+  $("gRange").textContent = r.total ? "可接受范围："+bs+fmt(r.total*(1-r.tol/100))+" ~ "+bs+fmt(r.total*(1+r.tol/100)) : "";
+  var t=r.tol/100;
+  Array.prototype.forEach.call($("gCats").querySelectorAll(".g-row"),function(row){
+    var v=parseFloat(row.querySelector("input").value)||0, items=+row.getAttribute("data-items")||0, cap=row.querySelector(".cap");
+    row.querySelector(".pct").textContent = r.total&&v ? fmt(v/r.total*100,0)+"%" : "";
+    /* 下一层（细项）的浮动空间 */
+    if(v && items>v*(1+t)){ cap.className="cap over"; cap.textContent="已列细项超出这个类别的上限 "+bs+fmt(items-v*(1+t)); }
+    else if(v){ cap.className="cap"; cap.textContent=(t? "细项可在 "+bs+fmt(v*(1-t))+" ~ "+bs+fmt(v*(1+t))+" 之间" : "细项上限 "+bs+fmt(v))+(items? "，还可列 "+bs+fmt(v*(1+t)-items) : ""); }
+    else { cap.className="cap"; cap.textContent=""; }
+  });
+  var left=r.total-alloc, el=$("gRemain"), capLine="";
+  if(r.total && alloc){
+    capLine='<small>各类别按 ±'+fmt(r.tol,0)+'% 浮动，最多合计 '+bs+fmt(alloc*(1+t))+'；总预算可接受上限 '+bs+fmt(r.total*(1+t))+
+      (alloc*(1+t)>r.total*(1+t)+0.5? '，<b>会超出</b>，请调低某些类别' : '，在控制范围内')+'</small>';
+  }
+  if(!r.total){ el.className="g-remain"; el.textContent="先填总预算"; }
+  else if(Math.abs(left)<0.5){ el.className="g-remain ok"; el.innerHTML="✓ 总预算已全部分配"+capLine; }
+  else if(left>0){ el.className="g-remain"; el.innerHTML="还有 "+bs+fmt(left)+" 未分配，可以留作各类别超出时的机动"+capLine; }
+  else { el.className="g-remain over"; el.innerHTML="分配合计超出总预算 "+bs+fmt(-left)+capLine; }
+}
+function openBudgetPlan(focusCat){
+  var tid=planTripId(); if(!tripById(tid)){ toast("先创建一个行程 🧳"); openTripModal(); return; }
+  var g=DB.get("g",tid)||{}, items=planItems(), itemsBy={}, itemsTot=0;
+  items.forEach(function(b){ var v=biBase(b); itemsBy[b.category]=(itemsBy[b.category]||0)+v; itemsTot+=v; });
+  $("gCur").textContent=baseCode();
+  /* 没设过总预算时，用已列细项的合计向上取整作为起点 */
+  $("gTotal").value = +g.total>0 ? g.total : (itemsTot? Math.ceil(itemsTot/1000)*1000 : "");
+  $("gTol").value = g.tolerance!=null ? g.tolerance : 10;
+  var sh=allocShares(tid);
+  $("gAutoHint").textContent = sh.from==="history" ? "自动分配按你过往 "+sh.trips+" 趟行程的实际花费比例" : "自动分配按常见比例：住宿 35%、交通 25%、餐饮 20%、门票 8%…";
+  $("gCats").innerHTML=CATS.map(function(c){
+    var v=(g.cats||{})[c];
+    return '<div class="g-row" data-items="'+(itemsBy[c]||0)+'"><span class="nm">'+CAT_ICON[c]+" "+esc(c)+(itemsBy[c]? '<small>已列细项 '+baseSym()+fmt(itemsBy[c])+'</small>':'')+'<small class="cap"></small></span>'+
+      '<input type="number" inputmode="decimal" min="0" step="100" data-c="'+esc(c)+'" value="'+(v? v : "")+'" placeholder="0"><span class="pct"></span></div>';
+  }).join("");
+  Array.prototype.forEach.call($("gCats").querySelectorAll("input"),function(el){ el.oninput=gRefresh; });
+  gRefresh();
+  $("gMask").classList.add("on");
+  setTimeout(function(){
+    var el = focusCat ? $("gCats").querySelector('input[data-c="'+focusCat+'"]') : (+g.total>0 ? null : $("gTotal"));
+    if(el){ el.focus(); el.scrollIntoView({block:"center"}); }
+  }, 80);
+}
+$("gTotal").oninput=gRefresh; $("gTol").oninput=gRefresh;
+$("gAuto").onclick=function(){
+  var r=gRead(); if(!r.total){ toast("先填总预算"); $("gTotal").focus(); return; }
+  var sh=allocShares(planTripId()).shares, left=r.total, filled=0;
+  Object.keys(r.cats).forEach(function(c){ left-=r.cats[c]; filled++; });
+  if(left<=0.5){ toast("总预算已经分完了，要重新分配请先清空类别金额"); return; }
+  /* 只分配还空着的类别：已填的金额保留，剩余部分按比例分给其他类别 */
+  var empty=CATS.filter(function(c){ return !r.cats[c] && sh[c]>0; }), w=0;
+  empty.forEach(function(c){ w+=sh[c]; });
+  if(!w){ toast("所有类别都已填写"); return; }
+  var step=left>=5000?100:10, used=0;
+  empty.forEach(function(c,i){
+    var v = i===empty.length-1 ? left-used : Math.round(left*sh[c]/w/step)*step;
+    if(v<0) v=0; used+=v;
+    var el=$("gCats").querySelector('input[data-c="'+c+'"]'); if(el) el.value = v? Math.round(v*100)/100 : "";
+  });
+  gRefresh(); toast(filled? "已按比例分配剩余的 "+baseSym()+fmt(left) : "已按比例分配");
+};
+$("gClose").onclick=$("gCancel").onclick=function(){ $("gMask").classList.remove("on"); };
+$("gMask").addEventListener("click",function(e){ if(e.target===this) $("gMask").classList.remove("on"); });
+$("gSave").onclick=function(){
+  var r=gRead(), tid=planTripId();
+  if(!(r.total>0)){ toast("请填写总预算"); $("gTotal").focus(); return; }
+  DB.upsert("g",{ id:tid, trip:tid, total:Math.round(r.total*100)/100, tolerance:r.tol, cats:r.cats, ts:Date.now() });
+  $("gMask").classList.remove("on");
+  loadAll(); renderPlan(); toast("预算已保存 ✅");
+};
+$("planAllocBtn").onclick=function(){ openBudgetPlan(); };
 $("planAddBtn").onclick=function(){
   if(!tripById(planTripId())){ toast("先创建一个行程 🧳"); openTripModal(); return; }
   openBudget(null);
 };
 
 /* ---- 预算项编辑 ---- */
-function openBudget(id){
+function openBudget(id, presetCat){
   var b = id? DB.get("b",id) : null;
   bEditId = b? b.id : null;
   var trip=tripById(b? b.trip : planTripId());
@@ -2821,7 +3033,7 @@ function openBudget(id){
   $("bFixed").checked = b? !!b.fixed : false;
   $("bFrom").value = b? (b.from||"") : ""; $("bTo").value = b? (b.to||"") : "";
   $("bRef").value = b? (b.ref||"") : ""; $("bUrl").value = b? (b.url||"") : ""; $("bNote").value = b? (b.note||"") : "";
-  bCat = b? b.category : "交通"; bStatus = b? (b.status||"idea") : "idea";
+  bCat = b? b.category : (presetCat && CATS.indexOf(presetCat)>=0 ? presetCat : "交通"); bStatus = b? (b.status||"idea") : "idea";
   $("bDel").style.display = b? "" : "none";
   renderBudgetPills(); bRateUI();
   $("bMask").classList.add("on");
@@ -2830,6 +3042,7 @@ function openBudget(id){
 function renderBudgetPills(){
   $("bCats").innerHTML=CATS.map(function(c){ return '<button type="button" class="pill'+(c===bCat?" on coral":"")+'" data-v="'+esc(c)+'">'+CAT_ICON[c]+" "+esc(c)+"</button>"; }).join("");
   bindPills("bCats",function(v){ bCat=v; renderBudgetPills(); });
+  bRoomUI();
   $("bStatus").innerHTML=PLAN_STATUS_ORDER.map(function(k){ return '<button type="button" class="pill'+(k===bStatus?" on":"")+'" data-v="'+k+'">'+PLAN_STATUS[k]+"</button>"; }).join("");
   bindPills("bStatus",function(v){ bStatus=v; renderBudgetPills(); });
 }
@@ -2840,6 +3053,7 @@ function bRateUI(){
   Array.prototype.forEach.call(document.querySelectorAll(".bBase"),function(e){ e.textContent=baseCode(); });
   if(!isBase && !$("bRate").value){ var r=lastRate(c); if(isFinite(r)) $("bRate").value=r.toFixed(6); }
   var amt=parseFloat($("bAmt").value), q=Math.max(1,parseInt($("bQty").value,10)||1), rate=readRate($("bCur").value,$("bRate"));
+  bRoomUI();
   $("bTotal").textContent = isFinite(amt)&&amt>0 ? ("合计 "+curSym(c)+fmt(amt*q)+(q>1?"（"+fmt(amt)+" × "+q+"）":"")+(!isBase&&isFinite(rate)?" ≈ "+baseSym()+fmt(amt*q*rate):"")) : "";
 }
 ["bAmt","bQty","bRate"].forEach(function(k){ $(k).addEventListener("input",bRateUI); });
