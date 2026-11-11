@@ -11,7 +11,7 @@
 | `404` / `does not exist`（只有某张表） | 云端缺表，常见是 **行程表 `ledger_trips`**（v1.2 才加） | 在 WorkBuddy 数据库里建表，字段见下 |
 | `column ... does not exist` | 缺字段，常见是账目表的 `trip` | 在 `ledger_transactions` 加文本字段 `trip` |
 
-> **预算项和地点库目前只保存在本机**（导入 trip-data.json 时生成的预算项、地点不会上云），换设备看不到属于预期行为，不是失败。行程本身、账目、成员、设置会上云。
+> 账目、成员、设置、行程在 WorkBuddy 云端；**预算项和预算设定**在本站 `/api/budget`（Cloudflare D1），预算页底部显示「☁️ 预算已云端同步」即正常。**地点库目前只保存在本机。**
 
 ## 同域转发（已内置）
 
