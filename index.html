@@ -694,6 +694,17 @@ main{padding-bottom:96px;}
 .amount-box{background:#fff;border:1px solid var(--line);border-radius:var(--radius);}
 /* 深色汇总卡：纯色，无渐变 */
 .stray-card{border-color:#E9C6A9;background:#FFF8F1;}
+.pb-opt{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-soft);margin:4px 2px 10px;}
+.pb-sum{font-size:13px;font-weight:600;color:var(--ink);background:var(--paper-deep);border-radius:10px;padding:8px 10px;margin-bottom:8px;}
+.pb-list{max-height:46vh;overflow:auto;border:1px solid var(--line);border-radius:10px;}
+.pb-row{display:flex;align-items:flex-start;gap:9px;padding:8px 10px;border-bottom:1px dashed var(--line-soft);font-size:13px;}
+.pb-row:last-child{border-bottom:none;}
+.pb-row input{margin-top:3px;flex:none;}
+.pb-row .nm{flex:1;min-width:0;color:var(--ink-deep);font-weight:600;overflow-wrap:anywhere;}
+.pb-row .nm small{display:block;font-weight:400;color:var(--muted);}
+.pb-row .nm small.dup{color:#9A6A12;}
+.pb-row .amt{flex:none;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink-soft);}
+.pb-row.off{opacity:.55;}
 .stray-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px dashed var(--line-soft);}
 .stray-row .nm{flex:1;font-weight:700;color:var(--ink-deep);} .stray-row .nm small{font-weight:400;color:var(--muted);}
 .stray-row select{border:1.5px solid var(--line);border-radius:10px;padding:6px 8px;background:#FFFDF8;font-size:13px;}
@@ -921,6 +932,7 @@ main{padding-bottom:96px;}
       <button class="btn" id="plImportBtn">📥 导入</button>
       <button class="btn" id="plExportBtn">📤 导出</button>
     </div>
+    <button class="btn" id="plToBudgetBtn" style="width:100%;margin-bottom:12px">🗓 加入预算</button>
     <div class="lv-bar">
       <input type="search" id="plQ" placeholder="🔍 搜索名称 / 城市 / 标签 / 印象" autocomplete="off">
     </div>
@@ -1079,6 +1091,29 @@ main{padding-bottom:96px;}
     <div class="modal-actions">
       <button class="btn btn-ghost" id="gCancel">取消</button>
       <button class="btn btn-primary" id="gSave">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 地点 → 预算 ============ -->
+<div class="mask" id="pbMask">
+  <div class="modal">
+    <h3>把地点加入预算<button class="m-close" id="pbClose">✕</button></h3>
+    <div class="m-desc">按地点的「人均花费 × 人数」生成预算项；景点记为门票、餐厅记为餐饮、住宿记为住宿。已经在预算里的不会重复添加。</div>
+    <div class="row2">
+      <div class="fitem"><label>地点来源</label><select id="pbSrc"></select></div>
+      <div class="fitem"><label>加入行程</label><select id="pbTrip"></select></div>
+    </div>
+    <div class="row2">
+      <div class="fitem"><label>人数</label><input inputmode="numeric" id="pbPpl" autocomplete="off"></div>
+      <div class="fitem"><label>人均花费的币种</label><select id="pbCur"></select></div>
+    </div>
+    <label class="pb-opt"><input type="checkbox" id="pbZero"> 没有人均花费的地点也加入（金额待补）</label>
+    <div class="pb-sum" id="pbSum"></div>
+    <div class="pb-list" id="pbList"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="pbCancel">取消</button>
+      <button class="btn btn-primary" id="pbGo">加入预算</button>
     </div>
   </div>
 </div>
@@ -3592,6 +3627,105 @@ function plMatch(p){
   return [p.name,p.city,p.country,p.address,(p.tags||[]).join(" "),p.impression,p.experiences,p.highlights,p.note,p.pack].join(" ").toLowerCase().indexOf(q)>=0;
 }
 function mapQuery(p){ return [p.name,p.city,p.country].filter(Boolean).join(" "); }
+
+/* ---------- 地点 → 预算 ---------- */
+var PL_TO_CAT={ sight:"门票", restaurant:"餐饮", hotel:"住宿", shop:"购物", transport:"交通", activity:"娱乐", other:"其他" };
+/* 行程里实际参与的人数（账目里的参与人和付款人），没有账目时用成员人数 */
+function tripPeopleCount(tid){
+  var ppl={};
+  state.txns.forEach(function(t){ if((t.trip||"")!==tid) return; if(t.payer) ppl[t.payer]=1; txnParts(t).forEach(function(n){ ppl[n]=1; }); });
+  var n=Object.keys(ppl).length; return n || state.members.length || 1;
+}
+function normTitle(x){ return String(x||"").replace(/[（(][^）)]*[）)]/g,"").replace(/[\s·・＋+/／、，,。.\-—_|｜:：]/g,"").toLowerCase(); }
+function firstToken(x){ return normTitle(String(x||"").split(/[\s·・＋+/／（(→]/)[0]); }
+/* 同名（或互相包含）= 已在预算；只有开头的词相同 = 可能重复，默认不勾选 */
+function budgetMatch(place, items){
+  var nn=normTitle(place.name), ft=firstToken(place.name), exact=null, maybe=null;
+  items.forEach(function(b){
+    if(b.placeId===place.id){ exact=b; return; }
+    var bn=normTitle(b.title);
+    if(nn && bn && (nn===bn || (nn.length>=3 && bn.indexOf(nn)>=0) || (bn.length>=3 && nn.indexOf(bn)>=0))) exact=exact||b;
+    else if(ft.length>=2 && bn.indexOf(ft)>=0) maybe=maybe||b;
+  });
+  return { exact:exact, maybe:maybe };
+}
+function pbSources(){
+  var packs={};
+  state.places.forEach(function(p){ var k=p.pack||""; if(!k) return; packs[k]=Math.max(packs[k]||0, +p.ts||0); });
+  var list=Object.keys(packs).sort(function(a,b){ return packs[b]-packs[a]; });
+  return list;
+}
+var pbChecked={};
+function pbCandidates(){
+  var src=$("pbSrc").value, tid=$("pbTrip").value, includeZero=$("pbZero").checked;
+  var places = src==="__all__" ? state.places : src==="__shown__" ? state.places.filter(plMatch) : state.places.filter(function(p){ return (p.pack||"")===src; });
+  var items=state.budget.filter(function(b){ return b.trip===tid; });
+  return places.map(function(p){
+    var m=budgetMatch(p, items), cost=+p.cost||0;
+    return { p:p, cat:PL_TO_CAT[p.kind]||"其他", cost:cost, exact:m.exact, maybe:m.maybe, skip: !!m.exact || (!cost && !includeZero) };
+  });
+}
+function pbRender(){
+  var ppl=Math.max(1,parseInt($("pbPpl").value,10)||1), cur=$("pbCur").value, code=curCode(cur), rate=code===baseCode()? 1 : lastRate(code);
+  var cands=pbCandidates(), on=0, sum=0, dup=0, zero=0;
+  $("pbList").innerHTML=cands.map(function(c){
+    if(c.exact) dup++; else if(!c.cost) zero++;
+    var key=c.p.id; if(!(key in pbChecked)) pbChecked[key]=!c.maybe;
+    var checked=!c.skip && pbChecked[key];
+    if(checked){ on++; sum+=c.cost*ppl; }
+    var sub=[(CAT_ICON[c.cat]||"")+" "+c.cat, c.p.city, c.p.date].filter(Boolean).join(" · ");
+    var hint = c.exact ? '<small class="dup">已在预算：'+esc(c.exact.title)+'</small>'
+      : c.maybe ? '<small class="dup">可能已在预算：'+esc(c.maybe.title)+'（默认不加）</small>'
+      : !c.cost ? '<small>没有人均花费'+($("pbZero").checked?'，加入后金额待补':'，未勾选「也加入」时跳过')+'</small>' : '';
+    return '<label class="pb-row'+(c.skip?' off':'')+'"><input type="checkbox" data-pb="'+esc(key)+'"'+(checked?' checked':'')+(c.skip?' disabled':'')+'>'+
+      '<span class="nm">'+esc(c.p.name)+'<small>'+esc(sub)+'</small>'+hint+'</span>'+
+      '<span class="amt">'+(c.cost? curSym(code)+fmt(c.cost,0)+' × '+ppl : '—')+'</span></label>';
+  }).join("") || '<div class="empty" style="padding:14px">这个来源里没有地点</div>';
+  $("pbSum").textContent="将加入 "+on+" 项，合计 "+curSym(code)+fmt(sum,0)+(isFinite(rate)&&code!==baseCode()? "（约 "+baseSym()+fmt(sum*rate)+"）" : "")+
+    (dup? " · 已在预算 "+dup+" 项不重复添加" : "")+(zero&&!$("pbZero").checked? " · 没有人均花费 "+zero+" 项" : "");
+  $("pbGo").disabled=!on;
+  Array.prototype.forEach.call($("pbList").querySelectorAll("input[data-pb]"),function(el){
+    el.onchange=function(){ pbChecked[el.getAttribute("data-pb")]=el.checked; pbRender(); };
+  });
+}
+function openPlacesToBudget(){
+  if(!state.places.length){ toast("地点库还是空的"); return; }
+  if(!state.trips.length){ toast("先创建一个行程 🧳"); openTripModal(); return; }
+  var packs=pbSources();
+  $("pbSrc").innerHTML=packs.map(function(k,i){ return '<option value="'+esc(k)+'">'+(i===0?"最近导入：":"")+esc(k)+'</option>'; }).join("")+
+    '<option value="__shown__">地点页当前显示的地点</option><option value="__all__">全部地点</option>';
+  $("pbTrip").innerHTML=state.trips.map(function(t){ return '<option value="'+esc(t.id)+'">'+esc(t.name)+'</option>'; }).join("");
+  var tid=tripById(state.curTrip)? state.curTrip : state.trips[0].id; $("pbTrip").value=tid;
+  $("pbPpl").value=tripPeopleCount(tid);
+  $("pbCur").innerHTML=curOpts(); var jpy=[].slice.call($("pbCur").options).filter(function(o){ return /^JPY/.test(o.value); })[0];
+  $("pbCur").value = jpy? jpy.value : baseLabel();
+  $("pbZero").checked=false; pbChecked={};
+  pbRender();
+  $("pbMask").classList.add("on");
+}
+$("plToBudgetBtn").onclick=openPlacesToBudget;
+$("pbSrc").onchange=function(){ pbChecked={}; pbRender(); };
+$("pbTrip").onchange=function(){ $("pbPpl").value=tripPeopleCount($("pbTrip").value); pbChecked={}; pbRender(); };
+$("pbPpl").oninput=pbRender; $("pbCur").onchange=pbRender; $("pbZero").onchange=pbRender;
+$("pbClose").onclick=$("pbCancel").onclick=function(){ $("pbMask").classList.remove("on"); };
+$("pbMask").addEventListener("click",function(e){ if(e.target===this) $("pbMask").classList.remove("on"); });
+$("pbGo").onclick=function(){
+  var tid=$("pbTrip").value, trip=tripById(tid), ppl=Math.max(1,parseInt($("pbPpl").value,10)||1), cur=$("pbCur").value, code=curCode(cur);
+  var rate=code===baseCode()? 1 : lastRate(code); if(!isFinite(rate)) rate=1;
+  var inTrip=function(d){ return d && (!trip.startDate || d>=trip.startDate) && (!trip.endDate || d<=trip.endDate); };
+  var now=Date.now(), n=0, sum=0;
+  pbCandidates().forEach(function(c){
+    if(c.skip || !pbChecked[c.p.id]) return;
+    DB.upsert("b",{ id:uid(), ts:now+n, trip:tid, title:String(c.p.name).slice(0,60), category:c.cat, day: inTrip(c.p.date)? c.p.date : "",
+      amount:c.cost||0, qty:ppl, currency:cur, rate:rate, fixed:false, status:"idea", ref:"", url:c.p.website||"",
+      note:"来自地点库"+(c.p.pack? "「"+c.p.pack+"」" : "")+(c.cost? "；人均 "+curSym(code)+fmt(c.cost,0)+" × "+ppl+" 人" : "；人均花费待补")+(c.p.city? "；"+c.p.city : ""),
+      from:"", to:"", options:[], chosenOptionId:"", expenseId:"", placeId:c.p.id });
+    n++; sum+=(c.cost||0)*ppl;
+  });
+  $("pbMask").classList.remove("on");
+  loadAll(); renderAll(true);
+  toast("已加入 "+n+" 项预算，合计 "+curSym(code)+fmt(sum,0)+" 🗓");
+};
 function renderPlaces(){
   if(!$("view-places")) return;
   var all=state.places;
