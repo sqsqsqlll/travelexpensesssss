@@ -943,7 +943,7 @@ main{padding-bottom:96px;}
     <div class="pill-group plan-filters" id="plStatus"></div>
     <div class="pill-group plan-filters" id="plKinds"></div>
     <div id="plList"></div>
-    <div class="settle-note" style="text-align:center">💾 地点数据暂存本机浏览器；可随时导出资料包备份或分享</div>
+    <div class="settle-note" style="text-align:center"><span id="placeSyncNote">💾 地点数据暂存本机浏览器</span>；可随时导出资料包备份或分享</div>
   </section>
 
   <!-- ============ 页签：统计 ============ -->
@@ -980,7 +980,7 @@ main{padding-bottom:96px;}
 <button class="fab" id="fabAdd" type="button" aria-label="记一笔"><span>＋</span>记一笔</button>
 
 <footer>
-  数据层：WorkBuddy 云数据库 · 逐条记录实时同步 · 多人共享同一份账本<span class="dot">·</span>预算云端同步（Cloudflare D1）<span class="dot">·</span>地点数据暂存本机
+  数据层：WorkBuddy 云数据库 · 逐条记录实时同步 · 多人共享同一份账本<span class="dot">·</span>预算、地点云端同步（Cloudflare D1）
 </footer>
 
 <!-- ============ 初始化向导 / 设置 ============ -->
@@ -1067,7 +1067,7 @@ main{padding-bottom:96px;}
     <button class="btn btn-ghost" id="dtpImportBtn" style="width:100%">📥 从行程页导入 trip-data.json</button>
     <input type="file" id="dtpFile" accept=".json,application/json" hidden>
     <div class="section-title" style="margin:18px 2px 8px;font-size:14px">云同步</div>
-    <div class="m-desc" style="margin-bottom:10px">账目、成员、行程、设置会同步到云端；预算项和地点库目前只保存在本机浏览器。</div>
+    <div class="m-desc" style="margin-bottom:10px">账目、成员、行程、设置、预算和地点库都会同步到云端。</div>
     <button class="btn btn-ghost" id="cloudDiagBtn" style="width:100%">☁️ 云同步诊断</button>
     <div id="cloudDiag" class="m-desc" style="margin-top:10px;white-space:pre-wrap;word-break:break-all" hidden></div>
   </div>
@@ -1341,7 +1341,7 @@ var LS = (function(){
 })();
 var CH = null;
 try{ CH = new BroadcastChannel("trip-aa-ledger"); }catch(e){}
-var KEY = { t:"aal$t$", m:"aal$m$", s:"aal$settings", x:"aal$x$", b:"aal$b$", p:"aal$p$", g:"aal$g$" }; /* g：每个行程的总预算与分类分配 */ /* 账目表 / 成员表 / 设置表 / 行程表 / 预算表、地点表（暂仅本机） */
+var KEY = { t:"aal$t$", m:"aal$m$", s:"aal$settings", x:"aal$x$", b:"aal$b$", p:"aal$p$", g:"aal$g$" }; /* g：每个行程的总预算与分类分配 */ /* 账目表 / 成员表 / 设置表 / 行程表 / 预算表、地点表（预算、地点走 /api/budget） */
 
 var DB = {
   list:function(table){
@@ -1607,8 +1607,9 @@ function cloudFirstSync(boxes){
 function cloudTick(){ cloudPullRaw(cloudBooted ? applyCloudDiff : cloudFirstSync); }
 /* ---------- 预算云端同步（/api/budget，Cloudflare D1） ----------
  * 预算项（b）和预算设定（g）每条带修改时间 _mt；服务器只接受比已有版本更新的写入，删除写成负的修改时间（墓碑）。
- * 合并规则与账目同步一致：只删「在云端出现过、后来被删除」的记录；从没上过云的记录补传，不删除。 */
-var BTAB={ b:"item", g:"plan" }, BKIND={ item:"b", plan:"g" };
+ * 合并规则与账目同步一致：只删「在云端出现过、后来被删除」的记录；从没上过云的记录补传，不删除。
+ * 地点（p）同样同步；本机从没上过云、但云端已有同名同城的地点，会并进云端那条（补全空白字段），预算项里的关联一起改过去。 */
+var BTAB={ b:"item", g:"plan", p:"place" }, BKIND={ item:"b", plan:"g", place:"p" }; /* 地点库也走这条通道 */
 var BUDGET={ on:false, checked:false, flushing:false, pulling:false, timer:null, lastError:"", lastOkAt:0 };
 function budgetQueue(table,id){
   var k=table+"$"+id; delete dirty[k]; dirty[k]={ table:table, id:id }; delete failedRound[k];
@@ -1641,8 +1642,8 @@ function budgetFlush(){
 }
 function budgetMerge(rows){
   var changed=false, now=Date.now();
-  ["b","g"].forEach(function(table){
-    var kind=BTAB[table], seen=syncMeta("seen",table), gone=syncMeta("gone",table), inCloud={};
+  ["b","g","p"].forEach(function(table){
+    var kind=BTAB[table], seen=syncMeta("seen",table), gone=syncMeta("gone",table), inCloud={}, cloudKey={};
     rows.forEach(function(row){
       if(row.kind!==kind) return;
       var id=row.id, mt=+row.mt||0; inCloud[id]=1; seen[id]=1;
@@ -1652,6 +1653,7 @@ function budgetMerge(rows){
       if(gone[id]) return;
       if(!loc || mt > (+loc._mt||0)){ try{ lsPut(table, JSON.parse(row.payload)); changed=true; }catch(e){} }
       else if((+loc._mt||0) > mt) budgetQueue(table,id); /* 本机更新但没传上去（例如队列被清空过）：补传 */
+      if(table==="p"){ var cp=DB.get("p",id); if(cp) cloudKey[placeKey(cp)]=id; }
     });
     Object.keys(gone).forEach(function(id){ if(!dirty[table+"$"+id] && (!inCloud[id] || now-goneAt(gone[id])>GONE_TTL)) delete gone[id]; });
     var localIds={};
@@ -1659,6 +1661,7 @@ function budgetMerge(rows){
       localIds[loc.id]=1;
       if(inCloud[loc.id] || dirty[table+"$"+loc.id]) return;
       if(seen[loc.id]){ lsDel(table,loc.id); delete seen[loc.id]; changed=true; return; }
+      if(table==="p" && cloudKey[placeKey(loc)] && cloudKey[placeKey(loc)]!==loc.id){ mergePlaceInto(loc, cloudKey[placeKey(loc)]); changed=true; return; }
       if(!loc._mt){ loc._mt=+loc.ts||now; LS.setItem(KEY[table]+loc.id, JSON.stringify(loc)); } /* 旧数据第一次上云 */
       budgetQueue(table,loc.id);
     });
@@ -1667,6 +1670,33 @@ function budgetMerge(rows){
   });
   if(changed){ loadAll(); renderAll(true); }
   if(budgetPending().length) budgetFlush();
+}
+/* 本机地点并进云端同名同城地点：空白字段补全、标签/关联账目合并、备注补上门票段；预算项的 placeId 改指向云端那条 */
+function mergePlaceInto(loc, cloudId){
+  var c=DB.get("p",cloudId); if(!c) return;
+  fillPlace(c, loc);
+  DB.upsert("p",c);
+  DB.list("b").forEach(function(b){ if(b.placeId===loc.id){ b.placeId=cloudId; DB.upsert("b",b); } });
+  lsDel("p",loc.id);
+}
+function fillPlace(ex, np){
+  Object.keys(np).forEach(function(k){
+    if(k==="id"||k==="_mt") return;
+    var v=np[k], cur=ex[k];
+    if(k==="tags"||k==="txnIds"){ var t=(cur||[]).slice(); (v||[]).forEach(function(x){ if(t.indexOf(x)<0) t.push(x); }); ex[k]= k==="tags"? t.slice(0,12) : t; }
+    else if(k==="note") ex.note=noteWithTicket(cur, v);
+    else if((cur===""||cur==null) && v!=="" && v!=null) ex[k]=v;
+  });
+  return ex;
+}
+/* 备注：已有内容不覆盖；新备注带「门票：…」而旧备注没有时，把这一段插到「计划 …第N站；」之后 */
+function noteWithTicket(cur, nw){
+  cur=String(cur||""); nw=String(nw||"");
+  if(!cur) return nw;
+  if(/门票[：:]/.test(cur)) return cur;
+  var m=/门票[：:][^；;]*/.exec(nw); if(!m) return cur;
+  var head=/^计划 [^；;]*第\d+站[；;]/.exec(cur);
+  return head? head[0]+m[0]+"；"+cur.slice(head[0].length) : m[0]+"；"+cur;
 }
 function budgetPull(){
   if(BUDGET.pulling || !window.fetch) return;
@@ -1686,6 +1716,8 @@ function budgetPull(){
   });
 }
 function renderBudgetSyncNote(){
+  var pl=$("placeSyncNote");
+  if(pl) pl.textContent = BUDGET.on ? "☁️ 地点已云端同步，所有设备共用" : "💾 地点数据暂存本机浏览器"+(BUDGET.checked && BUDGET.lastError ? "（云端未连接）" : "");
   var el=$("planSyncNote"); if(!el) return;
   if(BUDGET.on){
     var n=budgetPending().length;
@@ -3966,11 +3998,7 @@ $("piGo").onclick=function(){
     if(!np.status) np.status=piStatus;
     var ex=byKey[placeKey(np)];
     if(ex){
-      Object.keys(np).forEach(function(k){
-        var v=np[k], cur=ex[k];
-        if(k==="tags"){ var t=(cur||[]).slice(); (v||[]).forEach(function(x){ if(t.indexOf(x)<0) t.push(x); }); ex.tags=t.slice(0,12); }
-        else if((cur===""||cur==null) && v!=="" && v!=null) ex[k]=v;
-      });
+      fillPlace(ex, np);
       DB.upsert("p",ex); merged++;
     }else{
       var rec=np; rec.id=uid(); rec.ts=now+i; rec.pack=pack; rec.trip=""; rec.txnIds=[];
@@ -4365,7 +4393,7 @@ $("dtpFile").onchange=function(){
     try{
       var r=importTripPage(JSON.parse(decodeFile(rd.result)));
       $("tripMask").classList.remove("on");
-      toast("已导入「"+r.trip.name+"」：预算项 "+r.budget+" 个、地点 "+r.places+" 个"+(r.missingRates.length? "；"+r.missingRates.join("/")+" 汇率暂按 1，请在预算里核对":"")+"；行程已上云，预算项与地点仅存本机 📥");
+      toast("已导入「"+r.trip.name+"」：预算项 "+r.budget+" 个、地点 "+r.places+" 个"+(r.missingRates.length? "；"+r.missingRates.join("/")+" 汇率暂按 1，请在预算里核对":"")+"；行程、预算项和地点都会同步到云端 📥");
       switchTab("plan");
     }catch(e){ toast(e.message||"导入失败"); }
   };
