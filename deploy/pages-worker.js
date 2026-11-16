@@ -1,7 +1,7 @@
 /**
  * Cloudflare Pages（advanced mode）入口：构建时复制为 dist/_worker.js。
  * - /.cloud/*：同域转发到 WorkBuddy 云端（账目、成员、设置、行程）
- * - /api/budget：预算项与预算设定的云端同步，存在 Cloudflare D1（绑定名 BUDGET_DB，表结构见 deploy/budget-schema.sql）
+ * - /api/budget：预算项、预算设定、地点库的云端同步，存在 Cloudflare D1（绑定名 BUDGET_DB，表结构见 deploy/budget-schema.sql）
  * - 其余路径：返回静态文件（账本在 /，行程规划在 /plan/）
  */
 const UPSTREAM = "https://travel-aa-ledger-72643.app.workbuddy.host";
@@ -29,7 +29,7 @@ async function proxyCloud(request, url) {
 }
 
 /* ---------- 预算同步 ---------- */
-const BUDGET_KINDS = new Set(["item", "plan"]);
+const BUDGET_KINDS = new Set(["item", "plan", "place"]);
 const MAX_CHANGES = 500;
 const MAX_PAYLOAD = 64 * 1024;
 
@@ -40,7 +40,7 @@ function json(body, status = 200) {
   });
 }
 
-/* 每条记录：kind（item 预算项 / plan 预算设定）、id、trip、mt（修改时间，负数表示已删除）、payload（记录 JSON）。
+/* 每条记录：kind（item 预算项 / plan 预算设定 / place 地点）、id、trip、mt（修改时间，负数表示已删除）、payload（记录 JSON）。
  * 写入时比较修改时间：只有更新的版本（含删除）才会覆盖，旧设备传上来的旧版本不会盖掉新数据。 */
 let schemaReady = false;
 async function ensureSchema(db) {
