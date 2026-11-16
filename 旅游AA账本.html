@@ -653,6 +653,13 @@ header{background:var(--ink-deep);box-shadow:none;padding:12px 16px;}
 .gear{border:1px solid rgba(255,255,255,.22);background:transparent;width:34px;height:34px;font-size:16px;}
 .gear:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.35);}
 /* 页签：图标 + 文字 */
+.fab{position:fixed;right:max(18px,env(safe-area-inset-right));bottom:calc(22px + env(safe-area-inset-bottom));z-index:90;display:flex;align-items:center;gap:6px;
+  height:54px;padding:0 20px 0 16px;border:none;border-radius:999px;background:var(--ink-deep);color:#F6EFDD;font-size:15.5px;font-weight:700;
+  box-shadow:0 8px 24px rgba(20,38,32,.32),0 2px 6px rgba(20,38,32,.18);cursor:pointer;transition:transform .15s,opacity .2s;}
+.fab span{font-size:24px;line-height:1;font-weight:500;margin-top:-2px;}
+.fab:active{transform:scale(.96);}
+body.on-add .fab{opacity:0;pointer-events:none;transform:translateY(12px);}
+main{padding-bottom:96px;}
 .tabs{gap:4px;padding:6px 8px;background:var(--card);border-bottom:1px solid var(--line);}
 .tab{min-width:0;flex:1;display:flex;flex-direction:column;align-items:center;gap:1px;padding:6px 0 5px;border:none;border-radius:10px;background:transparent;color:var(--muted);font-size:11.5px;font-weight:600;box-shadow:none;}
 .tab i{font-style:normal;font-size:17px;line-height:1.2;filter:grayscale(.35);opacity:.8;}
@@ -686,6 +693,10 @@ header{background:var(--ink-deep);box-shadow:none;padding:12px 16px;}
 .fitem input:focus,.fitem select:focus,.lv-bar input[type=search]:focus{border-color:var(--ink);box-shadow:0 0 0 3px rgba(36,68,60,.12);}
 .amount-box{background:#fff;border:1px solid var(--line);border-radius:var(--radius);}
 /* 深色汇总卡：纯色，无渐变 */
+.stray-card{border-color:#E9C6A9;background:#FFF8F1;}
+.stray-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-top:1px dashed var(--line-soft);}
+.stray-row .nm{flex:1;font-weight:700;color:var(--ink-deep);} .stray-row .nm small{font-weight:400;color:var(--muted);}
+.stray-row select{border:1.5px solid var(--line);border-radius:10px;padding:6px 8px;background:#FFFDF8;font-size:13px;}
 .summary-card,.stats-band{background:var(--ink-deep);border-radius:var(--radius);box-shadow:none;}
 .summary-card .big,.stats-band .sb-num,.st-tile .v,.bi-amt .v,.op-price .v,.txn-card .t-amt,.est-total,.m-bal .num{font-family:var(--sans);letter-spacing:-.2px;}
 /* 账目卡片：左侧色条变细；金额用正文墨色 */
@@ -718,7 +729,7 @@ header{background:var(--ink-deep);box-shadow:none;padding:12px 16px;}
 .op-badge{background:var(--paper-deep);color:var(--ink-deep);}
 .op-badge.g{background:var(--green-soft);color:var(--green);}
 .op-score b{background:var(--ink-soft);}
-#toast{background:var(--ink-deep);border-radius:10px;}
+#toast{background:var(--ink-deep);border-radius:10px;bottom:calc(92px + env(safe-area-inset-bottom));max-width:calc(100vw - 48px);} /* 提示条在「记一笔」悬浮按钮上方 */
 .chip{background:var(--ink);}
 .cur-opt.on{border-color:var(--ink);background:var(--paper-deep);color:var(--ink-deep);}
 .check-line input,.cur-opt input{accent-color:var(--ink);}
@@ -737,8 +748,7 @@ header{background:var(--ink-deep);box-shadow:none;padding:12px 16px;}
     <button class="gear" id="gearBtn" title="设置">⚙</button>
   </header>
   <nav class="tabs">
-    <button class="tab on" data-tab="add"><i>✏️</i><span>记账</span></button>
-    <button class="tab" data-tab="list"><i>📒</i><span>账目</span></button>
+    <button class="tab on" data-tab="list"><i>📒</i><span>账目</span></button>
     <button class="tab" data-tab="plan"><i>🗓</i><span>预算</span></button>
     <button class="tab" data-tab="places"><i>📍</i><span>地点</span></button>
     <button class="tab" data-tab="stats"><i>📊</i><span>统计</span></button>
@@ -750,7 +760,7 @@ header{background:var(--ink-deep);box-shadow:none;padding:12px 16px;}
   <div class="trip-bar" id="tripBar"></div>
 
   <!-- ============ 页签 1：记一笔 ============ -->
-  <section class="view on" id="view-add">
+  <section class="view" id="view-add">
     <div class="card">
       <div class="section-title" id="formTitle">记一笔</div>
       <div class="form-trip" id="formTrip">📁 行程：<b>—</b></div>
@@ -827,7 +837,7 @@ header{background:var(--ink-deep);box-shadow:none;padding:12px 16px;}
   </section>
 
   <!-- ============ 页签 2：账目 ============ -->
-  <section class="view" id="view-list">
+  <section class="view on" id="view-list">
     <div class="lv-bar">
       <input type="search" id="lvQ" placeholder="🔍 搜索项目 / 备注 / 人名" autocomplete="off">
       <button class="lv-btn" id="lvFilterBtn">筛选</button>
@@ -934,6 +944,7 @@ header{background:var(--ink-deep);box-shadow:none;padding:12px 16px;}
   <section class="view" id="view-members">
     <div class="stats-band" id="mStats"></div>
     <div class="form-trip" id="mScope">🧳 统计范围：<b>全部行程</b></div>
+    <div class="card stray-card" id="strayCard" hidden></div>
 
     <div class="card">
       <div class="section-title">成员管理</div>
@@ -954,6 +965,7 @@ header{background:var(--ink-deep);box-shadow:none;padding:12px 16px;}
     </div>
   </section>
 </main>
+<button class="fab" id="fabAdd" type="button" aria-label="记一笔"><span>＋</span>记一笔</button>
 
 <footer>
   数据层：WorkBuddy 云数据库 · 逐条记录实时同步 · 多人共享同一份账本<span class="dot">·</span>预算云端同步（Cloudflare D1）<span class="dot">·</span>地点数据暂存本机
@@ -1618,7 +1630,7 @@ function budgetMerge(rows){
     Object.keys(seen).forEach(function(id){ if(!inCloud[id] && !localIds[id]) delete seen[id]; });
     saveSyncMeta("seen",table,seen); saveSyncMeta("gone",table,gone);
   });
-  if(changed){ loadAll(); renderPlan(); }
+  if(changed){ loadAll(); renderAll(true); }
   if(budgetPending().length) budgetFlush();
 }
 function budgetPull(){
@@ -2020,6 +2032,7 @@ $("cancelEditBtn").onclick=function(){ var fromPlan=!!planPending; clearForm(); 
 
 /* ---------- 页签 ---------- */
 function switchTab(name){
+  document.body.classList.toggle("on-add", name==="add");
   document.querySelectorAll(".tab").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-tab")===name); });
   document.querySelectorAll(".view").forEach(function(v){ v.classList.remove("on"); });
   $("view-"+name).classList.add("on");
@@ -2033,6 +2046,7 @@ function switchTab(name){
   if(name==="add") renderFormDynamic();
 }
 document.querySelectorAll(".tab").forEach(function(b){ b.onclick=function(){ switchTab(b.getAttribute("data-tab")); }; });
+$("fabAdd").onclick=function(){ switchTab("add"); window.scrollTo(0,0); };
 
 /* ---------- 行程条 / 行程管理 ---------- */
 var edTripId=null; /* 行程管理弹窗中正在编辑的行程 id */
@@ -2467,6 +2481,7 @@ function renderMembers(){
     '<div class="sb-item"><div class="sb-num coral">'+waitN+'</div><div class="sb-label">待确认笔数</div></div>'+
     '<div class="sb-item"><div class="sb-num">'+state.members.length+'</div><div class="sb-label">成员人数</div></div>';
   $("mScope").innerHTML="🧳 统计范围：<b>"+esc(scopeLbl)+"</b> · 共 "+src.length+" 笔账目";
+  renderStrayNames();
 
   /* 成员管理 */
   $("adminList").innerHTML = state.members.length ? state.members.map(function(m){
@@ -2512,6 +2527,32 @@ function renderMembers(){
 }
 
 /* ---------- 成员增删改名 ---------- */
+/* 把账目里的某个名字改成另一个（付款人、参与人、自定义分摊都改）；返回改了几笔 */
+function renameInTxns(oldName, newName){
+  var n=0;
+  DB.list("t").forEach(function(t){
+    var nt=null;
+    if(t.payer===oldName){ nt=Object.assign({},t); nt.payer=newName; }
+    var parts=txnParts(t).map(function(p){ return p===oldName? newName : p; });
+    var seen={}; parts=parts.filter(function(p){ if(seen[p]) return false; seen[p]=1; return true; }); /* 合并后不重复 */
+    if(parts.join("/")!==String(t.participants||"")){ nt=nt||Object.assign({},t); nt.participants=parts.join("/"); }
+    if(t.customSplit){
+      var segs=t.customSplit.split("/").map(function(x){ var i=x.lastIndexOf("="); var nm=x.slice(0,i).trim(); return nm===oldName? newName+"="+x.slice(i+1) : x; }).join("/");
+      if(segs!==t.customSplit){ nt=nt||Object.assign({},t); nt.customSplit=segs; }
+    }
+    if(nt){ DB.upsert("t",nt); n++; }
+  });
+  return n;
+}
+/* 账目里出现、但不在成员名单里的名字（例如改名前的旧名字、CSV 导入的新名字） */
+function strayNames(list){
+  var known={}; state.members.forEach(function(m){ known[m.name]=1; });
+  var out={};
+  (list||state.txns).forEach(function(t){
+    [t.payer].concat(txnParts(t)).forEach(function(n){ if(n && !known[n]) out[n]=(out[n]||0)+1; });
+  });
+  return out;
+}
 function addMember(name,note){
   name=name.trim();
   if(!name){ toast("请输入姓名"); return false; }
@@ -2521,6 +2562,33 @@ function addMember(name,note){
 }
 $("addMemberBtn").onclick=function(){ if(addMember($("addName").value,"")){ $("addName").value=""; toast("已添加 "+state.members[state.members.length-1].name); } };
 $("addName").addEventListener("keydown",function(e){ if(e.key==="Enter") $("addMemberBtn").click(); });
+
+function renderStrayNames(){
+  var box=$("strayCard"); if(!box) return;
+  var st=strayNames(), names=Object.keys(st);
+  if(!names.length){ box.hidden=true; box.innerHTML=""; return; }
+  var opts=state.members.map(function(m){ return '<option value="'+esc(m.name)+'">'+esc(m.name)+'</option>'; }).join("");
+  box.hidden=false;
+  box.innerHTML='<div class="section-title">⚠ 账目里有不在成员名单的名字</div>'+
+    '<div class="m-desc" style="margin-bottom:8px">人均和结算会把它们当成另外的人。如果是改名前的旧名字，合并到对应成员即可；如果确实是另一个人，加为成员。</div>'+
+    names.map(function(n){
+      return '<div class="stray-row"><span class="nm">'+esc(n)+' <small>'+st[n]+' 笔</small></span>'+
+        '<select data-stray="'+esc(n)+'"><option value="">合并到…</option>'+opts+'</select>'+
+        '<button class="btn btn-sm btn-ghost" data-strayadd="'+esc(n)+'">加为成员</button></div>';
+    }).join("");
+  Array.prototype.forEach.call(box.querySelectorAll("select[data-stray]"),function(sel){
+    sel.onchange=function(){
+      var from=sel.getAttribute("data-stray"), to=sel.value; if(!to) return;
+      confirmDialog("把账目里的「"+esc(from)+"」全部改成「"+esc(to)+"」？").then(function(ok){
+        if(!ok){ sel.value=""; return; }
+        var n=renameInTxns(from,to); loadAll(); renderAll(); toast("已合并 "+n+" 笔账目 ✅");
+      });
+    };
+  });
+  Array.prototype.forEach.call(box.querySelectorAll("[data-strayadd]"),function(b){
+    b.onclick=function(){ if(addMember(b.getAttribute("data-strayadd"),"")) toast("已添加成员"); };
+  });
+}
 
 var rnTarget=null;
 function openRename(m){
@@ -2533,19 +2601,7 @@ $("rnSave").onclick=function(){
   var nn=$("rnName").value.trim();
   if(!nn){ toast("姓名不能为空"); return; }
   if(nn!==rnTarget.name && state.members.some(function(m){return m.name===nn;})){ toast("成员「"+nn+"」已存在"); return; }
-  if($("rnSync").checked && nn!==rnTarget.name){
-    state.txns.forEach(function(t){
-      var nt=null;
-      if(t.payer===rnTarget.name){ nt=Object.assign({},t); nt.payer=nn; }
-      var parts=String(t.participants||"").split("/").map(function(p){return p.trim()===rnTarget.name?nn:p.trim();});
-      if(parts.join("/")!==t.participants){ nt=nt||Object.assign({},t); nt.participants=parts.join("/"); }
-      if(t.customSplit){
-        var segs=t.customSplit.split("/").map(function(s){ var i=s.lastIndexOf("="); var n=s.slice(0,i).trim(); return n===rnTarget.name? nn+"="+s.slice(i+1):s; }).join("/");
-        if(segs!==t.customSplit){ nt=nt||Object.assign({},t); nt.customSplit=segs; }
-      }
-      if(nt) DB.upsert("t",nt);
-    });
-  }
+  if($("rnSync").checked && nn!==rnTarget.name) renameInTxns(rnTarget.name, nn);
   DB.upsert("m",{id:rnTarget.id,name:nn,note:$("rnNote").value.trim()});
   loadAll(); renderAll();
   $("rnMask").classList.remove("on");
@@ -2636,10 +2692,29 @@ $("imGo").onclick=function(){
       $("imMask").classList.remove("on");
       toast("导入完成："+okN+" 笔 → 「"+tripName(impTrip)+"」"+(skipN?"，跳过 "+skipN+" 行无效数据":"")+" 📥");
     };
-    var curN=DB.list("t").filter(function(t){ return (t.trip||"")===impTrip; }).length;
-    if($("imClear").checked && curN){
-      confirmDialog("⚠ 将先清空行程「"+tripName(impTrip)+"」下的 "+curN+" 笔账目再导入，确定继续吗？").then(function(ok){ if(ok) doImport(); });
-    } else doImport();
+    /* 先检查 CSV 里有没有成员名单里没有的名字：不检查的话，人均和结算会多算人 */
+    var known={}, unknown={};
+    state.members.forEach(function(m){ known[m.name]=1; });
+    rows.forEach(function(r){
+      var names=[String(r[3]||"").trim()].concat(String(r[4]||"").split("/")).concat(String(r[7]||"").split("/").map(function(x){ var i=x.lastIndexOf("="); return i>=0? x.slice(0,i) : ""; }));
+      names.forEach(function(n){ n=String(n||"").trim(); if(n && !known[n]) unknown[n]=1; });
+    });
+    var unk=Object.keys(unknown);
+    var proceed=function(){
+      var curN=DB.list("t").filter(function(t){ return (t.trip||"")===impTrip; }).length;
+      if($("imClear").checked && curN){
+        confirmDialog("⚠ 将先清空行程「"+tripName(impTrip)+"」下的 "+curN+" 笔账目再导入，确定继续吗？").then(function(ok){ if(ok) doImport(); });
+      } else doImport();
+    };
+    if(unk.length){
+      confirmDialog("CSV 里有成员名单里没有的名字：<b>"+unk.map(esc).join("、")+"</b>。<br>如果是成员改名前的旧名字，请点「再想想」，先在 CSV 里改成现在的名字再导入；点「确定」会把他们加为新成员后导入。").then(function(ok){
+        if(!ok) return;
+        unk.forEach(function(n){ DB.upsert("m",{id:uid(),name:n,note:""}); });
+        loadAll(); proceed();
+      });
+      return;
+    }
+    proceed();
   };
   reader.readAsText(f,"utf-8");
 };
@@ -2988,6 +3063,23 @@ function bindPlanList(){
   Array.prototype.forEach.call(L.querySelectorAll("[data-bpay]"),function(el){ el.onclick=function(){ budgetToExpense(el.getAttribute("data-bpay")); }; });
 }
 $("planGroupBtn").onclick=function(){ planGroup = planGroup==="day"?"cat":"day"; try{ LS.setItem("aalplangroup",planGroup); }catch(e){} renderPlan(); };
+/* 预算对比的统一口径（「预算」页和「统计」页共用）：
+ * 每个类别的预算 = 预算设定里给这个类别的分配；没有设定或这个类别没分配时，用这个类别细项的合计。
+ * 可接受上限 = 预算 ×（1 + 预算设定里的浮动%）；没有预算设定时不加浮动。实际 = 该行程账目按基准币折算的合计。 */
+function budgetCompare(tid){
+  var gp=budgetPlan(tid), tol=gp? (+gp.tolerance||0)/100 : 0, out={ plan:gp, tol:tol, cats:{}, total:0, cap:0, actual:0, items:0 };
+  var items={}, act={};
+  state.budget.forEach(function(b){ if(b.trip===tid) items[b.category]=(items[b.category]||0)+biBase(b); });
+  state.txns.forEach(function(t){ if((t.trip||"")===tid) act[t.category||"其他"]=(act[t.category||"其他"]||0)+txnBase(t); });
+  CATS.forEach(function(c){
+    var alloc=gp? (+((gp.cats||{})[c])||0) : 0, it=items[c]||0, ac=act[c]||0;
+    var budget=alloc||it;
+    out.cats[c]={ alloc:alloc, items:it, actual:ac, budget:budget, cap:budget*(1+tol), source: alloc? "分配" : (it? "细项" : "") };
+    out.items+=it; out.actual+=ac;
+  });
+  out.total = gp? +gp.total : out.items; out.cap = out.total*(1+tol);
+  return out;
+}
 /* 添加 / 编辑细项时，提示这个类别还有多少空间（含浮动），输入金额时实时检查 */
 function bRoomUI(){
   var box=$("bRoom"); if(!box) return;
@@ -4219,14 +4311,22 @@ function buildSuggestions(st, list, trip, hist){
   }
   /* 4. 预算超支（行程级） */
   if(trip){
-    var plan={}, act={};
-    state.budget.filter(function(b){ return b.trip===trip.id; }).forEach(function(b){ plan[b.category]=(plan[b.category]||0)+biBase(b); });
-    list.forEach(function(t){ act[t.category]=(act[t.category]||0)+txnBase(t); });
+    var bc2=budgetCompare(trip.id);
     CATS.forEach(function(c){
-      if(plan[c]>0 && (act[c]||0)>plan[c]*1.1){
-        out.push({lv:"warn",ic:"🗓",tag:"超预算",t:c+"已花 "+bs+fmt(act[c])+"，超出预算 "+pct(act[c]/plan[c]-1),b:"预算是 "+bs+fmt(plan[c])+"。可以在「预算」页调整后面几天的安排。"});
+      var r=bc2.cats[c];
+      if(r.budget>0 && r.actual>r.cap){
+        out.push({lv:"warn",ic:"🗓",tag:"超预算",t:c+"已花 "+bs+fmt(r.actual)+"，超出预算 "+pct(r.actual/r.budget-1),
+          b:(r.source==="分配"? "这个类别分配了 "+bs+fmt(r.budget)+(bc2.tol? "，可接受上限 "+bs+fmt(r.cap) : "") : "这个类别细项合计 "+bs+fmt(r.budget)+"（还没在预算设定里分配）")+"。可以在「预算」页调整。"});
       }
     });
+    if(bc2.plan && bc2.actual>bc2.cap){
+      out.push({lv:"warn",ic:"🗓",tag:"超预算",t:"行程总花费 "+bs+fmt(bc2.actual)+"，超出总预算可接受上限 "+bs+fmt(bc2.cap),b:"总预算 "+bs+fmt(bc2.total)+"（±"+fmt(bc2.tol*100,0)+"%）。"});
+    }
+  }
+  /* 账目里有不在成员名单的名字：人均会多算人 */
+  var stray=strayNames(list), sn=Object.keys(stray);
+  if(sn.length){
+    out.push({lv:"warn",ic:"👥",tag:"人数",t:"账目里有不在成员名单的名字："+sn.join("、"),b:"人均会按 "+st.ppl+" 人算。如果是改名前的旧名字，到「成员」页合并到对应成员。"});
   }
   /* 5. 垫付集中 / 待确认 / 未分配 */
   var payers=Object.keys(st.payers);
