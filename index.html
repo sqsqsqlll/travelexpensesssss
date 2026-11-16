@@ -1106,7 +1106,7 @@ main{padding-bottom:96px;}
     </div>
     <div class="row2">
       <div class="fitem"><label>人数</label><input inputmode="numeric" id="pbPpl" autocomplete="off"></div>
-      <div class="fitem"><label>人均花费的币种</label><select id="pbCur"></select></div>
+      <div class="fitem"><label>人均花费的币种（备注门票按日元）</label><select id="pbCur"></select></div>
     </div>
     <label class="pb-opt"><input type="checkbox" id="pbZero"> 没有人均花费的地点也加入（金额待补）</label>
     <div class="pb-sum" id="pbSum"></div>
@@ -3636,15 +3636,27 @@ function tripPeopleCount(tid){
   state.txns.forEach(function(t){ if((t.trip||"")!==tid) return; if(t.payer) ppl[t.payer]=1; txnParts(t).forEach(function(n){ ppl[n]=1; }); });
   var n=Object.keys(ppl).length; return n || state.members.length || 1;
 }
-function normTitle(x){ return String(x||"").replace(/[（(][^）)]*[）)]/g,"").replace(/[\s·・＋+/／、，,。.\-—_|｜:：]/g,"").toLowerCase(); }
+function normTitle(x){ return String(x||"").replace(/[（(][^）)]*[）)]/g,"").replace(/[\s·・＋+/／、，,。.\-—_|｜:：]/g,"").replace(/祗/g,"祇").toLowerCase(); }
+/* 从地点备注里读门票价：「门票：往返1500日元 / 单程900」→ 1500 日元；「门票：免费…」→ 免费 */
+function ticketFromNote(note){
+  var m=/门票[：:]\s*([^；;]*)/.exec(String(note||"")); if(!m) return null;
+  var seg=m[1].trim(); if(!seg) return null;
+  if(/^免费/.test(seg)) return { amount:0, free:true, text:seg };
+  var n=/(\d[\d,]*)\s*(日元|円|JPY)/i.exec(seg) || /(\d[\d,]*)/.exec(seg);
+  if(!n) return /免费|含在|包含在|已含/.test(seg) ? { amount:0, free:true, text:seg } : null; /* 「园区免费（温室另收费）」「含在联票内」 */
+  return { amount:+n[1].replace(/,/g,""), code:"JPY", text:seg };
+}
 function firstToken(x){ return normTitle(String(x||"").split(/[\s·・＋+/／（(→]/)[0]); }
 /* 同名（或互相包含）= 已在预算；只有开头的词相同 = 可能重复，默认不勾选 */
-function budgetMatch(place, items){
+function budgetMatch(place, items, cat, cost, code){
   var nn=normTitle(place.name), ft=firstToken(place.name), exact=null, maybe=null;
   items.forEach(function(b){
     if(b.placeId===place.id){ exact=b; return; }
+    if(cat && b.category!==cat) return; /* 只和同类别比：景点「大门坂」不算交通里的「…→大门坂」 */
     var bn=normTitle(b.title);
     if(nn && bn && (nn===bn || (nn.length>=3 && bn.indexOf(nn)>=0) || (bn.length>=3 && nn.indexOf(bn)>=0))) exact=exact||b;
+    /* 名字不同但同类别、同一天、同一人均价：例如「岚山祐斋亭（16:00）」和手动记的「京都-祐斋亭」 */
+    else if(cost>0 && place.date && b.category===cat && b.day===place.date && curCode(b.currency)===code && Math.abs((+b.amount||0)-cost)<0.005) exact=exact||b;
     else if(ft.length>=2 && bn.indexOf(ft)>=0) maybe=maybe||b;
   });
   return { exact:exact, maybe:maybe };
@@ -3660,29 +3672,37 @@ function pbCandidates(){
   var src=$("pbSrc").value, tid=$("pbTrip").value, includeZero=$("pbZero").checked;
   var places = src==="__all__" ? state.places : src==="__shown__" ? state.places.filter(plMatch) : state.places.filter(function(p){ return (p.pack||"")===src; });
   var items=state.budget.filter(function(b){ return b.trip===tid; });
+  var dlgCur=$("pbCur").value, jpyLabel=curLabel("JPY");
   return places.map(function(p){
-    var m=budgetMatch(p, items), cost=+p.cost||0;
-    return { p:p, cat:PL_TO_CAT[p.kind]||"其他", cost:cost, exact:m.exact, maybe:m.maybe, skip: !!m.exact || (!cost && !includeZero) };
+    var cat=PL_TO_CAT[p.kind]||"其他", cost=+p.cost||0, cur=dlgCur, src=cost? "人均花费" : "", free=false, tk=null;
+    if(!cost){ tk=ticketFromNote(p.note); if(tk){ if(tk.free) free=true; else if(tk.amount>0){ cost=tk.amount; cur=jpyLabel; src="备注门票"; } } }
+    var code=curCode(cur), m=budgetMatch(p, items, cat, cost, code);
+    return { p:p, cat:cat, cost:cost, cur:cur, code:code, src:src, free:free, ticket:tk, exact:m.exact, maybe:m.maybe, skip: !!m.exact || (!cost && (free || !includeZero)) };
   });
 }
 function pbRender(){
-  var ppl=Math.max(1,parseInt($("pbPpl").value,10)||1), cur=$("pbCur").value, code=curCode(cur), rate=code===baseCode()? 1 : lastRate(code);
-  var cands=pbCandidates(), on=0, sum=0, dup=0, zero=0;
+  var ppl=Math.max(1,parseInt($("pbPpl").value,10)||1);
+  var rateOf=function(code){ if(code===baseCode()) return 1; var r=lastRate(code); return isFinite(r)? r : NaN; };
+  var cands=pbCandidates(), on=0, sum=0, dup=0, zero=0, free=0, fromNote=0, noRate=false;
   $("pbList").innerHTML=cands.map(function(c){
-    if(c.exact) dup++; else if(!c.cost) zero++;
+    if(c.exact) dup++; else if(c.free) free++; else if(!c.cost) zero++;
+    if(c.src==="备注门票" && !c.exact) fromNote++;
     var key=c.p.id; if(!(key in pbChecked)) pbChecked[key]=!c.maybe;
     var checked=!c.skip && pbChecked[key];
-    if(checked){ on++; sum+=c.cost*ppl; }
+    if(checked){ on++; var r=rateOf(c.code); if(isFinite(r)) sum+=c.cost*ppl*r; else noRate=true; }
     var sub=[(CAT_ICON[c.cat]||"")+" "+c.cat, c.p.city, c.p.date].filter(Boolean).join(" · ");
     var hint = c.exact ? '<small class="dup">已在预算：'+esc(c.exact.title)+'</small>'
       : c.maybe ? '<small class="dup">可能已在预算：'+esc(c.maybe.title)+'（默认不加）</small>'
-      : !c.cost ? '<small>没有人均花费'+($("pbZero").checked?'，加入后金额待补':'，未勾选「也加入」时跳过')+'</small>' : '';
+      : c.free ? '<small>备注写明免费（'+esc(c.ticket.text)+'），不加入</small>'
+      : !c.cost ? '<small>没有人均花费'+($("pbZero").checked?'，加入后金额待补':'，未勾选「也加入」时跳过')+'</small>'
+      : c.src==="备注门票" ? '<small>门票价取自备注：'+esc(c.ticket.text)+'</small>' : '';
     return '<label class="pb-row'+(c.skip?' off':'')+'"><input type="checkbox" data-pb="'+esc(key)+'"'+(checked?' checked':'')+(c.skip?' disabled':'')+'>'+
       '<span class="nm">'+esc(c.p.name)+'<small>'+esc(sub)+'</small>'+hint+'</span>'+
-      '<span class="amt">'+(c.cost? curSym(code)+fmt(c.cost,0)+' × '+ppl : '—')+'</span></label>';
+      '<span class="amt">'+(c.cost? curSym(c.code)+fmt(c.cost,0)+' × '+ppl : '—')+'</span></label>';
   }).join("") || '<div class="empty" style="padding:14px">这个来源里没有地点</div>';
-  $("pbSum").textContent="将加入 "+on+" 项，合计 "+curSym(code)+fmt(sum,0)+(isFinite(rate)&&code!==baseCode()? "（约 "+baseSym()+fmt(sum*rate)+"）" : "")+
-    (dup? " · 已在预算 "+dup+" 项不重复添加" : "")+(zero&&!$("pbZero").checked? " · 没有人均花费 "+zero+" 项" : "");
+  $("pbSum").textContent="将加入 "+on+" 项，合计约 "+baseSym()+fmt(sum)+(noRate? "（部分币种还没有汇率）" : "")+
+    (fromNote? " · "+fromNote+" 项门票价取自备注" : "")+(dup? " · 已在预算 "+dup+" 项不重复添加" : "")+
+    (free? " · 免费 "+free+" 项" : "")+(zero&&!$("pbZero").checked? " · 没有价格 "+zero+" 项" : "");
   $("pbGo").disabled=!on;
   Array.prototype.forEach.call($("pbList").querySelectorAll("input[data-pb]"),function(el){
     el.onchange=function(){ pbChecked[el.getAttribute("data-pb")]=el.checked; pbRender(); };
@@ -3710,21 +3730,22 @@ $("pbPpl").oninput=pbRender; $("pbCur").onchange=pbRender; $("pbZero").onchange=
 $("pbClose").onclick=$("pbCancel").onclick=function(){ $("pbMask").classList.remove("on"); };
 $("pbMask").addEventListener("click",function(e){ if(e.target===this) $("pbMask").classList.remove("on"); });
 $("pbGo").onclick=function(){
-  var tid=$("pbTrip").value, trip=tripById(tid), ppl=Math.max(1,parseInt($("pbPpl").value,10)||1), cur=$("pbCur").value, code=curCode(cur);
-  var rate=code===baseCode()? 1 : lastRate(code); if(!isFinite(rate)) rate=1;
+  var tid=$("pbTrip").value, trip=tripById(tid), ppl=Math.max(1,parseInt($("pbPpl").value,10)||1);
   var inTrip=function(d){ return d && (!trip.startDate || d>=trip.startDate) && (!trip.endDate || d<=trip.endDate); };
   var now=Date.now(), n=0, sum=0;
   pbCandidates().forEach(function(c){
     if(c.skip || !pbChecked[c.p.id]) return;
+    var rate=c.code===baseCode()? 1 : lastRate(c.code); if(!isFinite(rate)) rate=1;
     DB.upsert("b",{ id:uid(), ts:now+n, trip:tid, title:String(c.p.name).slice(0,60), category:c.cat, day: inTrip(c.p.date)? c.p.date : "",
-      amount:c.cost||0, qty:ppl, currency:cur, rate:rate, fixed:false, status:"idea", ref:"", url:c.p.website||"",
-      note:"来自地点库"+(c.p.pack? "「"+c.p.pack+"」" : "")+(c.cost? "；人均 "+curSym(code)+fmt(c.cost,0)+" × "+ppl+" 人" : "；人均花费待补")+(c.p.city? "；"+c.p.city : ""),
+      amount:c.cost||0, qty:ppl, currency:c.cur, rate:rate, fixed:c.src==="备注门票", status:"idea", ref:"", url:c.p.website||"",
+      note:"来自地点库"+(c.p.pack? "「"+c.p.pack+"」" : "")+(c.cost? "；人均 "+curSym(c.code)+fmt(c.cost,0)+" × "+ppl+" 人" : "；人均花费待补")+
+        (c.src==="备注门票"? "；门票价取自备注："+c.ticket.text : "")+(c.p.city? "；"+c.p.city : ""),
       from:"", to:"", options:[], chosenOptionId:"", expenseId:"", placeId:c.p.id });
-    n++; sum+=(c.cost||0)*ppl;
+    n++; sum+=(c.cost||0)*ppl*rate;
   });
   $("pbMask").classList.remove("on");
   loadAll(); renderAll(true);
-  toast("已加入 "+n+" 项预算，合计 "+curSym(code)+fmt(sum,0)+" 🗓");
+  toast("已加入 "+n+" 项预算，合计约 "+baseSym()+fmt(sum)+" 🗓");
 };
 function renderPlaces(){
   if(!$("view-places")) return;
