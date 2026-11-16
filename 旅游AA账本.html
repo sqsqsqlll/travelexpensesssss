@@ -3674,6 +3674,7 @@ function ticketFromNote(note){
   var m=/门票[：:]\s*([^；;]*)/.exec(String(note||"")); if(!m) return null;
   var seg=m[1].trim(); if(!seg) return null;
   if(/^免费/.test(seg)) return { amount:0, free:true, text:seg };
+  if(/^(未查到|未确定|待查|待确认|不详|未知)/.test(seg)) return null; /* 「未查到（…12/8 大概率已结束）」里的数字不是价格 */
   var n=/(\d[\d,]*)\s*(日元|円|JPY)/i.exec(seg) || /(\d[\d,]*)/.exec(seg);
   if(!n) return /免费|含在|包含在|已含/.test(seg) ? { amount:0, free:true, text:seg } : null; /* 「园区免费（温室另收费）」「含在联票内」 */
   return { amount:+n[1].replace(/,/g,""), code:"JPY", text:seg };
