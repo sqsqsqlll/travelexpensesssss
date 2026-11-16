@@ -205,6 +205,8 @@ main{max-width:780px;margin:0 auto;padding:16px 14px 60px;}
   border-radius:10px;padding:9px 12px;flex-wrap:wrap;
 }
 .trip-row .tr-n{flex:1 1 100px;font-weight:700;font-size:14px;color:var(--ink-deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;}
+.tf{flex:none;font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;background:var(--green-soft);color:var(--green);white-space:nowrap;margin-left:4px;}
+.tf.no{background:var(--coral-soft);color:var(--coral-deep);}
 .trip-row .tr-d{font-size:11.5px;color:var(--muted);flex:none;font-variant-numeric:tabular-nums;}
 .trip-row .tr-cur{font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--green-soft);color:var(--green);flex:none;}
 .summary-card{
@@ -1055,6 +1057,7 @@ main{padding-bottom:96px;}
       <div><label>行程名称</label><input id="tpName" maxlength="24" placeholder="如：东京 5 日游"></div>
       <div><label>开始日期（可选）</label><input type="date" id="tpStart"></div>
       <div><label>结束日期（可选）</label><input type="date" id="tpEnd"></div>
+      <div><label>机票</label><select id="tpFlight"><option value="">未注明</option><option value="yes">账目含机票</option><option value="no">账目不含机票</option></select></div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="tpCancel">关闭</button>
@@ -1754,7 +1757,18 @@ function tripById(id){ for(var i=0;i<state.trips.length;i++){ if(state.trips[i].
 function tripName(id){ var t=tripById(id); return t? t.name : "未分配行程"; }
 function isVirtualScope(){ return state.curTrip==="__all__" || state.curTrip==="__none__"; }
 function isUnassigned(t){ return !tripById(t.trip||""); }
-function scopeLabel(){ return state.curTrip==="__all__" ? "全部行程" : tripName(state.curTrip); }
+function scopeLabel(){ return state.curTrip==="__all__" ? "全部行程" : tripName(state.curTrip)+flightSuffix(tripById(state.curTrip)); }
+/* 行程是否含机票：记在行程备注里的一段「含机票」/「不含机票」（云端行程表没有单独字段） */
+var FLIGHT_RE=/(^|[；;])\s*(不含机票|含机票)\s*(?=$|[；;])/;
+function tripFlight(p){ var m=p && FLIGHT_RE.exec(p.note||""); return !m? "" : m[2]==="含机票"? "yes" : "no"; }
+function flightText(p){ var f=tripFlight(p); return f==="yes"? "含机票" : f==="no"? "不含机票" : ""; }
+function flightSuffix(p){ var t=flightText(p); return t && String(p.name||"").indexOf(t)<0 ? "（"+t+"）" : ""; }
+function setTripFlight(p, v){
+  var rest=String(p.note||"").replace(FLIGHT_RE,"$1").replace(/^[；;]+|[；;]+$/g,"").replace(/[；;]{2,}/g,"；");
+  var seg= v==="yes"? "含机票" : v==="no"? "不含机票" : "";
+  p.note = seg ? (rest? rest+"；"+seg : seg) : rest;
+}
+function flightBadge(p){ var t=flightText(p); return t? '<span class="tf'+(tripFlight(p)==="no"?" no":"")+'">✈ '+t+'</span>' : ""; }
 function scopedTxns(){ /* 受行程筛选影响的账目集合 */
   if(state.curTrip==="__all__") return state.txns;
   if(state.curTrip==="__none__") return state.txns.filter(isUnassigned);
@@ -2130,7 +2144,7 @@ function renderTripBar(){
   }
   state.trips.forEach(function(p){
     var n=state.txns.filter(function(t){ return (t.trip||"")===p.id; }).length;
-    chips.push('<button class="trip-chip'+(state.curTrip===p.id?" on":"")+'" data-trip="'+esc(p.id)+'"><span class="tn">🧳 '+esc(p.name)+'</span><span class="cnt">'+n+'</span></button>');
+    chips.push('<button class="trip-chip'+(state.curTrip===p.id?" on":"")+'" data-trip="'+esc(p.id)+'"><span class="tn">🧳 '+esc(p.name)+'</span>'+flightBadge(p)+'<span class="cnt">'+n+'</span></button>');
   });
   chips.push('<button class="trip-chip new" id="tripNewBtn">＋ 新行程</button>');
   chips.push('<button class="trip-chip manage" id="tripMgrBtn">⚙ 管理</button>');
@@ -2165,7 +2179,7 @@ function renderFormTrip(){
   el.innerHTML="📁 记入行程：<b>"+esc(p?p.name:"—")+"</b>"+(isVirtualScope()?' <span style="color:var(--coral-deep)">（当前是「'+(state.curTrip==="__all__"?"全部":"未分配")+'」视图，将记入最新行程）</span>':"");
 }
 function openTripModal(){
-  edTripId=null; $("tpName").value=""; $("tpStart").value=""; $("tpEnd").value="";
+  edTripId=null; $("tpName").value=""; $("tpStart").value=""; $("tpEnd").value=""; $("tpFlight").value="";
   $("tpSave").textContent="＋ 创建行程";
   renderTripList();
   $("tripMask").classList.add("on");
@@ -2175,7 +2189,7 @@ function renderTripList(){
     var n=state.txns.filter(function(t){ return (t.trip||"")===p.id; }).length;
     var d=(p.startDate||p.endDate)? (esc(p.startDate||"…")+" ~ "+esc(p.endDate||"…")) : "日期未设置";
     return '<div class="trip-row"><span class="tr-n" title="'+esc(p.name)+'">'+esc(p.name)+'</span>'+
-      '<span class="tr-d"><b style="color:var(--ink);font-weight:600">'+n+' 笔</b> · '+d+"</span>"+
+      flightBadge(p)+'<span class="tr-d"><b style="color:var(--ink);font-weight:600">'+n+' 笔</b> · '+d+"</span>"+
       (state.curTrip===p.id?'<span class="tr-cur">当前</span>':"")+
       '<button class="btn btn-sm btn-ghost" data-tpc="'+esc(p.id)+'">认领账目</button>'+
       '<button class="btn btn-sm btn-ghost" data-tpx="'+esc(p.id)+'">🗺 行程页</button>'+
@@ -2185,7 +2199,7 @@ function renderTripList(){
   Array.prototype.forEach.call($("tripList").querySelectorAll("[data-tpe]"),function(b){
     b.onclick=function(){
       var p=tripById(b.getAttribute("data-tpe")); if(!p) return;
-      edTripId=p.id; $("tpName").value=p.name||""; $("tpStart").value=p.startDate||""; $("tpEnd").value=p.endDate||"";
+      edTripId=p.id; $("tpName").value=p.name||""; $("tpStart").value=p.startDate||""; $("tpEnd").value=p.endDate||""; $("tpFlight").value=tripFlight(p);
       $("tpSave").textContent="💾 保存修改";
       toast("编辑中，改完点「保存修改」");
     };
@@ -2219,17 +2233,18 @@ $("tpSave").onclick=function(){
   if(sv && ev && ev<sv){ toast("结束日期不能早于开始日期"); return; }
   if(edTripId){
     var p=tripById(edTripId); if(!p) return;
-    p.name=name; p.startDate=sv; p.endDate=ev; p.ts=Date.now();
+    p.name=name; p.startDate=sv; p.endDate=ev; setTripFlight(p,$("tpFlight").value); p.ts=Date.now();
     DB.upsert("x",p);
     edTripId=null;
-    $("tpName").value=""; $("tpStart").value=""; $("tpEnd").value=""; $("tpSave").textContent="＋ 创建行程";
-    loadAll(); renderTripBar(); renderList(); renderMembers();
+    $("tpName").value=""; $("tpStart").value=""; $("tpEnd").value=""; $("tpFlight").value=""; $("tpSave").textContent="＋ 创建行程";
+    loadAll(); renderTripBar(); renderList(); renderMembers(); renderPlan(); renderStats();
     toast("行程已更新 ✅");
   }else{
     var rec={ id:uid(), name:name, startDate:sv, endDate:ev, note:"", ts:Date.now() };
+    setTripFlight(rec,$("tpFlight").value);
     DB.upsert("x",rec);
     state.curTrip=rec.id; saveTripSel();
-    $("tpName").value=""; $("tpStart").value=""; $("tpEnd").value="";
+    $("tpName").value=""; $("tpStart").value=""; $("tpEnd").value=""; $("tpFlight").value="";
     loadAll(); renderTripBar(); renderList(); renderMembers();
     toast("行程已创建 🧳");
   }
@@ -2950,7 +2965,7 @@ function renderPlan(){
   }
   $("planSummary").style.display=""; 
   pt.className="form-trip"+(isVirtualScope()?" warn":"");
-  pt.innerHTML="📁 预算行程：<b>"+esc(trip.name)+"</b>"+(isVirtualScope()?' <span style="color:var(--coral-deep)">（在上方点选其他行程可切换）</span>':"")+
+  pt.innerHTML="📁 预算行程：<b>"+esc(trip.name)+"</b>"+flightBadge(trip)+(isVirtualScope()?' <span style="color:var(--coral-deep)">（在上方点选其他行程可切换）</span>':"")+
     ((trip.startDate||trip.endDate)?' <span style="color:var(--muted)">'+esc(trip.startDate||"…")+" ~ "+esc(trip.endDate||"…")+"</span>":"");
 
   var items=planItems(), bs=baseSym(), bc=baseCode();
