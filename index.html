@@ -4239,9 +4239,20 @@ function importTripPage(data, srcUrl){
       tags:[], impression:"", experiences:"", highlights:"", toilet:"", toiletNote:"", access:"", accessNote:"", note:"", lat:"", lng:"", txnIds:[] }, o));
     np++;
   }
+  /* 城市 / 车站 / 区域是「城市」这一层（地点上已有城市字段），不作为地点导入；
+   * 地点库里已有更具体的同名地点（如「清水寺（早起）」「东大寺大佛殿」「熊野那智大社」）时，笼统的「清水寺」「东大寺」「熊野那智大社 · 青岸渡寺 · 那智瀑布」也不再导入 */
+  function coveredBy(name){
+    var nn=normTitle(name), first=normTitle(String(name).split(/[·・＋+/／]/)[0]);
+    return state.places.some(function(q){
+      var qn=normTitle(q.name); if(!qn) return false;
+      return [nn,first].some(function(x){ return x.length>=2 && (qn===x || (x.length>=3 && (qn.indexOf(x)>=0 || x.indexOf(qn)>=0))); });
+    });
+  }
   (data.places||[]).forEach(function(p){
     var m=p.maps||{};
-    addPlace({ name:p.nameZh||p.name, kind: /restaurant/.test(p.category||"")? "restaurant" : /hotel|stay/.test(p.category||"")? "hotel" : /city|area|region/.test(p.category||"")? "other" : "sight",
+    if(/city|area|region|station/.test(p.category||"")) return;
+    if(coveredBy(p.nameZh||p.name)) return;
+    addPlace({ name:p.nameZh||p.name, kind: /restaurant/.test(p.category||"")? "restaurant" : /hotel|stay/.test(p.category||"")? "hotel" : "sight",
       city:p.cityOrArea||"", address:p.address||"", website:p.officialUrl||m.website||"", trip:trip.id, pack:"行程页 · "+title,
       rating:m.rating!=null?String(m.rating):"", hours:Array.isArray(m.hours)?m.hours.join("；"):(m.hoursNote||""),
       lat:p.geo&&p.geo.lat||"", lng:p.geo&&p.geo.lng||"" });
