@@ -321,6 +321,25 @@ main{max-width:780px;margin:0 auto;padding:16px 14px 60px;}
 .st-row .arrow{color:var(--coral-deep);font-weight:700;}
 .st-row .amt{font-family:var(--serif);font-weight:700;color:var(--coral-deep);margin-left:auto;font-variant-numeric:tabular-nums;}
 .st-done{text-align:center;color:var(--green);font-weight:700;padding:8px;}
+.st-row .st-done-btn{flex:none;padding:3px 10px;}
+.tr-head{display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.tr-list{display:flex;flex-direction:column;gap:8px;}
+.tr-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:9px 11px;border:1px dashed var(--line);border-radius:10px;background:var(--paper);font-size:13.5px;}
+.tr-row .who{font-weight:700;color:var(--ink-deep);}
+.tr-row .arrow{color:var(--muted);}
+.tr-row .amt{margin-left:auto;font-weight:700;color:var(--ink);font-variant-numeric:tabular-nums;}
+.tr-row .sub{flex-basis:100%;font-size:12px;color:var(--muted);}
+.tr-row .op{background:none;border:0;color:var(--muted);font-size:12.5px;cursor:pointer;padding:2px 4px;}
+.tr-empty{font-size:13px;color:var(--muted);padding:4px 2px;}
+.m-fields.tr-fields{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.tr-fields>div{min-width:0;}
+.tr-fields select,.tr-fields input{width:100%;}
+.tr-fields select{border:1px solid var(--line);border-radius:10px;padding:11px 12px;font-size:15px;background:#fff;color:var(--text);outline:none;-webkit-appearance:none;appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 17px) 50%,calc(100% - 12px) 50%;background-size:5px 5px;background-repeat:no-repeat;}
+.tr-fields select:focus{border-color:var(--ink);}
+.tr-fields .tr-wide{grid-column:1/-1;}
+.txn-card.transfer{border-style:dashed;background:var(--paper);}
+.txn-card.transfer .t-item{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.txn-card.transfer .tr-tag{font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;background:var(--line-soft);color:var(--ink-soft);}
 .settle-note{font-size:12px;color:var(--muted);margin-top:10px;}
 
 /* ---------- 弹窗 ---------- */
@@ -973,6 +992,12 @@ main{padding-bottom:96px;}
     <div class="member-grid" id="memberGrid"></div>
 
     <div class="card" style="margin-top:14px">
+      <div class="section-title tr-head"><span>成员转账</span><button class="btn btn-sm btn-primary" id="trAddBtn">＋ 记一笔转账</button></div>
+      <div class="settle-note" style="margin:0 0 10px">成员之间的转账，例如出发前按预算先交给管账的人一笔定额、或结算时的转账。只影响成员余额，不算进花费、统计和预算。</div>
+      <div class="tr-list" id="trList"></div>
+    </div>
+
+    <div class="card" style="margin-top:14px">
       <div class="section-title">怎么结（最少转账）</div>
       <div class="settle-list" id="settleList"></div>
       <div class="settle-note" id="settleNote"></div>
@@ -1033,6 +1058,27 @@ main{padding-bottom:96px;}
 </div>
 
 <!-- ============ 改名 / 备注 ============ -->
+<div class="mask" id="trMask">
+  <div class="modal">
+    <h3><span id="trTitle">🔁 记一笔转账</span><button class="m-close" id="trClose">✕</button></h3>
+    <div class="m-desc" id="trTrip"></div>
+    <div class="m-fields tr-fields">
+      <div><label>转出的人</label><select id="trFrom"></select></div>
+      <div><label>收款的人</label><select id="trTo"></select></div>
+      <div><label>金额</label><input id="trAmt" inputmode="decimal" autocomplete="off" placeholder="0.00"></div>
+      <div><label>币种</label><select id="trCur"></select></div>
+      <div id="trRateBox" hidden><label>汇率（1 外币 = ? 基准币）</label><input id="trRate" inputmode="decimal" autocomplete="off"></div>
+      <div><label>日期</label><input type="date" id="trDate"></div>
+      <div class="tr-wide"><label>说明</label><input id="trItem" maxlength="30" placeholder="如：预付定额、结算转账"></div>
+      <div class="tr-wide"><label>备注（可选）</label><input id="trNote" maxlength="60"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="trDel" style="color:var(--coral-deep);margin-right:auto" hidden>删除</button>
+      <button class="btn btn-ghost" id="trCancel">取消</button>
+      <button class="btn btn-primary" id="trSave">保存</button>
+    </div>
+  </div>
+</div>
 <div class="mask" id="rnMask">
   <div class="modal">
     <h3>✏️ 编辑成员</h3>
@@ -1313,8 +1359,8 @@ main{padding-bottom:96px;}
 
 /* ---------- 常量 ---------- */
 var CATS = ["餐饮","交通","住宿","门票","购物","娱乐","医疗","其他"];
-var CAT_ICON = {"门票":"🎫","餐饮":"🍜","交通":"🚄","购物":"🛍️","住宿":"🏨","娱乐":"🎭","医疗":"💊","其他":"🧾"};
-var CAT_COLOR = {"门票":"#5B7BB5","餐饮":"#E8734A","交通":"#3E7C9B","购物":"#C2853B","住宿":"#2E7D5B","娱乐":"#9B5BA5","医疗":"#C34F4F","其他":"#7B8471"};
+var CAT_ICON = {"门票":"🎫","餐饮":"🍜","交通":"🚄","购物":"🛍️","住宿":"🏨","娱乐":"🎭","医疗":"💊","其他":"🧾","转账":"🔁"};
+var CAT_COLOR = {"门票":"#5B7BB5","餐饮":"#E8734A","交通":"#3E7C9B","购物":"#C2853B","住宿":"#2E7D5B","娱乐":"#9B5BA5","医疗":"#C34F4F","其他":"#7B8471","转账":"#8A8F86"};
 var CURRENCIES = [
   ["CNY","人民币"],["JPY","日元"],["USD","美元"],["EUR","欧元"],["HKD","港币（中国香港）"],
   ["MOP","澳门币（中国澳门）"],["TWD","新台币（中国台湾）"],["KRW","韩元"],["THB","泰铢"],
@@ -1789,6 +1835,10 @@ function baseSym(){ return curSym(baseCode()); }
 
 /* ---------- 计算核心 ---------- */
 function txnBase(t){ return (+t.amount||0) * (+t.rate||0); }
+/* 成员转账（例如出发前按预算先交一笔定额给管账的人）：沿用账目表，分摊方式记为「转账」，付款人 = 转出的人，参与人 = 收款的人。
+ * 只影响成员余额和结算，不算花费：账目合计、统计、预算对比、人均都不计入 */
+function isTransfer(t){ return !!t && (t.splitMode==="转账" || t.category==="转账"); }
+function spendOnly(list){ return list.filter(function(t){ return !isTransfer(t); }); }
 function shareMap(t){ /* 返回 {姓名: 原币金额}；支持 平均分摊 / 按比例 / 按金额（兼容旧数据「自定义」→按金额） */
   var res={}, parts=String(t.participants||"").split("/").map(function(s){return s.trim();}).filter(Boolean), i, parsed={};
   var mode=normMode(t.splitMode);
@@ -1809,18 +1859,24 @@ function shareMap(t){ /* 返回 {姓名: 原币金额}；支持 平均分摊 / �
 }
 function memberStats(list){
   var src = list || scopedTxns();
-  var s={}; state.members.forEach(function(m){ s[m.name]={paid:0,owed:0,note:m.note||""}; });
+  var s={}; state.members.forEach(function(m){ s[m.name]={paid:0,owed:0,sent:0,recv:0,note:m.note||""}; });
   src.forEach(function(t){
     var base=txnBase(t);
+    if(isTransfer(t)){ /* 转出的人余额增加，收款的人余额减少 */
+      if(t.payer && s[t.payer]) s[t.payer].sent += base;
+      var to=txnParts(t)[0]; if(to && s[to]) s[to].recv += base;
+      return;
+    }
     if(t.payer && s[t.payer]) s[t.payer].paid += base;
     var sm=shareMap(t);
     for(var n in sm){ if(s[n]) s[n].owed += sm[n]*(+t.rate||0); }
   });
   return s;
 }
+function memberBal(st){ return st.paid-st.owed+st.sent-st.recv; }
 function settlePlan(){ /* 最少转账：贪心配对最大债权/债务 */
   var s=memberStats(), net={};
-  state.members.forEach(function(m){ var b=s[m.name].paid-s[m.name].owed; if(Math.abs(b)>0.005) net[m.name]=b; });
+  state.members.forEach(function(m){ var b=memberBal(s[m.name]); if(Math.abs(b)>0.005) net[m.name]=b; });
   var cred=[], debt=[];
   for(var n in net){ if(net[n]>0) cred.push([n,net[n]]); else debt.push([n,-net[n]]); }
   cred.sort(function(a,b){return b[1]-a[1];}); debt.sort(function(a,b){return b[1]-a[1];});
@@ -2385,11 +2441,12 @@ function renderList(){
   var list=src.filter(lvMatch).sort(lvSorter);
   renderLvActive();
   var total=0, confirmed=0, waitN=0;
-  list.forEach(function(t){ var b=txnBase(t); total+=b; if(t.status==="已确认") confirmed+=b; else waitN++; });
+  var trN=0;
+  list.forEach(function(t){ if(isTransfer(t)){ trN++; return; } var b=txnBase(t); total+=b; if(t.status==="已确认") confirmed+=b; else waitN++; });
   var bc=baseCode(), bs=baseSym();
   var scopeLbl=scopeLabel();
   $("listSummary").innerHTML=
-    '<div><div class="big">'+bs+fmt(total)+'</div><div class="sub">'+esc(bc)+' · '+esc(scopeLbl)+' · 共 '+list.length+' 笔 · 已确认 '+bs+fmt(confirmed)+'</div></div>'+
+    '<div><div class="big">'+bs+fmt(total)+'</div><div class="sub">'+esc(bc)+' · '+esc(scopeLbl)+' · 共 '+(list.length-trN)+' 笔'+(trN?'（另有成员转账 '+trN+' 笔，不计入花费）':'')+' · 已确认 '+bs+fmt(confirmed)+'</div></div>'+
     '<div style="text-align:right"><div class="big coral" style="font-size:18px;color:#E9C6A9">'+waitN+' 笔</div><div class="sub">待确认</div></div>';
 
   if(!list.length){
@@ -2399,6 +2456,7 @@ function renderList(){
   }
   batchList=list;
   var cardHtml=function(t){
+    if(isTransfer(t)) return transferCard(t);
     var c=curCode(t.currency), isBase=(c===bc), sm=shareMap(t), n=Object.keys(sm).length;
     var splitHtml, tMode=normMode(t.splitMode);
     if(tMode==="按金额" && t.customSplit){
@@ -2441,7 +2499,7 @@ function renderList(){
     $("txnList").innerHTML=list.map(cardHtml).join("");
   }else{
     var groups={}, keys=[];
-    list.forEach(function(t){ var k=lvKey(t); if(!groups[k]){ groups[k]={items:[],sum:0}; keys.push(k); } groups[k].items.push(t); groups[k].sum+=txnBase(t); });
+    list.forEach(function(t){ var k=lvKey(t); if(!groups[k]){ groups[k]={items:[],sum:0}; keys.push(k); } groups[k].items.push(t); if(!isTransfer(t)) groups[k].sum+=txnBase(t); });
     lvGroupOrder(keys,groups);
     $("txnList").innerHTML=keys.map(function(k){
       var g=groups[k], closed=!!lvClosed[lv.group+"|"+k];
@@ -2465,7 +2523,7 @@ function renderList(){
     b.onclick=function(e){ e.stopPropagation(); var t=DB.get("t",b.getAttribute("data-place")); if(t) placeFromTxn(t); };
   });
   Array.prototype.forEach.call($("txnList").querySelectorAll("[data-edit]"),function(b){
-    b.onclick=function(){ var t=DB.get("t",b.getAttribute("data-edit")); if(t) fillForm(t); };
+    b.onclick=function(){ var t=DB.get("t",b.getAttribute("data-edit")); if(!t) return; if(isTransfer(t)) openTransfer(t); else fillForm(t); };
   });
   Array.prototype.forEach.call($("txnList").querySelectorAll("[data-del]"),function(b){
     b.onclick=function(){
@@ -2557,7 +2615,7 @@ function renderMembers(){
   var src=scopedTxns();
   var scopeLbl=scopeLabel();
   var confirmed=0, waitN=0;
-  src.forEach(function(t){ if(t.status==="已确认") confirmed+=txnBase(t); else waitN++; });
+  spendOnly(src).forEach(function(t){ if(t.status==="已确认") confirmed+=txnBase(t); else waitN++; });
   $("mStats").innerHTML=
     '<div class="sb-item"><div class="sb-num">'+bs+fmt(confirmed)+'</div><div class="sb-label">已确认共同支出（'+esc(bc)+"）</div></div>"+
     '<div class="sb-item"><div class="sb-num coral">'+waitN+'</div><div class="sb-label">待确认笔数</div></div>'+
@@ -2586,14 +2644,16 @@ function renderMembers(){
 
   /* 成员卡片 */
   var s=memberStats(src), maxAbs=0.01;
-  state.members.forEach(function(m){ maxAbs=Math.max(maxAbs, Math.abs(s[m.name].paid-s[m.name].owed)); });
+  state.members.forEach(function(m){ maxAbs=Math.max(maxAbs, Math.abs(memberBal(s[m.name]))); });
   $("memberGrid").innerHTML = state.members.length ? state.members.map(function(m){
-    var st=s[m.name], bal=st.paid-st.owed, pos=bal>0.005, neg=bal<-0.005;
+    var st=s[m.name], bal=memberBal(st), pos=bal>0.005, neg=bal<-0.005;
     var w=Math.min(50, Math.abs(bal)/maxAbs*50);
     return '<div class="m-card"><div class="m-head"><span class="m-name">'+esc(m.name)+'</span>'+(m.note?'<span class="m-note">'+esc(m.note)+"</span>":"")+"</div>"+
       '<div class="m-nums">'+
         '<span class="n"><span class="lb">垫付</span><b>'+bs+fmt(st.paid)+'</b></span>'+
         '<span class="n"><span class="lb">应摊</span><b>'+bs+fmt(st.owed)+'</b></span>'+
+        (st.sent>0.005?'<span class="n"><span class="lb">已转出</span><b>'+bs+fmt(st.sent)+'</b></span>':"")+
+        (st.recv>0.005?'<span class="n"><span class="lb">已收转账</span><b>'+bs+fmt(st.recv)+'</b></span>':"")+
       "</div>"+
       '<div class="m-bal '+(pos?"pos":neg?"neg":"zero")+'"><span class="num">'+(pos?"+":"")+bs+fmt(bal)+'</span>'+
       '<span class="tag">'+(pos?"应收 💰":neg?"应付 💸":"两清 ✅")+"</span></div>"+
@@ -2603,10 +2663,99 @@ function renderMembers(){
   /* 怎么结 */
   var plan=settlePlan();
   $("settleList").innerHTML = plan.length
-    ? plan.map(function(p){ return '<div class="st-row"><span class="who">'+esc(p.from)+'</span><span class="arrow">➜ 转给 ➜</span><span class="who">'+esc(p.to)+'</span><span class="amt">'+bs+fmt(p.amt)+"</span></div>"; }).join("")
+    ? plan.map(function(p,i){ return '<div class="st-row"><span class="who">'+esc(p.from)+'</span><span class="arrow">➜ 转给 ➜</span><span class="who">'+esc(p.to)+'</span><span class="amt">'+bs+fmt(p.amt)+'</span><button class="btn btn-sm btn-ghost st-done-btn" data-stdone="'+i+'" title="记一笔这样的转账">已转</button></div>'; }).join("")
     : '<div class="st-done">'+(state.members.length?"🎉 目前两清，无需转账":"先添加成员后才能给出结算建议")+"</div>";
-  $("settleNote").textContent = plan.length ? ("按债权债务贪心配对，共 "+plan.length+" 笔转账即可全部结清（含待确认账目）。") : "";
+  $("settleNote").textContent = plan.length ? ("按债权债务贪心配对，共 "+plan.length+" 笔转账即可全部结清（含待确认账目）。转完点「已转」记下来，余额会自动更新。") : "";
+  Array.prototype.forEach.call($("settleList").querySelectorAll("[data-stdone]"),function(b){
+    b.onclick=function(){ var p=plan[+b.getAttribute("data-stdone")]; if(p) openTransfer(null,{ from:p.from, to:p.to, amount:Math.round(p.amt*100)/100, item:"结算转账" }); };
+  });
+  renderTransferList(src);
 }
+
+/* ---------- 成员转账 ---------- */
+function transferLine(t){ return esc(t.payer||"?")+' <span class="arrow">➜</span> '+esc(txnParts(t)[0]||"?"); }
+function transferAmt(t){
+  var c=curCode(t.currency);
+  return '<span class="code">'+esc(c)+'</span>'+fmt(t.amount)+(c===baseCode()? "" : '<small style="display:block;font-size:11px;color:var(--muted)">≈'+baseSym()+fmt(txnBase(t))+'</small>');
+}
+function transferCard(t){
+  return '<div class="txn-card transfer" style="--cat:'+CAT_COLOR["转账"]+'" title="成员转账">'+
+    '<div class="t-top"><div style="min-width:0"><div class="t-item">🔁 '+transferLine(t)+'</div>'+
+    '<div class="t-sub">'+esc(t.item||"转账")+' <span class="tr-tag">成员转账 · 不计入花费</span></div></div>'+
+    '<div class="t-amt-wrap" style="text-align:right"><div class="t-amt">'+transferAmt(t)+'</div></div></div>'+
+    '<div class="t-meta"><span>📅 '+esc(t.date||"-")+'</span>'+
+      (state.curTrip==="__all__"?'<span class="t-trip'+(isUnassigned(t)?" none":"")+'">'+(isUnassigned(t)?"📭 ":"🧳 ")+esc(tripName(t.trip))+"</span>":"")+'</div>'+
+    (t.note?'<div class="t-note">📝 '+esc(t.note)+"</div>":"")+
+    '<div class="t-ops"><button class="op" data-edit="'+esc(t.id)+'">编辑</button><button class="op del" data-del="'+esc(t.id)+'">删除</button></div>'+
+  "</div>";
+}
+function renderTransferList(src){
+  var list=src.filter(isTransfer).sort(function(a,b){ return String(b.date||"").localeCompare(String(a.date||"")) || (b.ts||0)-(a.ts||0); });
+  $("trList").innerHTML = list.length ? list.map(function(t){
+    return '<div class="tr-row"><span class="who">'+esc(t.payer||"?")+'</span><span class="arrow">➜</span><span class="who">'+esc(txnParts(t)[0]||"?")+'</span>'+
+      '<span class="amt">'+curSym(curCode(t.currency))+fmt(t.amount)+'</span>'+
+      '<button class="op" data-tre="'+esc(t.id)+'">编辑</button>'+
+      '<span class="sub">'+esc([t.date, t.item, t.note].filter(Boolean).join(" · "))+(state.curTrip==="__all__"? " · "+esc(tripName(t.trip)) : "")+'</span></div>';
+  }).join("") : '<div class="tr-empty">还没有转账记录</div>';
+  Array.prototype.forEach.call($("trList").querySelectorAll("[data-tre]"),function(b){
+    b.onclick=function(){ var t=DB.get("t",b.getAttribute("data-tre")); if(t) openTransfer(t); };
+  });
+}
+var trEditId=null;
+function trRateUI(){
+  var c=curCode($("trCur").value), foreign=c!==baseCode();
+  $("trRateBox").hidden=!foreign;
+  if(foreign && !$("trRate").value){ var r=lastRate(c); if(isFinite(r)) $("trRate").value=r; }
+}
+function openTransfer(t, preset){
+  if(state.members.length<2){ toast("至少需要两位成员才能记转账"); return; }
+  trEditId=t? t.id : null; preset=preset||{};
+  var names=state.members.map(function(m){ return m.name; });
+  var opts=function(keep){ var l=names.slice(); if(keep && l.indexOf(keep)<0) l.push(keep); return l.map(function(n){ return '<option value="'+esc(n)+'">'+esc(n)+'</option>'; }).join(""); };
+  var from=t? t.payer : (preset.from||names[0]), to=t? (txnParts(t)[0]||"") : (preset.to||names.filter(function(n){ return n!==from; })[0]);
+  $("trFrom").innerHTML=opts(from); $("trFrom").value=from;
+  $("trTo").innerHTML=opts(to); $("trTo").value=to;
+  $("trCur").innerHTML=curOpts(t&&t.currency); $("trCur").value=t? t.currency : baseLabel();
+  $("trRate").value= t && curCode(t.currency)!==baseCode()? t.rate : "";
+  $("trAmt").value= t? t.amount : (preset.amount!=null? preset.amount : "");
+  $("trDate").value= t? (t.date||"") : todayStr();
+  $("trItem").value= t? (t.item||"") : (preset.item||"预付定额");
+  $("trNote").value= t? (t.note||"") : "";
+  var tid= t? t.trip : targetTripId();
+  $("trTrip").innerHTML= "📁 记入行程：<b>"+esc(tid? tripName(tid) : "未分配")+"</b>";
+  $("trTitle").textContent= t? "🔁 编辑转账" : "🔁 记一笔转账";
+  $("trDel").hidden=!t;
+  trRateUI();
+  $("trMask").classList.add("on");
+}
+$("trAddBtn").onclick=function(){ openTransfer(null); };
+$("trCur").onchange=function(){ $("trRate").value=""; trRateUI(); };
+$("trClose").onclick=$("trCancel").onclick=function(){ $("trMask").classList.remove("on"); };
+$("trMask").addEventListener("click",function(e){ if(e.target===this) $("trMask").classList.remove("on"); });
+$("trSave").onclick=function(){
+  var from=$("trFrom").value, to=$("trTo").value, amt=parseFloat(String($("trAmt").value).replace(/,/g,""));
+  if(!from || !to){ toast("请选择转出和收款的人"); return; }
+  if(from===to){ toast("转出和收款不能是同一个人"); return; }
+  if(!isFinite(amt) || amt<=0){ toast("请输入金额"); return; }
+  var cur=$("trCur").value, rate=readRate(cur, $("trRate"));
+  if(!isFinite(rate)){ toast("请填写汇率"); return; }
+  if(curCode(cur)!==baseCode()) try{ LS.setItem("aalrate$"+curCode(cur),String(rate)); }catch(e){}
+  var old= trEditId? DB.get("t",trEditId) : null;
+  var rec=Object.assign({}, old||{ id:uid(), trip:targetTripId() }, {
+    ts:Date.now(), item:$("trItem").value.trim()||"转账", date:$("trDate").value||todayStr(), category:"转账",
+    payer:from, participants:to, amount:amt, splitMode:"转账", customSplit:"", status:"已确认",
+    note:$("trNote").value.trim(), currency:cur, rate:rate });
+  DB.upsert("t",rec);
+  $("trMask").classList.remove("on");
+  loadAll(); renderAll();
+  toast((old?"已更新转账：":"已记转账：")+from+" → "+to+" "+curSym(curCode(cur))+fmt(amt)+" 🔁");
+};
+$("trDel").onclick=function(){
+  var t=trEditId && DB.get("t",trEditId); if(!t) return;
+  confirmDialog("删除这笔转账（"+esc(t.payer)+" → "+esc(txnParts(t)[0]||"")+"）？").then(function(ok){
+    if(!ok) return; DB.remove("t",t.id); $("trMask").classList.remove("on"); loadAll(); renderAll(); toast("已删除转账 🗑");
+  });
+};
 
 /* ---------- 成员增删改名 ---------- */
 /* 把账目里的某个名字改成另一个（付款人、参与人、自定义分摊都改）；返回改了几笔 */
@@ -2755,12 +2904,13 @@ $("imGo").onclick=function(){
       rows.forEach(function(r){
         var item=String(r[0]||"").trim()||"未命名支出";
         var date=String(r[1]||"").trim(); if(!/^\d{4}-\d{2}-\d{2}$/.test(date)) date=todayStr();
-        var cat=CATS.indexOf(r[2])>=0?r[2]:"其他";
+        var cat=CATS.indexOf(r[2])>=0||r[2]==="转账"?r[2]:"其他";
         var payer=String(r[3]||"").trim(); if(!payer){ skipN++; return; }
         var parts=String(r[4]||"").trim()||payer;
         var amount=parseFloat(String(r[5]||"").replace(/,/g,""));
         if(!isFinite(amount)||amount<=0){ skipN++; return; }
-        var mode=(r[6]==="按比例")?"按比例":(r[6]==="按金额"||r[6]==="自定义")?"按金额":"平均分摊";
+        var mode=(r[6]==="按比例")?"按比例":(r[6]==="按金额"||r[6]==="自定义")?"按金额":(r[6]==="转账"||cat==="转账")?"转账":"平均分摊";
+        if(mode==="转账") cat="转账";
         var custom=(mode==="按比例"||mode==="按金额")? String(r[7]||"").trim() : "";
         var status=(r[8]==="已确认")?"已确认":"待确认";
         var cur=String(r[10]||"").trim()||baseLabel();
@@ -2972,7 +3122,7 @@ function renderPlan(){
   renderPlanFilters(items);
   var tot=0, byStatus={idea:0,booked:0,paid:0}, fixedTot=0;
   items.forEach(function(b){ var v=biBase(b); tot+=v; byStatus[b.status||"idea"]=(byStatus[b.status||"idea"]||0)+v; if(b.fixed) fixedTot+=v; });
-  var txns=state.txns.filter(function(t){ return (t.trip||"")===tid; });
+  var txns=state.txns.filter(function(t){ return (t.trip||"")===tid && !isTransfer(t); });
   var actual=0; txns.forEach(function(t){ actual+=txnBase(t); });
   var left=tot-actual;
   var gp=budgetPlan(tid);
@@ -3152,7 +3302,7 @@ function budgetCompare(tid){
   var gp=budgetPlan(tid), tol=gp? (+gp.tolerance||0)/100 : 0, out={ plan:gp, tol:tol, cats:{}, total:0, cap:0, actual:0, items:0 };
   var items={}, act={};
   state.budget.forEach(function(b){ if(b.trip===tid) items[b.category]=(items[b.category]||0)+biBase(b); });
-  state.txns.forEach(function(t){ if((t.trip||"")===tid) act[t.category||"其他"]=(act[t.category||"其他"]||0)+txnBase(t); });
+  state.txns.forEach(function(t){ if((t.trip||"")===tid && !isTransfer(t)) act[t.category||"其他"]=(act[t.category||"其他"]||0)+txnBase(t); });
   CATS.forEach(function(c){
     var alloc=gp? (+((gp.cats||{})[c])||0) : 0, it=items[c]||0, ac=act[c]||0;
     var budget=alloc||it;
@@ -3196,7 +3346,7 @@ var DEFAULT_SHARE={"住宿":35,"交通":25,"餐饮":20,"门票":8,"购物":6,"�
 function allocShares(tid){
   var by={}, sum=0, n={};
   state.txns.forEach(function(t){ if(!t.trip || t.trip===tid) return; n[t.trip]=(n[t.trip]||0)+1; });
-  state.txns.forEach(function(t){ if(!t.trip || t.trip===tid || n[t.trip]<3) return; var v=txnBase(t); by[t.category]=(by[t.category]||0)+v; sum+=v; });
+  state.txns.forEach(function(t){ if(!t.trip || t.trip===tid || n[t.trip]<3 || isTransfer(t)) return; var v=txnBase(t); by[t.category]=(by[t.category]||0)+v; sum+=v; });
   if(sum>0){ var out={}; CATS.forEach(function(c){ out[c]=(by[c]||0)/sum*100; }); return { shares:out, from:"history", trips:Object.keys(n).filter(function(k){ return n[k]>=3; }).length }; }
   return { shares:DEFAULT_SHARE, from:"default" };
 }
@@ -3680,7 +3830,7 @@ var PL_TO_CAT={ sight:"门票", restaurant:"餐饮", hotel:"住宿", shop:"购�
 /* 行程里实际参与的人数（账目里的参与人和付款人），没有账目时用成员人数 */
 function tripPeopleCount(tid){
   var ppl={};
-  state.txns.forEach(function(t){ if((t.trip||"")!==tid) return; if(t.payer) ppl[t.payer]=1; txnParts(t).forEach(function(n){ ppl[n]=1; }); });
+  state.txns.forEach(function(t){ if((t.trip||"")!==tid || isTransfer(t)) return; if(t.payer) ppl[t.payer]=1; txnParts(t).forEach(function(n){ ppl[n]=1; }); });
   var n=Object.keys(ppl).length; return n || state.members.length || 1;
 }
 function normTitle(x){ return String(x||"").replace(/[（(][^）)]*[）)]/g,"").replace(/[\s·・＋+/／、，,。.\-—_|｜:：]/g,"").replace(/祗/g,"祇").toLowerCase(); }
@@ -4447,6 +4597,7 @@ function tripDays(trip, list){
   return Math.max(1, Object.keys(ds).length);
 }
 function calcStats(list, trip){
+  list=spendOnly(list);
   var st={ n:list.length, total:0, byCat:{}, byDay:{}, payers:{}, people:{}, pending:0, top:null, foreign:0 };
   list.forEach(function(t){
     var b=txnBase(t); st.total+=b;
@@ -4558,7 +4709,7 @@ function buildSuggestions(st, list, trip, hist){
 
 function renderStats(){
   if(!$("view-stats")) return;
-  var list=scopedTxns(), trip=isVirtualScope()? null : tripById(state.curTrip);
+  var list=spendOnly(scopedTxns()), trip=isVirtualScope()? null : tripById(state.curTrip);
   var bs=baseSym(), bc=baseCode();
   $("stScope").innerHTML="📊 统计范围：<b>"+esc(scopeLabel())+"</b> · "+list.length+" 笔"+(trip?"":' <span style="color:var(--muted)">（在上方选一个行程可看单趟分析）</span>');
   if(!list.length){
